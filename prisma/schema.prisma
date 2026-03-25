@@ -1,0 +1,329 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── AUTH (Auth.js) ───────────────────────────────────────
+
+model User {
+  id              String    @id @default(cuid())
+  email           String    @unique
+  emailVerified   DateTime?
+  name            String?
+  image           String?
+  phone           String?
+  preferredLocale String    @default("ht")
+  role            Role      @default(USER)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  accounts   Account[]
+  sessions   Session[]
+  registries Registry[]
+  orders     Order[]
+  business   Business?
+
+  @@map("users")
+}
+
+enum Role {
+  USER
+  BUSINESS_OWNER
+  ADMIN
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+// ─── REGISTRIES ───────────────────────────────────────────
+
+enum RegistryType {
+  BABY_SHOWER
+  WEDDING
+  BIRTHDAY
+}
+
+enum RegistryStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+model Registry {
+  id          String         @id @default(cuid())
+  slug        String         @unique
+  userId      String
+  type        RegistryType
+  status      RegistryStatus @default(DRAFT)
+  title       String
+  description String?        @db.Text
+  eventDate   DateTime?
+  coverImage  String?
+  locale      String         @default("ht")
+
+  ogImageUrl  String?
+
+  amazonWishlistUrl String?
+  externalLinks     Json?
+
+  isPublic    Boolean  @default(true)
+  password    String?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user  User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items RegistryItem[]
+
+  @@index([userId])
+  @@index([slug])
+  @@map("registries")
+}
+
+// ─── REGISTRY ITEMS ───────────────────────────────────────
+
+enum ItemSource {
+  CUSTOM
+  LOCAL_BUSINESS
+  AMAZON
+  EXTERNAL
+}
+
+enum ItemStatus {
+  AVAILABLE
+  PARTIALLY_FULFILLED
+  FULFILLED
+}
+
+model RegistryItem {
+  id           String     @id @default(cuid())
+  registryId   String
+  title        String
+  description  String?    @db.Text
+  imageUrl     String?
+  priceHTG     Decimal?   @db.Decimal(12, 2)
+  priceUSD     Decimal?   @db.Decimal(12, 2)
+  quantity     Int        @default(1)
+  fulfilledQty Int        @default(0)
+  status       ItemStatus @default(AVAILABLE)
+  source       ItemSource @default(CUSTOM)
+
+  externalUrl  String?
+
+  businessId   String?
+  productId    String?
+
+  priority     Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  registry   Registry    @relation(fields: [registryId], references: [id], onDelete: Cascade)
+  business   Business?   @relation(fields: [businessId], references: [id])
+  orderItems OrderItem[]
+
+  @@index([registryId])
+  @@index([businessId])
+  @@map("registry_items")
+}
+
+// ─── BUSINESSES ───────────────────────────────────────────
+
+enum BusinessStatus {
+  PENDING_REVIEW
+  APPROVED
+  SUSPENDED
+}
+
+model Business {
+  id          String         @id @default(cuid())
+  ownerId     String         @unique
+  name        String
+  slug        String         @unique
+  description String?        @db.Text
+  logoUrl     String?
+  coverUrl    String?
+  category    String
+
+  city        String?
+  department  String?
+  address     String?
+
+  phone       String?
+  whatsapp    String?
+  email       String?
+  website     String?
+
+  moncashNumber   String?
+  natcashNumber   String?
+  stripeAccountId String?
+
+  status          BusinessStatus @default(PENDING_REVIEW)
+  commissionRate  Decimal        @default(5.0) @db.Decimal(4, 2)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  owner    User           @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  items    RegistryItem[]
+  products Product[]
+
+  @@index([slug])
+  @@map("businesses")
+}
+
+model Product {
+  id          String   @id @default(cuid())
+  businessId  String
+  name        String
+  description String?  @db.Text
+  imageUrl    String?
+  priceHTG    Decimal? @db.Decimal(12, 2)
+  priceUSD    Decimal? @db.Decimal(12, 2)
+  inStock     Boolean  @default(true)
+  category    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  @@index([businessId])
+  @@map("products")
+}
+
+// ─── ORDERS & PAYMENTS ────────────────────────────────────
+
+enum OrderStatus {
+  PENDING
+  PAID
+  CONFIRMED
+  SHIPPED
+  DELIVERED
+  CANCELLED
+  REFUNDED
+}
+
+enum PaymentProvider {
+  STRIPE
+  PAYPAL
+  MONCASH
+  NATCASH
+  EXTERNAL_REDIRECT
+}
+
+enum PaymentStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+model Order {
+  id          String      @id @default(cuid())
+  orderNumber String      @unique
+  buyerId     String?
+  buyerName   String
+  buyerEmail  String
+  buyerPhone  String?
+  giftMessage String?     @db.Text
+  isAnonymous Boolean     @default(false)
+
+  totalHTG    Decimal?    @db.Decimal(12, 2)
+  totalUSD    Decimal?    @db.Decimal(12, 2)
+  platformFee Decimal?    @db.Decimal(12, 2)
+
+  status      OrderStatus @default(PENDING)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  buyer   User?       @relation(fields: [buyerId], references: [id])
+  items   OrderItem[]
+  payment Payment?
+
+  @@index([buyerId])
+  @@index([orderNumber])
+  @@map("orders")
+}
+
+model OrderItem {
+  id             String   @id @default(cuid())
+  orderId        String
+  registryItemId String
+  quantity       Int      @default(1)
+  priceHTG       Decimal? @db.Decimal(12, 2)
+  priceUSD       Decimal? @db.Decimal(12, 2)
+
+  order        Order        @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  registryItem RegistryItem @relation(fields: [registryItemId], references: [id])
+
+  @@map("order_items")
+}
+
+model Payment {
+  id              String          @id @default(cuid())
+  orderId         String          @unique
+  provider        PaymentProvider
+  status          PaymentStatus   @default(PENDING)
+
+  stripePaymentId String?
+  paypalOrderId   String?
+  moncashTxId     String?
+  natcashTxId     String?
+
+  amountHTG       Decimal?        @db.Decimal(12, 2)
+  amountUSD       Decimal?        @db.Decimal(12, 2)
+  currency        String
+
+  providerResponse Json?
+
+  paidAt    DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([stripePaymentId])
+  @@index([moncashTxId])
+  @@map("payments")
+}
