@@ -183,6 +183,21 @@
     "noAccount": "Pas encore de compte ?",
     "hasAccount": "D\u00e9j\u00e0 un compte ?"
   },
+  "error": {
+    "description": "Quelque chose s'est mal pass\u00e9. Veuillez r\u00e9essayer.",
+    "tryAgain": "R\u00e9essayer",
+    "notFound": "Page introuvable",
+    "notFoundDesc": "La page que vous cherchez n'existe pas."
+  },
+  "settings": {
+    "profile": "Votre profil",
+    "name": "Votre nom",
+    "email": "Votre email",
+    "emailHint": "L'email ne peut pas \u00eatre modifi\u00e9 ici.",
+    "phone": "T\u00e9l\u00e9phone",
+    "language": "Langue pr\u00e9f\u00e9r\u00e9e",
+    "saved": "Modifications enregistr\u00e9es !"
+  },
   "footer": {
     "tagline": "Des cadeaux pour toute occasion, chez vous.",
     "privacy": "Politique de confidentialit\u00e9",
