@@ -58,7 +58,7 @@ export default async function DashboardPage() {
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <Link href="/my-registries">
           <Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
             <CardContent className="p-6 flex items-center gap-4">
@@ -69,6 +69,21 @@ export default async function DashboardPage() {
                 </h3>
                 <p className="text-sm text-gray-500">
                   {t("registry.viewRegistry")}
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </Link>
+        <Link href="/orders">
+          <Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
+            <CardContent className="p-6 flex items-center gap-4">
+              <span className="text-3xl">📦</span>
+              <div>
+                <h3 className="font-semibold text-gray-900">
+                  {t("nav.orders")}
+                </h3>
+                <p className="text-sm text-gray-500">
+                  Wè kado moun achte pou ou
                 </p>
               </div>
             </CardContent>
