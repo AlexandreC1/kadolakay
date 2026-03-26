@@ -113,9 +113,25 @@
     "total": "Total",
     "platformFee": "Frè platfòm"
   },
+  "orders": {
+    "subtitle": "Kado moun achte pou ou",
+    "noOrdersYet": "Pa gen kòmand ankò",
+    "noOrdersDesc": "Lè moun achte kado nan rejis ou yo, w ap wè yo isit la. Pataje rejis ou pou kòmanse resevwa kado!",
+    "viewOrders": "Wè kòmand ou yo",
+    "paid": "Peye",
+    "anonymous": "Yon moun",
+    "giftsReceived": "Kado resevwa"
+  },
   "business": {
     "signup": "Enskri biznis ou",
     "signupDesc": "Mete biznis ou sou KadoLakay epi rive jwenn plis kliyan.",
+    "pendingMessage": "Biznis ou ap tann apwobasyon.",
+    "pendingHint": "Ou ka kòmanse ajoute pwodwi pandan wap tann.",
+    "noProducts": "Pa gen pwodwi ankò.",
+    "noOrders": "Pa gen kòmand ankò.",
+    "inStock": "An stòk",
+    "outOfStock": "Pa disponib",
+    "noMatchingProducts": "Pa gen pwodwi ki koresponn.",
     "name": "Non biznis la",
     "category": "Kategori",
     "city": "Vil",

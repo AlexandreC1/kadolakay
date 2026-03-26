@@ -63,8 +63,8 @@ export default async function BusinessDashboardPage() {
       {business.status === "PENDING_REVIEW" && (
         <div className="mb-8 rounded-xl border border-yellow-200 bg-yellow-50 p-4">
           <p className="text-sm text-yellow-800">
-            {t("business.pendingReview")} — Biznis ou ap tann apwobasyon.
-            Ou ka kòmanse ajoute pwodwi pandan wap tann.
+            {t("business.pendingMessage")}{" "}
+            {t("business.pendingHint")}
           </p>
         </div>
       )}
@@ -135,7 +135,7 @@ export default async function BusinessDashboardPage() {
                   {t("nav.orders")}
                 </h3>
                 <p className="text-sm text-gray-500">
-                  Wè kòmand ou yo
+                  {t("orders.viewOrders")}
                 </p>
               </div>
             </CardContent>

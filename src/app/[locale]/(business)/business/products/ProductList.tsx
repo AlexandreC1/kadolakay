@@ -99,7 +99,7 @@ export function ProductList({ businessId, products }: ProductListProps) {
       {products.length === 0 ? (
         <div className="text-center py-12 border-2 border-dashed border-gray-200 rounded-xl">
           <span className="text-4xl block mb-2">📦</span>
-          <p className="text-gray-500">Pa gen pwodwi ankò.</p>
+          <p className="text-gray-500">{t("business.noProducts")}</p>
           <Button
             variant="gold"
             className="mt-4"
@@ -141,7 +141,7 @@ export function ProductList({ businessId, products }: ProductListProps) {
                         : "bg-gray-100 text-gray-500"
                     }`}
                   >
-                    {product.inStock ? "An stòk" : "Pa disponib"}
+                    {product.inStock ? t("business.inStock") : t("business.outOfStock")}
                   </span>
                 </div>
                 <div className="mt-2">

@@ -84,7 +84,7 @@ export function ProductPicker({ registryId, onAdd, onClose }: ProductPickerProps
             </div>
           ) : filtered.length === 0 ? (
             <div className="text-center py-8 text-gray-500">
-              Pa gen pwodwi ki koresponn.
+              {t("business.noMatchingProducts")}
             </div>
           ) : (
             <div className="space-y-3">

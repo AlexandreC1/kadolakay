@@ -84,7 +84,7 @@ export default async function OrdersPage() {
             {t("nav.orders")}
           </h1>
           <p className="text-gray-600 mt-1">
-            Kado moun achte pou ou
+            {t("orders.subtitle")}
           </p>
         </div>
         <Link
@@ -100,11 +100,10 @@ export default async function OrdersPage() {
           <CardContent className="p-12 text-center">
             <span className="text-5xl block mb-4">🎁</span>
             <h2 className="text-xl font-semibold text-gray-700 mb-2">
-              Pa gen kòmand ankò
+              {t("orders.noOrdersYet")}
             </h2>
             <p className="text-gray-500 mb-6">
-              Lè moun achte kado nan rejis ou yo, w ap wè yo isit la.
-              Pataje rejis ou pou kòmanse resevwa kado!
+              {t("orders.noOrdersDesc")}
             </p>
             <Link
               href="/my-registries"
@@ -132,7 +131,7 @@ export default async function OrdersPage() {
                       </span>
                       <div>
                         <CardTitle className="text-lg">
-                          {order.isAnonymous ? "Yon moun" : order.buyerName}
+                          {order.isAnonymous ? t("orders.anonymous") : order.buyerName}
                         </CardTitle>
                         <p className="text-sm text-gray-500">
                           {registry?.title && (
@@ -159,7 +158,7 @@ export default async function OrdersPage() {
                           paymentStatusColors[order.status] || "bg-gray-100 text-gray-800"
                         }`}
                       >
-                        {order.status === "PAID" ? "Peye" : order.status}
+                        {order.status === "PAID" ? t("orders.paid") : order.status}
                       </span>
                     </div>
                   </div>
@@ -198,7 +197,7 @@ export default async function OrdersPage() {
                         &ldquo;{order.giftMessage}&rdquo;
                       </p>
                       <p className="text-xs text-amber-700 mt-1">
-                        — {order.isAnonymous ? "Yon moun" : order.buyerName}
+                        — {order.isAnonymous ? t("orders.anonymous") : order.buyerName}
                       </p>
                     </div>
                   )}
