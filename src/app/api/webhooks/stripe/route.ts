@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { stripe } from "@/lib/payments/stripe";
 import { db } from "@/lib/db";
+import { fulfillOrder } from "@/lib/orders";
 import Stripe from "stripe";
 
 export async function POST(req: NextRequest) {
@@ -31,7 +32,6 @@ export async function POST(req: NextRequest) {
     const orderId = session.metadata?.orderId;
 
     if (orderId) {
-      // Update payment status
       await db.payment.updateMany({
         where: { orderId, provider: "STRIPE" },
         data: {
@@ -41,31 +41,7 @@ export async function POST(req: NextRequest) {
         },
       });
 
-      // Update order status
-      await db.order.update({
-        where: { id: orderId },
-        data: { status: "PAID" },
-      });
-
-      // Update registry item fulfillment
-      const orderItems = await db.orderItem.findMany({
-        where: { orderId },
-        include: { registryItem: true },
-      });
-
-      for (const oi of orderItems) {
-        const newFulfilled = oi.registryItem.fulfilledQty + oi.quantity;
-        await db.registryItem.update({
-          where: { id: oi.registryItemId },
-          data: {
-            fulfilledQty: newFulfilled,
-            status:
-              newFulfilled >= oi.registryItem.quantity
-                ? "FULFILLED"
-                : "PARTIALLY_FULFILLED",
-          },
-        });
-      }
+      await fulfillOrder(orderId);
     }
   }
 
