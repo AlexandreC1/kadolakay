@@ -1,0 +1,186 @@
+# =============================================================================
+# CI Pipeline — KadoLakay
+# =============================================================================
+#
+# WHAT IS CI/CD?
+# CI (Continuous Integration) = automatically test every code change
+# CD (Continuous Deployment)  = automatically deploy tested code to production
+#
+# WHY?
+# Without CI/CD, you're relying on humans to remember to run tests, check
+# types, and verify the build before merging. Humans forget. Automation doesn't.
+#
+# This file defines a "workflow" — a set of automated steps that GitHub runs
+# every time someone pushes code or opens a pull request.
+#
+# HOW TO READ THIS FILE:
+# - `on:` = "when should this run?"
+# - `jobs:` = "what should it do?"
+# - Each job runs in a fresh virtual machine (Ubuntu Linux)
+# - Jobs can run in parallel (lint + typecheck run at the same time)
+# - Jobs can depend on each other (build waits for lint + typecheck)
+# =============================================================================
+
+name: CI
+
+# =============================================================================
+# TRIGGERS: When does this pipeline run?
+# =============================================================================
+on:
+  # Run on every push to main (after a merge)
+  push:
+    branches: [main]
+
+  # Run on every pull request targeting main
+  # This is the key protection: PRs can't merge if CI fails
+  pull_request:
+    branches: [main]
+
+# =============================================================================
+# ENVIRONMENT VARIABLES
+# Available to all jobs in this workflow
+# =============================================================================
+env:
+  NODE_VERSION: "20"  # Pin Node.js version for consistency across all jobs
+
+# =============================================================================
+# JOBS: What does the pipeline actually do?
+#
+# We split work into separate jobs for two reasons:
+# 1. PARALLELISM: lint and typecheck run simultaneously (faster)
+# 2. CLARITY: if typecheck fails but lint passes, you know exactly what broke
+#
+# Pipeline shape:
+#
+#   ┌──────────┐     ┌──────────────┐
+#   │   lint   │     │  typecheck   │
+#   └────┬─────┘     └──────┬───────┘
+#        │                  │
+#        └──────┬───────────┘
+#               │
+#        ┌──────▼──────┐
+#        │    build    │  ← only runs if lint AND typecheck pass
+#        └─────────────┘
+#
+# =============================================================================
+jobs:
+
+  # ===========================================================================
+  # JOB 1: LINT
+  # Catches code style issues, unused imports, potential bugs
+  # ===========================================================================
+  lint:
+    name: "Lint"
+    runs-on: ubuntu-latest  # GitHub provides free Ubuntu VMs
+
+    steps:
+      # Step 1: Download your code into the VM
+      # Without this, the VM is empty — it doesn't have your code yet
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Step 2: Install Node.js
+      # The VM has basic tools but not necessarily the right Node version
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"  # Cache node_modules between runs (saves ~30s)
+
+      # Step 3: Install dependencies
+      # `ci` is stricter than `install` — it uses the exact versions from
+      # package-lock.json (no surprise upgrades in CI)
+      - name: Install dependencies
+        run: npm ci
+
+      # Step 4: Run the linter
+      # ESLint checks for code quality issues, unused vars, etc.
+      - name: Run ESLint
+        run: npm run lint
+
+  # ===========================================================================
+  # JOB 2: TYPECHECK
+  # TypeScript compiler verifies all types are correct
+  # Catches bugs like: passing a string where a number is expected
+  # ===========================================================================
+  typecheck:
+    name: "Type Check"
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Prisma generates TypeScript types from the database schema.
+      # Without this step, TypeScript wouldn't know about our models.
+      - name: Generate Prisma client
+        run: npx prisma generate
+
+      # tsc --noEmit = check types without producing output files
+      # This is faster than a full build and catches type errors early
+      - name: Run TypeScript compiler
+        run: npx tsc --noEmit
+
+  # ===========================================================================
+  # JOB 3: BUILD
+  # The most important check: can the app actually compile?
+  # This catches issues that lint and typecheck miss:
+  # - Broken imports between files
+  # - Server/client component boundary violations
+  # - Invalid dynamic routes
+  # - CSS compilation errors
+  #
+  # `needs: [lint, typecheck]` means this job WAITS for both to pass first.
+  # Why? No point building if there are lint or type errors.
+  # ===========================================================================
+  build:
+    name: "Build"
+    runs-on: ubuntu-latest
+    needs: [lint, typecheck]  # ← dependency chain
+
+    # These env vars are needed for the build to succeed,
+    # but we use dummy values since we're not connecting to real services
+    env:
+      DATABASE_URL: "postgresql://fake:fake@localhost:5432/fake"
+      AUTH_SECRET: "ci-secret-not-real"
+      NEXT_PUBLIC_APP_URL: "http://localhost:3000"
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma client
+        run: npx prisma generate
+
+      # This is the real test: `next build` compiles everything.
+      # If this passes, you can be confident the app will start in production.
+      - name: Build application
+        run: npm run build
+
+      # Save the build output so it could be used by a deploy step later
+      # This avoids rebuilding in the deploy job
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        if: github.ref == 'refs/heads/main'
+        with:
+          name: nextjs-build
+          path: .next/
+          retention-days: 7  # Auto-delete after 7 days to save storage

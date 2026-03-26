@@ -1,0 +1,70 @@
+# =============================================================================
+# Database Migration Workflow
+# =============================================================================
+#
+# WHY A SEPARATE WORKFLOW?
+# Database migrations are dangerous — a bad migration can break production
+# and lose data. We handle them separately from code deployment because:
+#
+# 1. Migrations should run BEFORE the new code deploys
+#    (new code might depend on new columns/tables)
+# 2. Migrations need the real DATABASE_URL (not a dummy one)
+# 3. We want explicit human approval before touching the production database
+#
+# WORKFLOW:
+#   Developer changes schema → PR includes migration file →
+#   CI verifies build → Merge to main → This workflow runs →
+#   Human approves → Migration executes against production DB
+#
+# =============================================================================
+
+name: Database Migration
+
+on:
+  # Only run when Prisma migration files change
+  push:
+    branches: [main]
+    paths:
+      - "prisma/migrations/**"
+      - "prisma/schema.prisma"
+
+  # Allow manual trigger for emergency migrations
+  workflow_dispatch:
+
+jobs:
+  migrate:
+    name: "Run Prisma Migration"
+    runs-on: ubuntu-latest
+
+    # IMPORTANT: This uses the "production" environment, which should have
+    # "Required reviewers" enabled in GitHub Settings → Environments.
+    # This means a human must click "Approve" before the migration runs.
+    environment: production
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      # `prisma migrate deploy` applies pending migrations.
+      # Unlike `migrate dev`, it does NOT generate new migrations —
+      # it only runs migrations that already exist in prisma/migrations/.
+      # This is the safe, production-appropriate command.
+      - name: Run migrations
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: npx prisma migrate deploy
+
+      # After migration, regenerate the Prisma client to match the new schema
+      - name: Verify Prisma client
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: npx prisma generate

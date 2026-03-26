@@ -101,3 +101,51 @@ export async function updateRegistryItem(itemId: string, formData: FormData) {
 
   revalidatePath(`/r/${item.registry.slug}`);
 }
+
+/**
+ * Add a product from an approved local business directly into a registry.
+ * This bridges the business catalog with user registries — a key feature
+ * for supporting Haitian local commerce.
+ */
+export async function addBusinessProductToRegistry(
+  registryId: string,
+  productId: string
+) {
+  const session = await auth();
+  if (!session?.user?.id) {
+    throw new Error("Unauthorized");
+  }
+
+  const registry = await db.registry.findUnique({
+    where: { id: registryId },
+  });
+
+  if (!registry || registry.userId !== session.user.id) {
+    throw new Error("Not found or unauthorized");
+  }
+
+  const product = await db.product.findUnique({
+    where: { id: productId },
+    include: { business: { select: { id: true, name: true, status: true } } },
+  });
+
+  if (!product || product.business.status !== "APPROVED") {
+    throw new Error("Product not found or business not approved");
+  }
+
+  await db.registryItem.create({
+    data: {
+      registryId,
+      title: product.name,
+      description: product.description,
+      imageUrl: product.imageUrl,
+      priceHTG: product.priceHTG,
+      priceUSD: product.priceUSD,
+      source: "LOCAL_BUSINESS",
+      businessId: product.business.id,
+      productId: product.id,
+    },
+  });
+
+  revalidatePath(`/r/${registry.slug}`);
+}

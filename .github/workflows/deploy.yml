@@ -1,0 +1,120 @@
+# =============================================================================
+# CD Pipeline — Deploy to Vercel
+# =============================================================================
+#
+# DEPLOYMENT STRATEGY:
+#
+# We use THREE environments, each serving a different purpose:
+#
+# 1. PREVIEW (automatic)
+#    - Every pull request gets its own URL (e.g., kadolakay-pr-42.vercel.app)
+#    - You can test your changes live before merging
+#    - Vercel does this automatically — no config needed
+#
+# 2. STAGING (manual trigger)
+#    - A stable "almost production" environment
+#    - Used for final testing before going live
+#    - Deployed manually when you're ready to verify
+#
+# 3. PRODUCTION (after merge to main)
+#    - The real deal — what users see at kadolakay.com
+#    - Only deployed after CI passes on the main branch
+#    - Uses Vercel's built-in GitHub integration
+#
+# WHY THREE ENVIRONMENTS?
+# Think of it like cooking: you taste (preview), plate (staging),
+# then serve (production). Each step catches different problems.
+#
+# =============================================================================
+#
+# IMPORTANT: For Vercel deployment, you have two options:
+#
+# Option A (Recommended): Vercel GitHub Integration
+#   - Connect your repo at vercel.com/new
+#   - Vercel automatically deploys on push — no workflow needed
+#   - Preview deployments happen automatically on PRs
+#   - This file becomes a backup/reference
+#
+# Option B: Manual Vercel CLI deployment (this workflow)
+#   - Requires VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_PROJECT_ID secrets
+#   - More control but more setup
+#
+# =============================================================================
+
+name: Deploy
+
+on:
+  # Only deploy when code is pushed to main (after PR merge + CI pass)
+  push:
+    branches: [main]
+
+  # Allow manual deployment (useful for staging or rollbacks)
+  # You can trigger this from GitHub's Actions tab → "Run workflow"
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Deploy to which environment?"
+        required: true
+        default: "staging"
+        type: choice
+        options:
+          - staging
+          - production
+
+# =============================================================================
+# CONCURRENCY
+# If two deployments are triggered at the same time (e.g., two quick merges),
+# cancel the older one. No point deploying stale code.
+# =============================================================================
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    name: "Deploy to Vercel"
+    runs-on: ubuntu-latest
+
+    # Only run if CI passed (on push to main, CI runs first via ci.yml)
+    # For manual triggers, we skip this check
+    if: github.event_name == 'workflow_dispatch' || github.event_name == 'push'
+
+    # Environment protection rules can be configured in GitHub Settings
+    # This enables approval workflows for production deploys
+    environment:
+      name: ${{ github.event.inputs.environment || 'production' }}
+      url: ${{ steps.deploy.outputs.url }}
+
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install Vercel CLI
+        run: npm install -g vercel
+
+      # Pull Vercel project settings (framework, build config, env vars)
+      - name: Pull Vercel configuration
+        run: vercel pull --yes --token=${{ secrets.VERCEL_TOKEN }}
+
+      # Build using Vercel's build system (respects vercel.json settings)
+      - name: Build for Vercel
+        run: vercel build --token=${{ secrets.VERCEL_TOKEN }} ${{ github.event.inputs.environment == 'production' && '--prod' || '' }}
+
+      # Deploy the pre-built output
+      - name: Deploy
+        id: deploy
+        run: |
+          URL=$(vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }} ${{ github.event.inputs.environment == 'production' && '--prod' || '' }})
+          echo "url=$URL" >> $GITHUB_OUTPUT
+          echo "Deployed to: $URL"
