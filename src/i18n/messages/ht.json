@@ -183,6 +183,21 @@
     "noAccount": "Ou pa gen kont?",
     "hasAccount": "Ou gen kont deja?"
   },
+  "error": {
+    "description": "Yon bagay pa t ale byen. Tanpri eseye ankò.",
+    "tryAgain": "Eseye ankò",
+    "notFound": "Paj sa a pa egziste",
+    "notFoundDesc": "Paj ou ap chache a pa disponib."
+  },
+  "settings": {
+    "profile": "Pwofil ou",
+    "name": "Non ou",
+    "email": "Imèl ou",
+    "emailHint": "Imèl ou pa ka chanje isit la.",
+    "phone": "Telefòn",
+    "language": "Lang ou prefere",
+    "saved": "Chanjman yo anrejistre!"
+  },
   "footer": {
     "tagline": "Kado pou tout okazyon, lakay ou.",
     "privacy": "Règ sou vi prive",

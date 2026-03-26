@@ -104,6 +104,21 @@ export default async function DashboardPage() {
             </CardContent>
           </Card>
         </Link>
+        <Link href="/settings">
+          <Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
+            <CardContent className="p-6 flex items-center gap-4">
+              <span className="text-3xl">⚙️</span>
+              <div>
+                <h3 className="font-semibold text-gray-900">
+                  {t("nav.settings")}
+                </h3>
+                <p className="text-sm text-gray-500">
+                  {t("settings.profile")}
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </Link>
       </div>
     </div>
   );

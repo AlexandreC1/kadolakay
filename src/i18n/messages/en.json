@@ -183,6 +183,21 @@
     "noAccount": "Don't have an account?",
     "hasAccount": "Already have an account?"
   },
+  "error": {
+    "description": "Something went wrong. Please try again.",
+    "tryAgain": "Try again",
+    "notFound": "Page not found",
+    "notFoundDesc": "The page you're looking for doesn't exist."
+  },
+  "settings": {
+    "profile": "Your profile",
+    "name": "Your name",
+    "email": "Your email",
+    "emailHint": "Email cannot be changed here.",
+    "phone": "Phone",
+    "language": "Preferred language",
+    "saved": "Changes saved!"
+  },
   "footer": {
     "tagline": "Gifts for every occasion, from home.",
     "privacy": "Privacy Policy",
