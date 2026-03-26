@@ -33,8 +33,8 @@ export function RegistryItemCard({ item, locale }: RegistryItemCardProps) {
     if (isExternal && item.externalUrl) {
       window.open(item.externalUrl, "_blank");
     } else {
-      // Navigate to checkout — for now, show the item
-      window.location.href = `?buy=${item.id}`;
+      // Navigate to checkout with this item selected
+      window.location.href = `${window.location.pathname}/checkout?items=${item.id}`;
     }
   }
 
