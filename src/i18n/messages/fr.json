@@ -113,9 +113,25 @@
     "total": "Total",
     "platformFee": "Frais de plateforme"
   },
+  "orders": {
+    "subtitle": "Cadeaux achet\u00e9s pour vous",
+    "noOrdersYet": "Aucune commande pour l'instant",
+    "noOrdersDesc": "Lorsque quelqu'un ach\u00e8te un cadeau de votre registre, vous le verrez ici. Partagez votre registre pour commencer \u00e0 recevoir des cadeaux !",
+    "viewOrders": "Voir vos commandes",
+    "paid": "Pay\u00e9",
+    "anonymous": "Quelqu'un",
+    "giftsReceived": "Cadeaux re\u00e7us"
+  },
   "business": {
     "signup": "Inscrivez votre commerce",
     "signupDesc": "Mettez votre commerce sur KadoLakay et touchez plus de clients.",
+    "pendingMessage": "Votre commerce est en attente d'approbation.",
+    "pendingHint": "Vous pouvez commencer \u00e0 ajouter des produits en attendant.",
+    "noProducts": "Aucun produit pour l'instant.",
+    "noOrders": "Aucune commande pour l'instant.",
+    "inStock": "En stock",
+    "outOfStock": "Rupture de stock",
+    "noMatchingProducts": "Aucun produit correspondant.",
     "name": "Nom du commerce",
     "category": "Cat\u00e9gorie",
     "city": "Ville",

@@ -83,7 +83,7 @@ export default async function DashboardPage() {
                   {t("nav.orders")}
                 </h3>
                 <p className="text-sm text-gray-500">
-                  Wè kado moun achte pou ou
+                  {t("orders.subtitle")}
                 </p>
               </div>
             </CardContent>

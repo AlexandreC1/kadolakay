@@ -113,9 +113,25 @@
     "total": "Total",
     "platformFee": "Platform fee"
   },
+  "orders": {
+    "subtitle": "Gifts purchased for you",
+    "noOrdersYet": "No orders yet",
+    "noOrdersDesc": "When someone buys a gift from your registries, you'll see it here. Share your registry to start receiving gifts!",
+    "viewOrders": "View your orders",
+    "paid": "Paid",
+    "anonymous": "Someone",
+    "giftsReceived": "Gifts received"
+  },
   "business": {
     "signup": "Register your business",
     "signupDesc": "Put your business on KadoLakay and reach more customers.",
+    "pendingMessage": "Your business is pending approval.",
+    "pendingHint": "You can start adding products while you wait.",
+    "noProducts": "No products yet.",
+    "noOrders": "No orders yet.",
+    "inStock": "In stock",
+    "outOfStock": "Out of stock",
+    "noMatchingProducts": "No matching products.",
     "name": "Business name",
     "category": "Category",
     "city": "City",

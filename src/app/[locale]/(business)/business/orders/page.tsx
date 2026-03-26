@@ -97,7 +97,7 @@ export default async function BusinessOrdersPage() {
       {orders.length === 0 ? (
         <div className="text-center py-12 text-gray-500">
           <span className="text-4xl block mb-2">🧾</span>
-          <p>Pa gen kòmand ankò.</p>
+          <p>{t("business.noOrders")}</p>
         </div>
       ) : (
         <div className="space-y-4">
@@ -118,7 +118,7 @@ export default async function BusinessOrdersPage() {
                     </div>
                     <p className="text-sm text-gray-500 mt-1">
                       {order.isAnonymous
-                        ? "Anonim"
+                        ? t("orders.anonymous")
                         : order.buyerName}
                       {" | "}
                       {new Date(order.createdAt).toLocaleDateString()}
