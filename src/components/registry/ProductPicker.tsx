@@ -94,7 +94,7 @@ export function ProductPicker({ registryId, onAdd, onClose }: ProductPickerProps
                     {product.imageUrl ? (
                       <img
                         src={product.imageUrl}
-                        alt=""
+                        alt={product.name}
                         className="h-14 w-14 rounded-lg object-cover"
                       />
                     ) : (

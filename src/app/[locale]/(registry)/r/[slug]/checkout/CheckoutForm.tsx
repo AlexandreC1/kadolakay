@@ -147,7 +147,7 @@ export function CheckoutForm({ registrySlug, items, locale }: CheckoutFormProps)
                   {item.imageUrl && (
                     <img
                       src={item.imageUrl}
-                      alt=""
+                      alt={item.title}
                       className="h-12 w-12 rounded-lg object-cover"
                     />
                   )}

@@ -237,7 +237,7 @@ export function RegistryEditForm({ registry }: RegistryEditFormProps) {
                   {item.imageUrl && (
                     <img
                       src={item.imageUrl}
-                      alt=""
+                      alt={item.title}
                       className="h-16 w-16 rounded-lg object-cover"
                     />
                   )}

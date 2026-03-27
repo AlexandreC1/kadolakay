@@ -89,7 +89,7 @@ export default async function RegistryPage({ params }: PageProps) {
             {registry.user.image && (
               <img
                 src={registry.user.image}
-                alt=""
+                alt={registry.user.name || "Foto pwofil"}
                 className="h-8 w-8 rounded-full"
               />
             )}

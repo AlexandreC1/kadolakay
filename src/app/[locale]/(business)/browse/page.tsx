@@ -35,7 +35,7 @@ export default async function BrowseBusinessesPage() {
                 <div className="h-32 bg-gray-100 overflow-hidden">
                   <img
                     src={business.coverUrl}
-                    alt=""
+                    alt={business.name}
                     className="h-full w-full object-cover"
                     loading="lazy"
                   />
@@ -46,7 +46,7 @@ export default async function BrowseBusinessesPage() {
                   {business.logoUrl ? (
                     <img
                       src={business.logoUrl}
-                      alt=""
+                      alt={`${business.name} logo`}
                       className="h-12 w-12 rounded-lg object-cover border border-gray-200"
                     />
                   ) : (

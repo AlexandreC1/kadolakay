@@ -31,12 +31,14 @@ export function UserMenu({ user }: UserMenuProps) {
     <div className="relative" ref={menuRef}>
       <button
         onClick={() => setOpen(!open)}
+        aria-label="Menu itilizatè"
+        aria-expanded={open}
         className="flex items-center gap-2 rounded-full border border-gray-200 p-1 pr-3 hover:bg-gray-50 transition-colors"
       >
         {user.image ? (
           <img
             src={user.image}
-            alt=""
+            alt={user.name ? `${user.name}` : "Foto pwofil"}
             className="h-8 w-8 rounded-full object-cover"
           />
         ) : (
