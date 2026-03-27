@@ -114,7 +114,7 @@ export function ImageUpload({
         {preview ? (
           <img
             src={preview}
-            alt=""
+            alt="Apèsi imaj"
             className="h-full w-full object-cover"
           />
         ) : (
