@@ -10,9 +10,20 @@ import { revalidatePath } from "next/cache";
 export async function createOrder(formData: FormData) {
   const session = await auth();
 
+  // Safely parse JSON fields — malformed input should fail gracefully,
+  // not crash the server with an unhandled JSON.parse exception.
+  let registryItemIds: unknown;
+  let quantities: unknown;
+  try {
+    registryItemIds = JSON.parse(formData.get("registryItemIds") as string);
+    quantities = JSON.parse(formData.get("quantities") as string);
+  } catch {
+    throw new Error("Invalid order data");
+  }
+
   const raw = {
-    registryItemIds: JSON.parse(formData.get("registryItemIds") as string),
-    quantities: JSON.parse(formData.get("quantities") as string),
+    registryItemIds,
+    quantities,
     buyerName: formData.get("buyerName") as string,
     buyerEmail: formData.get("buyerEmail") as string,
     buyerPhone: (formData.get("buyerPhone") as string) || undefined,
