@@ -81,8 +81,13 @@ export async function updateRegistryItem(itemId: string, formData: FormData) {
     throw new Error("Not found or unauthorized");
   }
 
+  // SECURITY: Whitelist allowed fields to prevent mass assignment.
+  // Without this, a malicious user could send `registryId=someone-elses-id`
+  // or `fulfilledQty=999` in the FormData and modify protected fields.
+  const ALLOWED_FIELDS = ["title", "description", "priceHTG", "priceUSD", "quantity", "externalUrl", "imageUrl"];
   const updates: Record<string, unknown> = {};
   for (const [key, value] of formData.entries()) {
+    if (!ALLOWED_FIELDS.includes(key)) continue;
     if (value !== "") {
       if (key === "priceHTG" || key === "priceUSD") {
         updates[key] = Number(value);
