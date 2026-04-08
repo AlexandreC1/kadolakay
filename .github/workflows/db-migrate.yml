@@ -52,7 +52,7 @@ jobs:
           cache: "npm"
 
       - name: Install dependencies
-        run: npm install --no-audit --no-fund --prefer-offline
+        run: rm -f package-lock.json && npm install --no-audit --no-fund
 
       # `prisma migrate deploy` applies pending migrations.
       # Unlike `migrate dev`, it does NOT generate new migrations —
