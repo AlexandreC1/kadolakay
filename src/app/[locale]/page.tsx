@@ -1,6 +1,7 @@
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { Button } from "@/components/ui/button";
+import Hero3DLazy from "@/components/hero/Hero3DLazy";
 
 export default function HomePage() {
   const t = useTranslations();
@@ -21,7 +22,8 @@ export default function HomePage() {
         <div className="absolute -bottom-40 -left-40 h-80 w-80 rounded-full bg-yellow-500/20 blur-3xl" />
 
         <div className="relative mx-auto max-w-7xl px-4 py-24 sm:px-6 sm:py-32 lg:px-8 lg:py-40">
-          <div className="text-center">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-8 items-center">
+            <div className="text-center lg:text-left">
             {/* Badge */}
             <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-amber-500/30 bg-amber-500/10 px-4 py-1.5 text-sm text-amber-200">
               <span className="inline-block h-2 w-2 rounded-full bg-green-400 animate-pulse" />
@@ -31,10 +33,10 @@ export default function HomePage() {
             <h1 className="text-4xl font-bold tracking-tight text-white sm:text-5xl lg:text-6xl xl:text-7xl">
               {t("landing.heroTitle")}
             </h1>
-            <p className="mx-auto mt-6 max-w-2xl text-lg text-amber-100/80 sm:text-xl leading-relaxed">
+            <p className="mt-6 max-w-2xl text-lg text-amber-100/80 sm:text-xl leading-relaxed lg:mx-0 mx-auto">
               {t("landing.heroSubtitle")}
             </p>
-            <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
+            <div className="mt-10 flex flex-col sm:flex-row items-center lg:justify-start justify-center gap-4">
               <Link href="/create">
                 <Button variant="gold" size="xl" className="shadow-lg shadow-amber-900/50 text-base px-8">
                   {t("landing.ctaCreate")}
@@ -52,7 +54,7 @@ export default function HomePage() {
             </div>
 
             {/* Trust indicators */}
-            <div className="mt-12 flex flex-wrap items-center justify-center gap-6 text-amber-300/60 text-sm">
+            <div className="mt-12 flex flex-wrap items-center lg:justify-start justify-center gap-6 text-amber-300/60 text-sm">
               <span className="flex items-center gap-1.5">
                 <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
                 Gratis pou kreye
@@ -65,6 +67,12 @@ export default function HomePage() {
                 <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
                 Kreyòl, Fransè, English
               </span>
+            </div>
+            </div>
+
+            {/* 3D parallax hero — mouse-driven, GPU-accelerated, ~50KB lazy chunk */}
+            <div className="relative">
+              <Hero3DLazy />
             </div>
           </div>
         </div>

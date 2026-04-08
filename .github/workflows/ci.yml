@@ -131,7 +131,35 @@ jobs:
         run: npx tsc --noEmit
 
   # ===========================================================================
-  # JOB 3: BUILD
+  # JOB 3: TEST
+  # Vitest unit tests for lib/ and actions/. Runs in parallel with lint/typecheck
+  # so a failing test never blocks finding type errors and vice versa.
+  # ===========================================================================
+  test:
+    name: "Test"
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma client
+        run: npx prisma generate
+
+      - name: Run unit tests
+        run: npm test
+
+  # ===========================================================================
+  # JOB 4: BUILD
   # The most important check: can the app actually compile?
   # This catches issues that lint and typecheck miss:
   # - Broken imports between files
@@ -145,7 +173,7 @@ jobs:
   build:
     name: "Build"
     runs-on: ubuntu-latest
-    needs: [lint, typecheck]  # ← dependency chain
+    needs: [lint, typecheck, test]  # ← dependency chain
 
     # These env vars are needed for the build to succeed,
     # but we use dummy values since we're not connecting to real services
