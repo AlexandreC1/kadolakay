@@ -54,7 +54,6 @@ export function ImageUpload({
         const { uploadUrl, publicUrl } = await getUploadUrl(
           context,
           contextId,
-          file.name,
           file.type,
           file.size
         );

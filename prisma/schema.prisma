@@ -311,6 +311,10 @@ model Payment {
   moncashTxId     String?
   natcashTxId     String?
 
+  // Provider event ID (e.g. Stripe event.id) — used to make webhook handlers
+  // idempotent. Unique so a duplicate delivery is rejected at the DB level.
+  providerEventId String?         @unique
+
   amountHTG       Decimal?        @db.Decimal(12, 2)
   amountUSD       Decimal?        @db.Decimal(12, 2)
   currency        String
