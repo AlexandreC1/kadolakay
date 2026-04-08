@@ -59,15 +59,32 @@ export async function POST(req: NextRequest) {
     const orderId = session.metadata?.orderId;
 
     if (orderId) {
-      // Update payment record with Stripe's payment intent ID
-      await db.payment.updateMany({
-        where: { orderId, provider: "STRIPE" },
-        data: {
-          status: "COMPLETED",
-          stripePaymentId: session.payment_intent as string,
-          paidAt: new Date(),
-        },
-      });
+      // Idempotency guard: claim this Stripe event.id atomically. If it's
+      // already recorded, this is a duplicate delivery and we short-circuit
+      // without re-fulfilling. The unique index on providerEventId enforces
+      // it at the DB level so we can't race a concurrent retry.
+      try {
+        await db.payment.update({
+          where: { orderId },
+          data: {
+            status: "COMPLETED",
+            stripePaymentId: session.payment_intent as string,
+            providerEventId: event.id,
+            paidAt: new Date(),
+          },
+        });
+      } catch (err) {
+        // P2002 = unique constraint violation on providerEventId → already processed.
+        if (
+          typeof err === "object" &&
+          err !== null &&
+          "code" in err &&
+          (err as { code?: string }).code === "P2002"
+        ) {
+          return NextResponse.json({ received: true, duplicate: true });
+        }
+        throw err;
+      }
 
       // Fulfill the order (idempotent — safe if webhook fires twice)
       await fulfillOrder(orderId);

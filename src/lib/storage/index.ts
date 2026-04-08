@@ -1,3 +1,4 @@
+import { randomBytes } from "node:crypto";
 import {
   S3Client,
   PutObjectCommand,
@@ -16,14 +17,32 @@ const s3 = new S3Client({
 
 const BUCKET = process.env.S3_BUCKET!;
 
+// Trusted extension lookup: extension is derived from the validated contentType,
+// never from the user-supplied filename, so a malicious filename can't trick
+// us into hosting an .html or .svg under a wrong key.
+const EXT_BY_TYPE: Record<string, string> = {
+  "image/jpeg": "jpg",
+  "image/png": "png",
+  "image/webp": "webp",
+  "image/gif": "gif",
+};
+
+export function extensionForContentType(contentType: string): string | null {
+  return EXT_BY_TYPE[contentType] ?? null;
+}
+
 export async function generatePresignedUploadUrl(
   key: string,
-  contentType: string
+  contentType: string,
+  // Exact byte length the client is allowed to upload. Bound into the
+  // signature so the client cannot exceed it.
+  contentLength: number
 ) {
   const command = new PutObjectCommand({
     Bucket: BUCKET,
     Key: key,
     ContentType: contentType,
+    ContentLength: contentLength,
   });
   const uploadUrl = await getSignedUrl(s3, command, { expiresIn: 300 });
   return { uploadUrl, publicUrl: getPublicUrl(key) };
@@ -44,9 +63,9 @@ export async function deleteFile(key: string) {
 export function getUploadKey(
   context: "registry" | "product" | "business" | "avatar",
   id: string,
-  fileName: string
+  contentType: string
 ) {
-  const ext = fileName.split(".").pop() || "webp";
-  const timestamp = Date.now();
-  return `uploads/${context}/${id}/${timestamp}.${ext}`;
+  const ext = extensionForContentType(contentType) ?? "bin";
+  const nonce = randomBytes(12).toString("hex");
+  return `uploads/${context}/${id}/${Date.now()}-${nonce}.${ext}`;
 }

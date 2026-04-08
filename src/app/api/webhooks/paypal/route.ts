@@ -36,16 +36,9 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    // Step 1: Capture the payment (verify + collect money)
-    const result = await paypalProvider.verifyPayment({
-      transactionId: token,
-    });
-
-    if (!result.success) {
-      return NextResponse.redirect(new URL("/?payment=failed", req.url));
-    }
-
-    // Step 2: Find the payment by PayPal order ID
+    // Step 1: Look up the payment record FIRST. If we don't recognize this
+    // PayPal order ID, the request is forged or stale — bail before calling
+    // PayPal so we don't leak any state.
     const payment = await db.payment.findFirst({
       where: {
         paypalOrderId: token,
@@ -59,18 +52,45 @@ export async function GET(req: NextRequest) {
       return NextResponse.redirect(new URL("/?payment=failed", req.url));
     }
 
-    // Step 3: Update payment status
-    await db.payment.update({
-      where: { orderId: payment.orderId },
-      data: {
-        status: "COMPLETED",
-        paidAt: new Date(),
-        providerResponse: result.rawResponse as object,
-      },
-    });
+    // Idempotency: if this payment is already completed, skip capture and
+    // just redirect to success. Prevents double-capture if the user reloads.
+    if (payment.status !== "COMPLETED") {
+      // Step 2: Capture the payment (verify + collect money)
+      const result = await paypalProvider.verifyPayment({
+        transactionId: token,
+      });
 
-    // Step 4: Fulfill the order (idempotent)
-    await fulfillOrder(payment.orderId);
+      if (!result.success) {
+        return NextResponse.redirect(new URL("/?payment=failed", req.url));
+      }
+
+      // Step 3: Update payment status (claim providerEventId atomically)
+      try {
+        await db.payment.update({
+          where: { orderId: payment.orderId },
+          data: {
+            status: "COMPLETED",
+            providerEventId: `paypal:${token}`,
+            paidAt: new Date(),
+            providerResponse: result.rawResponse as object,
+          },
+        });
+      } catch (err) {
+        if (
+          typeof err === "object" &&
+          err !== null &&
+          "code" in err &&
+          (err as { code?: string }).code === "P2002"
+        ) {
+          // Concurrent request already claimed this token — fall through to success.
+        } else {
+          throw err;
+        }
+      }
+
+      // Step 4: Fulfill the order (idempotent)
+      await fulfillOrder(payment.orderId);
+    }
 
     // Step 5: Redirect to success page
     const slug = await getRegistrySlugForOrder(payment.orderId);
