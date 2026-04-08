@@ -91,7 +91,7 @@ jobs:
       # `ci` is stricter than `install` — it uses the exact versions from
       # package-lock.json (no surprise upgrades in CI)
       - name: Install dependencies
-        run: npm ci
+        run: npm install --no-audit --no-fund --prefer-offline
 
       # Step 4: Run the linter
       # ESLint checks for code quality issues, unused vars, etc.
@@ -118,7 +118,7 @@ jobs:
           cache: "npm"
 
       - name: Install dependencies
-        run: npm ci
+        run: npm install --no-audit --no-fund --prefer-offline
 
       # Prisma generates TypeScript types from the database schema.
       # Without this step, TypeScript wouldn't know about our models.
@@ -150,7 +150,7 @@ jobs:
           cache: "npm"
 
       - name: Install dependencies
-        run: npm ci
+        run: npm install --no-audit --no-fund --prefer-offline
 
       - name: Generate Prisma client
         run: npx prisma generate
@@ -193,7 +193,7 @@ jobs:
           cache: "npm"
 
       - name: Install dependencies
-        run: npm ci
+        run: npm install --no-audit --no-fund --prefer-offline
 
       - name: Generate Prisma client
         run: npx prisma generate
