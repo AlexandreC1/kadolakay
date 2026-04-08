@@ -91,7 +91,11 @@ jobs:
       # `ci` is stricter than `install` — it uses the exact versions from
       # package-lock.json (no surprise upgrades in CI)
       - name: Install dependencies
-        run: npm install --no-audit --no-fund --prefer-offline
+        # Delete the Windows-generated lockfile and let Linux resolve its own
+        # native binaries (rollup, @emnapi, swc helpers). npm's
+        # cross-platform optional-dep handling is broken; this is the
+        # standard workaround. See npm/cli#4828.
+        run: rm -f package-lock.json && npm install --no-audit --no-fund
 
       # Step 4: Run the linter
       # ESLint checks for code quality issues, unused vars, etc.
@@ -118,7 +122,11 @@ jobs:
           cache: "npm"
 
       - name: Install dependencies
-        run: npm install --no-audit --no-fund --prefer-offline
+        # Delete the Windows-generated lockfile and let Linux resolve its own
+        # native binaries (rollup, @emnapi, swc helpers). npm's
+        # cross-platform optional-dep handling is broken; this is the
+        # standard workaround. See npm/cli#4828.
+        run: rm -f package-lock.json && npm install --no-audit --no-fund
 
       # Prisma generates TypeScript types from the database schema.
       # Without this step, TypeScript wouldn't know about our models.
@@ -150,7 +158,11 @@ jobs:
           cache: "npm"
 
       - name: Install dependencies
-        run: npm install --no-audit --no-fund --prefer-offline
+        # Delete the Windows-generated lockfile and let Linux resolve its own
+        # native binaries (rollup, @emnapi, swc helpers). npm's
+        # cross-platform optional-dep handling is broken; this is the
+        # standard workaround. See npm/cli#4828.
+        run: rm -f package-lock.json && npm install --no-audit --no-fund
 
       - name: Generate Prisma client
         run: npx prisma generate
@@ -193,7 +205,11 @@ jobs:
           cache: "npm"
 
       - name: Install dependencies
-        run: npm install --no-audit --no-fund --prefer-offline
+        # Delete the Windows-generated lockfile and let Linux resolve its own
+        # native binaries (rollup, @emnapi, swc helpers). npm's
+        # cross-platform optional-dep handling is broken; this is the
+        # standard workaround. See npm/cli#4828.
+        run: rm -f package-lock.json && npm install --no-audit --no-fund
 
       - name: Generate Prisma client
         run: npx prisma generate
