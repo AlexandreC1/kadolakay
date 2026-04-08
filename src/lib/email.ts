@@ -26,7 +26,16 @@
 
 import { Resend } from "resend";
 
-const resend = new Resend(process.env.AUTH_RESEND_KEY);
+// Lazy singleton — instantiating Resend at module load throws if
+// AUTH_RESEND_KEY is missing, which breaks `next build` page-data collection
+// in CI/preview environments where the secret isn't provisioned.
+let _resend: Resend | null = null;
+function resendClient(): Resend {
+  if (!_resend) {
+    _resend = new Resend(process.env.AUTH_RESEND_KEY ?? "re_build_placeholder");
+  }
+  return _resend;
+}
 
 const FROM =
   process.env.AUTH_RESEND_FROM || "KadoLakay <noreply@kadolakay.com>";
@@ -62,7 +71,7 @@ export async function sendGiftNotification({
   const itemList = itemNames.map((name) => `  • ${name}`).join("\n");
 
   try {
-    await resend.emails.send({
+    await resendClient().emails.send({
       from: FROM,
       to: recipientEmail,
       subject: `🎁 ${buyerName} te voye yon kado pou ou! — KadoLakay`,
@@ -165,7 +174,7 @@ export async function sendOrderConfirmation({
   const itemList = itemNames.map((name) => `  • ${name}`).join("\n");
 
   try {
-    await resend.emails.send({
+    await resendClient().emails.send({
       from: FROM,
       to: buyerEmail,
       subject: `Mèsi pou kado ou a! Kòmand #${orderNumber} — KadoLakay`,
