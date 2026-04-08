@@ -29,20 +29,25 @@ export interface PaymentProviderInterface {
   }): Promise<VerifyPaymentResult>;
 }
 
+// Static imports — Next.js tree-shaking removes any provider not actually
+// referenced from a route, so we don't need (and can't use) CommonJS require
+// here. Lint forbids it and ESM doesn't have a sync equivalent.
+import { stripeProvider } from "./stripe";
+import { paypalProvider } from "./paypal";
+import { moncashProvider } from "./moncash";
+import { natcashProvider } from "./natcash";
+
+const PROVIDERS: Record<PaymentProviderType, PaymentProviderInterface> = {
+  stripe: stripeProvider,
+  paypal: paypalProvider,
+  moncash: moncashProvider,
+  natcash: natcashProvider,
+};
+
 export function getPaymentProvider(
   provider: PaymentProviderType
 ): PaymentProviderInterface {
-  switch (provider) {
-    case "stripe":
-      // Lazy import to avoid loading all providers
-      return require("./stripe").stripeProvider;
-    case "paypal":
-      return require("./paypal").paypalProvider;
-    case "moncash":
-      return require("./moncash").moncashProvider;
-    case "natcash":
-      return require("./natcash").natcashProvider;
-    default:
-      throw new Error(`Unknown payment provider: ${provider}`);
-  }
+  const p = PROVIDERS[provider];
+  if (!p) throw new Error(`Unknown payment provider: ${provider}`);
+  return p;
 }
