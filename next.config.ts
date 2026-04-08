@@ -1,5 +1,6 @@
 import type { NextConfig } from "next";
 import createNextIntlPlugin from "next-intl/plugin";
+import { withSentryConfig } from "@sentry/nextjs";
 
 const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 
@@ -60,4 +61,14 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default withNextIntl(nextConfig);
+// Wrap with Sentry. When SENTRY_DSN / SENTRY_AUTH_TOKEN are unset the wrapper
+// is effectively a passthrough — local dev and CI need no Sentry config.
+export default withSentryConfig(withNextIntl(nextConfig), {
+  org: process.env.SENTRY_ORG,
+  project: process.env.SENTRY_PROJECT,
+  silent: !process.env.CI,
+  widenClientFileUpload: true,
+  sourcemaps: { disable: false, deleteSourcemapsAfterUpload: true },
+  // Tunnel requests through our own origin to bypass ad-blockers eating events.
+  tunnelRoute: "/monitoring",
+});

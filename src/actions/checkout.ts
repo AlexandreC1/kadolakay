@@ -1,14 +1,27 @@
 "use server";
 
+import { headers } from "next/headers";
 import { db } from "@/lib/db";
 import { auth } from "@/lib/auth";
 import { checkoutSchema } from "@/lib/validators/checkout";
 import { getPaymentProvider, type PaymentProviderType } from "@/lib/payments";
 import { generateOrderNumber } from "@/lib/utils";
+import { checkRateLimit } from "@/lib/rate-limit";
 import { revalidatePath } from "next/cache";
 
 export async function createOrder(formData: FormData) {
   const session = await auth();
+
+  // Rate limit checkout attempts. Identifier is the user ID when signed in,
+  // otherwise the client IP — guests get a per-IP bucket so abuse is bounded
+  // even without an account.
+  const h = await headers();
+  const ip = h.get("x-forwarded-for")?.split(",")[0]?.trim() ?? h.get("x-real-ip") ?? "anon";
+  const identifier = session?.user?.id ? `user:${session.user.id}` : `ip:${ip}`;
+  const rl = await checkRateLimit("checkout", identifier);
+  if (!rl.ok) {
+    throw new Error("Too many checkout attempts. Please wait a moment and try again.");
+  }
 
   // Safely parse JSON fields — malformed input should fail gracefully,
   // not crash the server with an unhandled JSON.parse exception.
