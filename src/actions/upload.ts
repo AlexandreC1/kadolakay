@@ -7,18 +7,9 @@ import {
   generatePresignedUploadUrl,
   getUploadKey,
 } from "@/lib/storage";
+import { uploadRequestSchema, type UploadRequest } from "@/lib/validators/upload";
 
-const ALLOWED_TYPES = [
-  "image/jpeg",
-  "image/png",
-  "image/webp",
-  "image/gif",
-];
-
-const MAX_SIZE = 5 * 1024 * 1024; // 5 MB
-const MIN_SIZE = 64; // anything smaller can't be a real image
-
-type UploadContext = "registry" | "product" | "business" | "avatar";
+type UploadContext = UploadRequest["context"];
 
 /**
  * Verifies that the signed-in user is allowed to upload media into the given
@@ -61,6 +52,8 @@ async function assertContextOwnership(
     if (!row || row.business.ownerId !== userId) throw new Error("Forbidden");
     return;
   }
+  // Deny by default: a context nobody wrote a branch for is not allowed.
+  throw new Error("Forbidden");
 }
 
 export async function getUploadUrl(
@@ -74,20 +67,29 @@ export async function getUploadUrl(
     throw new Error("Unauthorized");
   }
 
-  if (!ALLOWED_TYPES.includes(contentType) || !extensionForContentType(contentType)) {
-    throw new Error("Invalid file type. Allowed: JPEG, PNG, WebP, GIF");
-  }
-  if (!Number.isFinite(fileSize) || fileSize < MIN_SIZE || fileSize > MAX_SIZE) {
-    throw new Error("File size out of range (64 B – 5 MB)");
-  }
-
-  await assertContextOwnership(
+  // Validate every argument at runtime; the TypeScript signature is not
+  // enforced for callers of a Server Action.
+  const parsed = uploadRequestSchema.safeParse({
     context,
     contextId,
+    contentType,
+    fileSize,
+  });
+  if (!parsed.success) {
+    throw new Error("Invalid upload request (JPEG, PNG, WebP or GIF, 64 B to 5 MB)");
+  }
+  const input = parsed.data;
+
+  await assertContextOwnership(
+    input.context,
+    input.contextId,
     session.user.id,
     session.user.role === "ADMIN"
   );
 
-  const key = getUploadKey(context, contextId, contentType);
-  return generatePresignedUploadUrl(key, contentType, fileSize);
+  if (!extensionForContentType(input.contentType)) {
+    throw new Error("Invalid file type");
+  }
+  const key = getUploadKey(input.context, input.contextId, input.contentType);
+  return generatePresignedUploadUrl(key, input.contentType, input.fileSize);
 }
