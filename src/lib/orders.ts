@@ -14,8 +14,10 @@
  *
  * CRITICAL SAFETY MEASURES:
  *
- * 1. IDEMPOTENCY — A webhook might fire multiple times for the same payment.
- *    If an order is already PAID, we skip fulfillment (no double-counting).
+ * 1. IDEMPOTENCY — A webhook might fire multiple times for the same payment,
+ *    sometimes at the same instant. The order is claimed with a conditional
+ *    write (PAID only if not already PAID) inside the transaction, so exactly
+ *    one delivery fulfills it, even when two run concurrently.
  *
  * 2. ATOMIC TRANSACTION — We use Prisma's $transaction to ensure that either
  *    ALL database updates succeed or NONE do. Without this, a crash between
@@ -72,9 +74,9 @@ export async function fulfillOrder(orderId: string) {
 
   if (!order) throw new Error(`Order not found: ${orderId}`);
 
-  // ── Step 2: Idempotency guard ──
-  // If a webhook fires twice for the same payment, skip the second call.
-  // This prevents double-fulfillment without needing a separate idempotency table.
+  // ── Step 2: Fast-path idempotency check ──
+  // Cheap early exit for the common case: a retry that arrives long after the
+  // first delivery finished. This check alone is NOT enough — see Step 3.
   if (order.status === "PAID") {
     console.log(`Order ${orderId} already fulfilled, skipping (idempotent).`);
     return null;
@@ -83,12 +85,25 @@ export async function fulfillOrder(orderId: string) {
   // ── Step 3: Atomic transaction — all or nothing ──
   // Wrap order status update AND item fulfillment in a single transaction.
   // If anything fails, everything rolls back.
-  await db.$transaction(async (tx) => {
-    // Mark order as paid
-    await tx.order.update({
-      where: { id: orderId },
+  const claimed = await db.$transaction(async (tx) => {
+    // Claim the order with a conditional write: "set PAID only if not PAID".
+    //
+    // The Step 2 check reads, then this writes — a check-then-act gap. Two
+    // deliveries of the same webhook (MonCash and PayPal retry; only Stripe
+    // has its own event-id claim upstream) can both read PENDING in Step 2 and
+    // both reach this point. With a plain `update`, both would then increment
+    // the items and the gift would be counted twice.
+    //
+    // `updateMany` with a status condition compiles to a single
+    // `UPDATE ... WHERE id = ? AND status <> 'PAID'`. Postgres row-locks the
+    // order during that statement, so the second transaction waits, re-checks
+    // the condition after the first commits, and matches zero rows. The
+    // database decides the winner, not JavaScript.
+    const { count } = await tx.order.updateMany({
+      where: { id: orderId, status: { not: "PAID" } },
       data: { status: "PAID" },
     });
+    if (count === 0) return false;
 
     // Update each registry item's fulfillment.
     //
@@ -116,7 +131,15 @@ export async function fulfillOrder(orderId: string) {
         WHERE id = ${oi.registryItemId}
       `;
     }
+    return true;
   });
+
+  // Lost the race: another delivery already fulfilled this order. Returning
+  // here also means its emails go out once, not twice.
+  if (!claimed) {
+    console.log(`Order ${orderId} fulfilled concurrently, skipping (idempotent).`);
+    return null;
+  }
 
   // ── Step 4: Send notification emails (fire-and-forget) ──
   // These happen OUTSIDE the transaction because:
