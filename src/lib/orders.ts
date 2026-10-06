@@ -90,26 +90,31 @@ export async function fulfillOrder(orderId: string) {
       data: { status: "PAID" },
     });
 
-    // Update each registry item's fulfillment using atomic increment.
-    // We batch all updates inside the same transaction.
+    // Update each registry item's fulfillment.
+    //
+    // One statement per item, doing the increment, the clamp and the status
+    // in a single write. The previous version issued two updates — increment,
+    // then read the result back and set status — which is both an extra round
+    // trip and a stale read if anything else touched the row in between.
+    //
+    // LEAST() is the important part. `createOrder` checks stock before taking
+    // payment, but two buyers can pass that check at the same moment for the
+    // last remaining item; both then pay, and both webhooks land here. Without
+    // the clamp the registry ends up reporting more gifts received than were
+    // ever asked for (2 of 1 cribs). Clamping keeps the displayed count
+    // truthful; the duplicate payment is a refund question, not a data one.
     for (const oi of order.items) {
-      const updatedItem = await tx.registryItem.update({
-        where: { id: oi.registryItemId },
-        data: {
-          fulfilledQty: { increment: oi.quantity },
-        },
-      });
-
-      // Determine new status based on the incremented value
-      await tx.registryItem.update({
-        where: { id: oi.registryItemId },
-        data: {
-          status:
-            updatedItem.fulfilledQty >= updatedItem.quantity
-              ? "FULFILLED"
-              : "PARTIALLY_FULFILLED",
-        },
-      });
+      await tx.$executeRaw`
+        UPDATE registry_items
+        SET "fulfilledQty" = LEAST(quantity, "fulfilledQty" + ${oi.quantity}),
+            status = CASE
+              WHEN "fulfilledQty" + ${oi.quantity} >= quantity
+                THEN 'FULFILLED'::"ItemStatus"
+              ELSE 'PARTIALLY_FULFILLED'::"ItemStatus"
+            END,
+            "updatedAt" = NOW()
+        WHERE id = ${oi.registryItemId}
+      `;
     }
   });
 
