@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import createIntlMiddleware from "next-intl/middleware";
 import { getToken } from "next-auth/jwt";
 import { routing } from "./i18n/routing";
-import { checkRateLimit } from "./lib/rate-limit";
+import { checkRateLimit, getClientIp } from "./lib/rate-limit";
 
 const intlMiddleware = createIntlMiddleware(routing);
 
@@ -10,14 +10,11 @@ const intlMiddleware = createIntlMiddleware(routing);
 // e.g. /en/admin, /ht/admin/users, /fr/business/dashboard
 const ADMIN_PREFIX = /^\/(?:ht|fr|en)\/admin(?:\/|$)/;
 const BUSINESS_PREFIX = /^\/(?:ht|fr|en)\/business(?:\/|$)/;
-const AUTH_PREFIX = /^\/api\/auth\//;
+// Only credential-bearing auth endpoints are limited; GET /api/auth/session
+// and /csrf run on every page view and must never 429 (review M2).
+const AUTH_LIMITED = /^\/api\/auth\/(signin|callback)(\/|$)/;
 const WEBHOOK_PREFIX = /^\/api\/webhooks\//;
 
-function clientIp(req: NextRequest): string {
-  const fwd = req.headers.get("x-forwarded-for");
-  if (fwd) return fwd.split(",")[0].trim();
-  return req.headers.get("x-real-ip") ?? "anon";
-}
 
 function tooManyRequests(reset: number) {
   const retryAfter = Math.max(1, Math.ceil((reset - Date.now()) / 1000));
@@ -35,11 +32,11 @@ export async function proxy(req: NextRequest) {
   // ── Rate limiting ──────────────────────────────────────────────────────
   // Auth and webhook endpoints are the highest-value targets, so we gate
   // them at the edge before they ever touch a Node runtime.
-  if (AUTH_PREFIX.test(pathname)) {
-    const r = await checkRateLimit("auth", clientIp(req));
+  if (req.method === "POST" && AUTH_LIMITED.test(pathname)) {
+    const r = await checkRateLimit("auth", getClientIp(req.headers));
     if (!r.ok) return tooManyRequests(r.reset);
   } else if (WEBHOOK_PREFIX.test(pathname)) {
-    const r = await checkRateLimit("webhook", clientIp(req));
+    const r = await checkRateLimit("webhook", getClientIp(req.headers));
     if (!r.ok) return tooManyRequests(r.reset);
   }
 
@@ -47,14 +44,12 @@ export async function proxy(req: NextRequest) {
   const needsBusiness = BUSINESS_PREFIX.test(pathname);
 
   if (needsAdmin || needsBusiness) {
+    // Let Auth.js derive the cookie name from the request scheme (review L6):
+    // __Secure- prefix on https, plain name on http (local / http previews).
     const token = await getToken({
       req,
       secret: process.env.AUTH_SECRET,
-      // Auth.js v5 cookie name (prefixed in production).
-      cookieName:
-        process.env.NODE_ENV === "production"
-          ? "__Secure-authjs.session-token"
-          : "authjs.session-token",
+      secureCookie: req.nextUrl.protocol === "https:",
     });
 
     if (!token) {
@@ -82,7 +77,8 @@ export const config = {
     // Rate-limit auth + webhooks at the edge.
     "/api/auth/:path*",
     "/api/webhooks/:path*",
-    // Everything else that isn't a static asset or other API route.
-    "/((?!api|_next|_vercel|.*\\..*).*)",
+    // Everything else that isn't a static asset, API route, or the Sentry
+    // tunnel (/monitoring must not be locale-redirected, review L4).
+    "/((?!api|_next|_vercel|monitoring|.*\\..*).*)",
   ],
 };
