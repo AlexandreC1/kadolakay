@@ -9,7 +9,7 @@ describe("redact", () => {
       orderId: "ord_1",
       buyerEmail: "a@b.co",
       nested: { phone: "+509 3712-3456", giftMessage: "hi", headers: { authorization: "Bearer x" } },
-    }) as Record<string, any>;
+    }) as { orderId: string; buyerEmail: string; nested: { phone: string; giftMessage: string; headers: { authorization: string } } };
     expect(out.orderId).toBe("ord_1");
     expect(out.buyerEmail).toBe(REDACTED);
     expect(out.nested.phone).toBe(REDACTED);
