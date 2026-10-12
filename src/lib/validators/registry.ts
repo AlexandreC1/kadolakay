@@ -1,31 +1,52 @@
 import { z } from "zod";
+import { optionalImageUrl, optionalSafeHttpUrl, isAmazonUrl } from "@/lib/url";
+
+const DAY = 24 * 60 * 60 * 1000;
+
+/** YYYY-MM-DD (or full ISO) within [1 year ago, 5 years ahead]. Invalid dates no longer reach new Date(). */
+const eventDate = z
+  .string()
+  .trim()
+  .max(40)
+  .refine((v) => {
+    const t = Date.parse(v);
+    return Number.isFinite(t) && t > Date.now() - 366 * DAY && t < Date.now() + 5 * 366 * DAY;
+  }, { message: "Invalid event date" });
+
+const price = z.coerce.number().positive().max(10_000_000).multipleOf(0.01);
 
 export const createRegistrySchema = z.object({
   type: z.enum(["BABY_SHOWER", "WEDDING", "BIRTHDAY"]),
-  title: z.string().min(2).max(100),
+  title: z.string().trim().min(2).max(100),
   description: z.string().max(2000).optional(),
-  eventDate: z.string().optional(),
+  eventDate: eventDate.optional(),
   locale: z.enum(["ht", "fr", "en"]).default("ht"),
   isPublic: z.boolean().default(true),
-  amazonWishlistUrl: z.string().url().optional().or(z.literal("")),
+  amazonWishlistUrl: optionalSafeHttpUrl.refine((v) => v === undefined || isAmazonUrl(v), {
+    message: "Must be an Amazon wishlist URL",
+  }),
 });
 
-export const updateRegistrySchema = createRegistrySchema.partial();
+// .strict(): unknown keys (status, userId, slug, shareToken…) are an error, not silently written.
+export const updateRegistrySchema = createRegistrySchema.partial().strict();
 
+/**
+ * Items a user adds by hand. LOCAL_BUSINESS items, and the businessId/productId
+ * links, are only created by addBusinessProductToRegistry (from a real product),
+ * so a user can't attach a business name to an arbitrary price.
+ */
 export const addItemSchema = z.object({
-  title: z.string().min(1).max(200),
+  title: z.string().trim().min(1).max(200),
   description: z.string().max(1000).optional(),
-  priceHTG: z.number().positive().optional(),
-  priceUSD: z.number().positive().optional(),
-  quantity: z.number().int().positive().default(1),
-  source: z.enum(["CUSTOM", "LOCAL_BUSINESS", "AMAZON", "EXTERNAL"]),
-  externalUrl: z.string().url().optional().or(z.literal("")),
-  businessId: z.string().optional(),
-  productId: z.string().optional(),
-  imageUrl: z.string().optional(),
+  priceHTG: price.optional(),
+  priceUSD: price.optional(),
+  quantity: z.coerce.number().int().positive().max(1000).default(1),
+  source: z.enum(["CUSTOM", "AMAZON", "EXTERNAL"]).default("CUSTOM"),
+  externalUrl: optionalSafeHttpUrl,
+  imageUrl: optionalImageUrl,
 });
 
-export const updateItemSchema = addItemSchema.partial();
+export const updateItemSchema = addItemSchema.omit({ source: true }).partial().strict();
 
 export type CreateRegistryInput = z.infer<typeof createRegistrySchema>;
 export type UpdateRegistryInput = z.infer<typeof updateRegistrySchema>;

@@ -1,6 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import { safeHref } from "@/lib/url";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CurrencyDisplay } from "@/components/shared/CurrencyDisplay";
@@ -30,8 +31,10 @@ export function RegistryItemCard({ item, locale }: RegistryItemCardProps) {
   const isExternal = item.source === "AMAZON" || item.source === "EXTERNAL";
 
   function handleBuy() {
-    if (isExternal && item.externalUrl) {
-      window.open(item.externalUrl, "_blank");
+    if (isExternal) {
+      // Only ever open http(s) links, in a new context with no opener (review H1).
+      const href = safeHref(item.externalUrl);
+      if (href) window.open(href, "_blank", "noopener,noreferrer");
     } else {
       // Navigate to checkout with this item selected
       window.location.href = `${window.location.pathname}/checkout?items=${item.id}`;
