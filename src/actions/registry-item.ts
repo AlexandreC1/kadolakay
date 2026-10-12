@@ -2,7 +2,7 @@
 
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { addItemSchema } from "@/lib/validators/registry";
+import { addItemSchema, updateItemSchema } from "@/lib/validators/registry";
 import { revalidatePath } from "next/cache";
 
 export async function addItemToRegistry(registryId: string, formData: FormData) {
@@ -27,12 +27,12 @@ export async function addItemToRegistry(registryId: string, formData: FormData) 
     quantity: Number(formData.get("quantity")) || 1,
     source: (formData.get("source") as string) || "CUSTOM",
     externalUrl: (formData.get("externalUrl") as string) || undefined,
-    businessId: (formData.get("businessId") as string) || undefined,
-    productId: (formData.get("productId") as string) || undefined,
     imageUrl: (formData.get("imageUrl") as string) || undefined,
   };
 
-  const data = addItemSchema.parse(raw);
+  const parsed = addItemSchema.safeParse(raw);
+  if (!parsed.success) throw new Error("Invalid item data");
+  const data = parsed.data;
 
   await db.registryItem.create({
     data: {
@@ -81,22 +81,20 @@ export async function updateRegistryItem(itemId: string, formData: FormData) {
     throw new Error("Not found or unauthorized");
   }
 
-  // SECURITY: Whitelist allowed fields to prevent mass assignment.
-  // Without this, a malicious user could send `registryId=someone-elses-id`
-  // or `fulfilledQty=999` in the FormData and modify protected fields.
-  const ALLOWED_FIELDS = ["title", "description", "priceHTG", "priceUSD", "quantity", "externalUrl", "imageUrl"];
-  const updates: Record<string, unknown> = {};
-  for (const [key, value] of formData.entries()) {
-    if (!ALLOWED_FIELDS.includes(key)) continue;
-    if (value !== "") {
-      if (key === "priceHTG" || key === "priceUSD") {
-        updates[key] = Number(value);
-      } else if (key === "quantity") {
-        updates[key] = Number(value);
-      } else {
-        updates[key] = value;
-      }
-    }
+  // Only these fields are editable; every value goes through the same
+  // validation as on create (review H1: this path used to skip validation,
+  // so a javascript: externalUrl could be stored here).
+  const ALLOWED_FIELDS = ["title", "description", "priceHTG", "priceUSD", "quantity", "externalUrl", "imageUrl"] as const;
+  const raw: Record<string, unknown> = {};
+  for (const key of ALLOWED_FIELDS) {
+    const value = formData.get(key);
+    if (typeof value === "string" && value !== "") raw[key] = value;
+  }
+  const parsed = updateItemSchema.safeParse(raw);
+  if (!parsed.success) throw new Error("Invalid item data");
+  const updates = parsed.data;
+  if (updates.quantity !== undefined && updates.quantity < item.fulfilledQty) {
+    throw new Error("Quantity can't be lower than the number already gifted");
   }
 
   await db.registryItem.update({
