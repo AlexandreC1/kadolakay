@@ -42,7 +42,8 @@
       "src/lib/rate-limit.ts",
       "src/app/api/auth/**",
       "src/app/[[]locale]/(auth)/**",
-      "next.config.ts"
+      "next.config.ts",
+      "src/types/next-auth.d.ts"
     ],
     "ws3": [
       "src/lib/validators/**",
