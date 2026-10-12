@@ -33,7 +33,8 @@
       "src/lib/utils.ts",
       "src/lib/constants.ts",
       "src/lib/currency.ts",
-      "src/app/[[]locale]/(registry)/r/[[]slug]/checkout/**"
+      "src/app/[[]locale]/(registry)/r/[[]slug]/checkout/**",
+      "src/lib/validators/checkout.ts"
     ],
     "ws2": [
       "src/lib/auth.ts",
