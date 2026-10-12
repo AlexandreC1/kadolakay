@@ -6,6 +6,7 @@ import { generateUniqueSlug } from "@/lib/slug";
 import { createRegistrySchema, updateRegistrySchema } from "@/lib/validators/registry";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { canViewRegistry } from "@/lib/validators/registry-access";
 
 export async function createRegistry(formData: FormData) {
   const session = await auth();
@@ -23,7 +24,9 @@ export async function createRegistry(formData: FormData) {
     amazonWishlistUrl: (formData.get("amazonWishlistUrl") as string) || undefined,
   };
 
-  const data = createRegistrySchema.parse(raw);
+  const parsed = createRegistrySchema.safeParse(raw);
+  if (!parsed.success) throw new Error("Invalid registry data");
+  const data = parsed.data;
   const slug = await generateUniqueSlug(data.title, "registry");
 
   const registry = await db.registry.create({
@@ -53,16 +56,21 @@ export async function updateRegistry(registryId: string, formData: FormData) {
     throw new Error("Not found or unauthorized");
   }
 
+  // Only known fields; the strict schema rejects anything else.
+  const FIELDS = ["type", "title", "description", "eventDate", "locale", "isPublic", "amazonWishlistUrl"] as const;
   const raw: Record<string, unknown> = {};
-  for (const [key, value] of formData.entries()) {
-    if (value !== "") raw[key] = value;
+  for (const key of FIELDS) {
+    const value = formData.get(key);
+    if (typeof value === "string" && value !== "") raw[key] = value;
   }
 
   if (raw.isPublic !== undefined) {
     raw.isPublic = raw.isPublic !== "false";
   }
 
-  const data = updateRegistrySchema.parse(raw);
+  const parsed = updateRegistrySchema.safeParse(raw);
+  if (!parsed.success) throw new Error("Invalid registry data");
+  const data = parsed.data;
 
   await db.registry.update({
     where: { id: registryId },
@@ -138,9 +146,18 @@ export async function getMyRegistries() {
   });
 }
 
-export async function getRegistryBySlug(slug: string) {
-  return db.registry.findUnique({
+/**
+ * Public registry read. Exported from a "use server" module, so it is
+ * callable by anyone with any arguments: it enforces visibility itself
+ * (review M3) and never returns shareToken/password.
+ *  - DRAFT: owner only
+ *  - private (isPublic=false): owner, or a caller presenting the shareToken
+ */
+export async function getRegistryBySlug(slug: string, shareToken?: string | null) {
+  if (typeof slug !== "string" || slug.length === 0 || slug.length > 120) return null;
+  const registry = await db.registry.findUnique({
     where: { slug },
+    omit: { password: true },
     include: {
       user: {
         select: { name: true, image: true },
@@ -156,4 +173,13 @@ export async function getRegistryBySlug(slug: string) {
       },
     },
   });
+  if (!registry) return null;
+
+  const session = await auth();
+  const isOwner = !!session?.user?.id && session.user.id === registry.userId;
+  if (!canViewRegistry(registry, { isOwner, shareToken })) return null;
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { shareToken: _secret, ...rest } = registry;
+  return rest;
 }
