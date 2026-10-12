@@ -1,0 +1,127 @@
+{
+  "$comment": "Workstream file ownership (kadolakay-plan.md \u00a71). A PR from branch ws<N>/* may only touch files owned by ws<N> or listed in 'shared'. Most specific (longest) matching pattern wins. Update via a WS0 PR. A PR labelled 'ownership-override' (e.g. the WS0 bootstrap that creates src/lib/log.ts for WS8) skips the check; reviewers must justify it in the PR body.",
+  "shared": [
+    "src/i18n/messages/_pending/**",
+    "**/*.test.ts",
+    "**/*.test.tsx"
+  ],
+  "owners": {
+    "ws0": [
+      "prisma/**",
+      "package.json",
+      "package-lock.json",
+      "src/lib/env.ts",
+      "src/lib/env.test.ts",
+      "src/lib/contracts/**",
+      "src/types/**",
+      "src/lib/money.ts",
+      "src/lib/authz.ts",
+      ".github/workflows/ci.yml",
+      ".github/ownership.json",
+      "scripts/check-ownership.ts",
+      "tsconfig.json",
+      "vitest.config.ts",
+      "eslint.config.mjs",
+      ".env.example",
+      ".gitignore"
+    ],
+    "ws1": [
+      "src/actions/checkout.ts",
+      "src/lib/payments/**",
+      "src/app/api/webhooks/**",
+      "src/lib/orders.ts",
+      "src/lib/utils.ts",
+      "src/lib/constants.ts",
+      "src/lib/currency.ts",
+      "src/app/[[]locale]/(registry)/r/[[]slug]/checkout/**"
+    ],
+    "ws2": [
+      "src/lib/auth.ts",
+      "src/proxy.ts",
+      "src/lib/rate-limit.ts",
+      "src/app/api/auth/**",
+      "src/app/[[]locale]/(auth)/**",
+      "next.config.ts"
+    ],
+    "ws3": [
+      "src/lib/validators/**",
+      "src/actions/registry.ts",
+      "src/actions/registry-item.ts",
+      "src/actions/business.ts",
+      "src/actions/upload.ts",
+      "src/lib/storage/**",
+      "src/lib/slug.ts",
+      "src/lib/url.ts",
+      "src/app/[[]locale]/(registry)/r/[[]slug]/page.tsx",
+      "src/app/[[]locale]/(registry)/r/[[]slug]/RegistryItemCard.tsx",
+      "src/app/[[]locale]/(registry)/r/[[]slug]/RegistryShareButton.tsx",
+      "src/app/[[]locale]/(registry)/r/[[]slug]/edit/**",
+      "src/app/[[]locale]/(registry)/create/**",
+      "src/app/api/og/**",
+      "src/app/[[]locale]/(business)/business/products/**",
+      "src/app/[[]locale]/(business)/business/signup/**",
+      "src/components/shared/ImageUpload.tsx"
+    ],
+    "ws4": [
+      "src/lib/email.ts",
+      "src/lib/email/**",
+      "src/lib/jobs/**",
+      "src/app/api/cron/**",
+      "vercel.json"
+    ],
+    "ws5": [
+      "src/app/[[]locale]/(dashboard)/admin/**",
+      "src/app/[[]locale]/(business)/business/orders/**",
+      "src/app/[[]locale]/(business)/business/dashboard/**",
+      "src/actions/admin.ts",
+      "src/actions/business-orders.ts"
+    ],
+    "ws6": [
+      "src/actions/user.ts",
+      "src/lib/validators/user.ts",
+      "src/app/[[]locale]/(dashboard)/settings/**",
+      "src/app/[[]locale]/(legal)/**",
+      "src/components/layout/**",
+      "src/i18n/messages/*.json",
+      "src/app/[[]locale]/error.tsx",
+      "src/app/[[]locale]/layout.tsx",
+      "src/app/[[]locale]/loading.tsx",
+      "src/app/[[]locale]/not-found.tsx",
+      "src/app/[[]locale]/page.tsx",
+      "src/app/layout.tsx",
+      "src/app/globals.css",
+      "src/app/favicon.ico",
+      "src/components/hero/**",
+      "src/components/ui/**",
+      "src/components/shared/CurrencyDisplay.tsx",
+      "src/components/shared/ShareButtons.tsx",
+      "src/components/shared/ShareModal.tsx",
+      "src/i18n/*.ts",
+      "public/**"
+    ],
+    "ws7": [
+      "src/lib/db.ts",
+      "src/lib/pagination.ts",
+      "src/lib/queries/**",
+      "src/app/[[]locale]/(dashboard)/orders/**",
+      "src/app/[[]locale]/(dashboard)/dashboard/**",
+      "src/app/[[]locale]/(registry)/my-registries/**",
+      "src/app/[[]locale]/(business)/browse/**",
+      "src/app/api/products/**",
+      "src/components/registry/ProductPicker.tsx",
+      "docs/cache-tags.md"
+    ],
+    "ws8": [
+      "src/app/api/health/**",
+      "src/instrumentation.ts",
+      "src/instrumentation-client.ts",
+      "sentry.*.config.ts",
+      "src/lib/log.ts",
+      ".github/workflows/deploy.yml",
+      ".github/workflows/db-migrate.yml",
+      "e2e/**",
+      "playwright.config.ts",
+      "docs/**"
+    ]
+  }
+}
