@@ -12,6 +12,8 @@ export async function GET(
   const registry = await db.registry.findUnique({
     where: { slug },
     select: {
+      status: true,
+      isPublic: true,
       title: true,
       type: true,
       eventDate: true,
@@ -19,7 +21,8 @@ export async function GET(
     },
   });
 
-  if (!registry) {
+  // Drafts and private registries get no preview image (review M3).
+  if (!registry || registry.status !== "PUBLISHED" || !registry.isPublic) {
     return new Response("Not found", { status: 404 });
   }
 
@@ -146,6 +149,7 @@ export async function GET(
     {
       width: 1200,
       height: 630,
+      headers: { "Cache-Control": "public, s-maxage=86400, stale-while-revalidate=604800" },
     }
   );
 }

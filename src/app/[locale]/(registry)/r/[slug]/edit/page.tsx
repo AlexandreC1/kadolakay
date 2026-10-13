@@ -3,6 +3,7 @@ import { getTranslations } from "next-intl/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { RegistryEditForm } from "./RegistryEditForm";
+import { ShareLinkPanel } from "./ShareLinkPanel";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -36,6 +37,13 @@ export default async function EditRegistryPage({ params }: PageProps) {
         {t("registry.editRegistry")}
       </h1>
       <p className="text-gray-600 mb-8">{registry.title}</p>
+
+      <ShareLinkPanel
+        registryId={registry.id}
+        baseUrl={`${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/r/${registry.slug}`}
+        isPublic={registry.isPublic}
+        initialToken={registry.shareToken}
+      />
 
       <RegistryEditForm registry={registry} />
     </div>
