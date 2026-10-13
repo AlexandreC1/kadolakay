@@ -17,7 +17,8 @@
     "success": "Success!",
     "or": "or",
     "viewAll": "View all",
-    "learnMore": "Learn more"
+    "learnMore": "Learn more",
+    "loadMore": "Load more"
   },
   "nav": {
     "home": "Home",
@@ -26,11 +27,15 @@
     "businesses": "Local businesses",
     "dashboard": "Dashboard",
     "orders": "Orders",
-    "settings": "Settings"
+    "settings": "Settings",
+    "adminOrders": "Orders (admin)",
+    "adminNatcash": "Natcash payments",
+    "adminUsers": "Users",
+    "adminBusinesses": "Businesses (admin)"
   },
   "landing": {
     "heroTitle": "Celebrate together, no matter the distance",
-    "heroSubtitle": "Create gift registries for baby showers, weddings, and birthdays \u2014 share them with family and friends around the world.",
+    "heroSubtitle": "Create gift registries for baby showers, weddings, and birthdays — share them with family and friends around the world.",
     "ctaCreate": "Create your free registry",
     "ctaBrowse": "Browse local businesses",
     "featureRegistry": "Gift Registry",
@@ -120,7 +125,22 @@
     "viewOrders": "View your orders",
     "paid": "Paid",
     "anonymous": "Someone",
-    "giftsReceived": "Gifts received"
+    "giftsReceived": "Gifts received",
+    "tabReceived": "Gifts received",
+    "tabPlaced": "Gifts I bought",
+    "noPlacedYet": "You haven't bought any gifts yet",
+    "noPlacedDesc": "Gifts you buy while signed in will appear here.",
+    "status": {
+      "PENDING": "Pending",
+      "PAID": "Paid",
+      "CONFIRMED": "Confirmed",
+      "SHIPPED": "Shipped",
+      "DELIVERED": "Delivered",
+      "CANCELLED": "Cancelled",
+      "REFUNDED": "Refunded",
+      "EXPIRED": "Expired",
+      "PAYMENT_FAILED": "Payment failed"
+    }
   },
   "business": {
     "signup": "Register your business",
@@ -196,12 +216,39 @@
     "emailHint": "Email cannot be changed here.",
     "phone": "Phone",
     "language": "Preferred language",
-    "saved": "Changes saved!"
+    "saved": "Changes saved!",
+    "account": {
+      "title": "Your account",
+      "exportTitle": "Download your data",
+      "exportDesc": "A JSON file with your profile, registries and orders. Once per day.",
+      "exportButton": "Download",
+      "signOutAllTitle": "Sign out of all devices",
+      "signOutAllDesc": "Ends your session on every phone and computer.",
+      "signOutAllButton": "Sign out everywhere",
+      "deleteTitle": "Delete your account",
+      "deleteDesc": "This cannot be undone. Your personal data is removed; registries with orders are archived.",
+      "deleteConfirmLabel": "Type your email ({email}) to confirm",
+      "deleteButton": "Delete my account",
+      "deleteMismatch": "The email doesn't match.",
+      "deleteBlockedBusiness": "Your business has unsettled orders. Please contact support."
+    }
   },
   "footer": {
     "tagline": "Gifts for every occasion, from home.",
     "privacy": "Privacy Policy",
     "terms": "Terms of Service",
-    "contact": "Contact us"
+    "contact": "Contact us",
+    "rights": "All rights reserved."
+  },
+  "contact": {
+    "title": "Contact us",
+    "intro": "Write to us here or email",
+    "name": "Name",
+    "email": "Email",
+    "message": "Message",
+    "send": "Send",
+    "sent": "Thanks! We'll get back to you soon.",
+    "invalid": "Please fill in every field (message at least 10 characters).",
+    "rateLimited": "Too many messages. Please try again later."
   }
 }
