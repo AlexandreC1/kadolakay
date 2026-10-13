@@ -1,0 +1,68 @@
+{
+  "ht": {
+    "orders": {
+      "tabReceived": "Kado mwen resevwa",
+      "tabPlaced": "Kado mwen achte",
+      "noPlacedYet": "Ou poko achte okenn kado",
+      "noPlacedDesc": "Kado ou achte lè ou konekte ap parèt isit la.",
+      "status": {
+        "PENDING": "Annatant",
+        "PAID": "Peye",
+        "CONFIRMED": "Konfime",
+        "SHIPPED": "Voye",
+        "DELIVERED": "Livre",
+        "CANCELLED": "Anile",
+        "REFUNDED": "Ranbouse",
+        "EXPIRED": "Ekspire",
+        "PAYMENT_FAILED": "Peman echwe"
+      }
+    },
+    "common": {
+      "loadMore": "Plis"
+    }
+  },
+  "fr": {
+    "orders": {
+      "tabReceived": "Cadeaux reçus",
+      "tabPlaced": "Cadeaux achetés",
+      "noPlacedYet": "Vous n'avez encore acheté aucun cadeau",
+      "noPlacedDesc": "Les cadeaux achetés en étant connecté apparaîtront ici.",
+      "status": {
+        "PENDING": "En attente",
+        "PAID": "Payé",
+        "CONFIRMED": "Confirmée",
+        "SHIPPED": "Expédiée",
+        "DELIVERED": "Livrée",
+        "CANCELLED": "Annulée",
+        "REFUNDED": "Remboursée",
+        "EXPIRED": "Expirée",
+        "PAYMENT_FAILED": "Paiement échoué"
+      }
+    },
+    "common": {
+      "loadMore": "Voir plus"
+    }
+  },
+  "en": {
+    "orders": {
+      "tabReceived": "Gifts received",
+      "tabPlaced": "Gifts I bought",
+      "noPlacedYet": "You haven't bought any gifts yet",
+      "noPlacedDesc": "Gifts you buy while signed in will appear here.",
+      "status": {
+        "PENDING": "Pending",
+        "PAID": "Paid",
+        "CONFIRMED": "Confirmed",
+        "SHIPPED": "Shipped",
+        "DELIVERED": "Delivered",
+        "CANCELLED": "Cancelled",
+        "REFUNDED": "Refunded",
+        "EXPIRED": "Expired",
+        "PAYMENT_FAILED": "Payment failed"
+      }
+    },
+    "common": {
+      "loadMore": "Load more"
+    }
+  }
+}
