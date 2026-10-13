@@ -7,6 +7,8 @@ import { createRegistrySchema, updateRegistrySchema } from "@/lib/validators/reg
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { canViewRegistry } from "@/lib/validators/registry-access";
+import { randomBytes } from "node:crypto";
+import { requireOwner } from "@/lib/authz";
 
 export async function createRegistry(formData: FormData) {
   const session = await auth();
@@ -182,4 +184,21 @@ export async function getRegistryBySlug(slug: string, shareToken?: string | null
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { shareToken: _secret, ...rest } = registry;
   return rest;
+}
+
+/**
+ * Owner-only: issue a new share token for a private registry. Old links
+ * (`?share=<old>`) stop working immediately. Returns the new token.
+ */
+export async function rotateShareToken(registryId: string): Promise<string> {
+  await requireOwner("registry", registryId);
+  const shareToken = randomBytes(24).toString("base64url");
+  const registry = await db.registry.update({
+    where: { id: registryId },
+    data: { shareToken },
+    select: { slug: true },
+  });
+  revalidatePath(`/r/${registry.slug}`);
+  revalidatePath(`/r/${registry.slug}/edit`);
+  return shareToken;
 }
