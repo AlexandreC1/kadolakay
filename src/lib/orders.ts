@@ -44,7 +44,7 @@
 
 import { Prisma } from "@prisma/client";
 import { db } from "./db";
-import { enqueueEmailWith } from "./email/outbox";
+import { enqueueEmailWith, scheduleDrain } from "./email/outbox";
 import { emailDedupeKey, type EmailLocale } from "./contracts/email";
 import { log } from "./log";
 import { money, type Currency } from "./money";
@@ -195,7 +195,9 @@ export async function fulfillOrder(orderId: string) {
     return null;
   }
 
-  // Step 4 (emails) happens via the outbox rows queued inside the transaction.
+  // Step 4: the outbox rows queued inside the transaction are now committed;
+  // deliver them right after the response (the daily cron is only a fallback).
+  scheduleDrain();
   return order;
 }
 
