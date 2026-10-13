@@ -1,71 +1,74 @@
 import Stripe from "stripe";
-import type {
-  PaymentProviderInterface,
-  CreatePaymentParams,
-  CreatePaymentResult,
-  VerifyPaymentResult,
-} from "./index";
+import { ProviderError, type CreatePaymentInput, type CreatePaymentResult, type PaymentVerifier, type VerifiedPayment, type VerifyRef } from "@/lib/contracts/payments";
+import { fromMinorUnits, toMinorUnits, type Currency } from "@/lib/money";
 
 // Lazy singleton — `new Stripe()` throws if STRIPE_SECRET_KEY is unset,
-// which breaks `next build` page-data collection in CI/preview environments
-// where the secret isn't provisioned.
+// which breaks `next build` page-data collection in CI/preview environments.
 let _stripe: Stripe | null = null;
 function getStripe(): Stripe {
-  if (!_stripe) {
-    _stripe = new Stripe(process.env.STRIPE_SECRET_KEY ?? "sk_test_build_placeholder");
-  }
+  if (!_stripe) _stripe = new Stripe(process.env.STRIPE_SECRET_KEY ?? "sk_test_build_placeholder");
   return _stripe;
 }
-// Backwards-compat proxy so existing `stripe.checkout.sessions.create(...)` /
-// `stripe.webhooks.constructEvent(...)` call sites continue to work without
-// edits — every property access goes through the lazy initializer.
 const stripe = new Proxy({} as Stripe, {
   get(_t, prop) {
     return Reflect.get(getStripe(), prop, getStripe());
   },
 });
 
-export const stripeProvider: PaymentProviderInterface = {
-  async createPayment(
-    params: CreatePaymentParams
-  ): Promise<CreatePaymentResult> {
-    const session = await stripe.checkout.sessions.create({
-      payment_method_types: ["card"],
-      line_items: [
-        {
-          price_data: {
-            currency: params.currency.toLowerCase(),
-            product_data: {
-              name: params.description,
-            },
-            unit_amount: Math.round(params.amount * 100),
-          },
-          quantity: 1,
-        },
-      ],
-      mode: "payment",
-      success_url: params.returnUrl,
-      cancel_url: params.cancelUrl,
-      metadata: {
-        orderId: params.orderId,
-      },
-    });
+/** Pure mapping from a Checkout Session (webhook payload or retrieve) — review M4. */
+export function verifiedFromStripeSession(session: Stripe.Checkout.Session, eventId?: string): VerifiedPayment {
+  const orderId = session.metadata?.orderId;
+  if (!orderId || session.amount_total == null || !session.currency) throw new ProviderError("STRIPE", "BAD_RESPONSE");
+  const intent = typeof session.payment_intent === "string" ? session.payment_intent : session.payment_intent?.id;
+  return {
+    orderId,
+    provider: "STRIPE",
+    providerTxId: intent ?? session.id,
+    providerEventId: eventId,
+    amount: fromMinorUnits(session.amount_total),
+    currency: session.currency.toUpperCase() as Currency,
+    // `complete` + `unpaid` happens for delayed methods: wait for async_payment_succeeded.
+    status: session.payment_status === "paid" ? "COMPLETED" : session.status === "expired" ? "FAILED" : "PENDING",
+    rawSummary: { sessionId: session.id, paymentStatus: session.payment_status, status: session.status ?? null },
+  };
+}
 
-    return {
-      redirectUrl: session.url ?? undefined,
-      providerRef: session.id,
-    };
+export const stripeProvider: PaymentVerifier = {
+  provider: "STRIPE",
+
+  async create(input: CreatePaymentInput): Promise<CreatePaymentResult> {
+    if (input.currency !== "USD") throw new ProviderError("STRIPE", "UNSUPPORTED_CURRENCY");
+    const session = await stripe.checkout.sessions.create(
+      {
+        line_items: [
+          {
+            price_data: {
+              currency: "usd",
+              product_data: { name: input.description },
+              unit_amount: toMinorUnits(input.amount),
+            },
+            quantity: 1,
+          },
+        ],
+        mode: "payment",
+        success_url: input.returnUrl,
+        cancel_url: input.cancelUrl,
+        client_reference_id: input.orderId,
+        metadata: { orderId: input.orderId },
+        payment_intent_data: { metadata: { orderId: input.orderId } },
+        // Minimum allowed by Stripe is 30 min; matches Order.expiresAt (2h).
+        expires_at: Math.floor(Date.now() / 1000) + 2 * 60 * 60,
+      },
+      { idempotencyKey: `checkout-${input.orderId}` }
+    );
+    if (!session.url) throw new ProviderError("STRIPE", "BAD_RESPONSE");
+    return { redirectUrl: session.url, providerRef: session.id };
   },
 
-  async verifyPayment(params): Promise<VerifyPaymentResult> {
-    const session = await stripe.checkout.sessions.retrieve(
-      params.transactionId!
-    );
-    return {
-      success: session.payment_status === "paid",
-      providerRef: session.id,
-      rawResponse: session,
-    };
+  async verify(ref: VerifyRef): Promise<VerifiedPayment> {
+    const id = ref.providerRef ?? ref.transactionId;
+    if (!id) throw new ProviderError("STRIPE", "BAD_RESPONSE");
+    return verifiedFromStripeSession(await stripe.checkout.sessions.retrieve(id));
   },
 };
 
