@@ -1,10 +1,17 @@
 import { getTranslations } from "next-intl/server";
-import { getApprovedBusinesses } from "@/actions/business";
+import { Link } from "@/i18n/navigation";
+import { pageHref, parsePageRequest } from "@/lib/pagination";
+import { BUSINESSES_PAGE_SIZE, getBrowseBusinesses } from "@/lib/queries/browse";
 import { Card, CardContent } from "@/components/ui/card";
 
-export default async function BrowseBusinessesPage() {
+export default async function BrowseBusinessesPage({ searchParams }: { searchParams: Promise<{ cursor?: string }> }) {
   const t = await getTranslations("business");
-  const businesses = await getApprovedBusinesses();
+  const tc = await getTranslations("common");
+  const { cursor } = await searchParams;
+  const { items: businesses, nextCursor } = await getBrowseBusinesses(
+    parsePageRequest({ cursor, take: BUSINESSES_PAGE_SIZE }),
+  );
+  const nextHref = pageHref("/browse", {}, nextCursor);
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
@@ -102,6 +109,13 @@ export default async function BrowseBusinessesPage() {
               </CardContent>
             </Card>
           ))}
+        </div>
+      )}
+      {nextHref && (
+        <div className="mt-8 text-center">
+          <Link href={nextHref} className="text-sm font-medium text-amber-700 hover:underline">
+            {tc("next")} →
+          </Link>
         </div>
       )}
     </div>
