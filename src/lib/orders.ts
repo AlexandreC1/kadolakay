@@ -44,7 +44,8 @@
 
 import { Prisma } from "@prisma/client";
 import { db } from "./db";
-import { sendGiftNotification, sendOrderConfirmation } from "./email";
+import { enqueueEmailWith } from "./email/outbox";
+import { emailDedupeKey, type EmailLocale } from "./contracts/email";
 import { log } from "./log";
 import { money, type Currency } from "./money";
 import {
@@ -141,6 +142,49 @@ export async function fulfillOrder(orderId: string) {
         WHERE id = ${oi.registryItemId}
       `;
     }
+
+    // Queue notification emails in the SAME transaction as the claim: they
+    // exist iff the order was fulfilled, and the dedupeKey makes a re-run a
+    // no-op. The send-emails cron delivers them (with retries).
+    const firstItem = order.items[0]?.registryItem;
+    if (firstItem) {
+      const registry = firstItem.registry;
+      const itemNames = order.items.map((oi) => oi.registryItem.title);
+      const locale = (["ht", "fr", "en"].includes(registry.locale) ? registry.locale : "ht") as EmailLocale;
+      if (registry.user?.email) {
+        await enqueueEmailWith(tx, {
+          template: "gift-notification",
+          to: registry.user.email,
+          locale,
+          dedupeKey: emailDedupeKey("order", order.id, "gift-notification"),
+          payload: {
+            recipientName: registry.user.name || "Zanmi",
+            buyerName: order.isAnonymous ? "Yon moun" : order.buyerName,
+            giftMessage: order.giftMessage,
+            itemNames,
+            registryTitle: registry.title,
+            registrySlug: registry.slug,
+            orderNumber: order.orderNumber,
+          },
+        });
+      }
+      const currency = (order.payment?.currency as "HTG" | "USD") || "USD";
+      const total = currency === "HTG" ? order.totalHTG : order.totalUSD;
+      await enqueueEmailWith(tx, {
+        template: "order-receipt",
+        to: order.buyerEmail,
+        locale,
+        dedupeKey: emailDedupeKey("order", order.id, "order-receipt"),
+        payload: {
+          buyerName: order.buyerName,
+          itemNames,
+          registryTitle: registry.title,
+          orderNumber: order.orderNumber,
+          totalAmount: Number(total ?? 0).toFixed(2),
+          currency,
+        },
+      });
+    }
     return true;
   });
 
@@ -151,47 +195,7 @@ export async function fulfillOrder(orderId: string) {
     return null;
   }
 
-  // ── Step 4: Send notification emails (fire-and-forget) ──
-  // These happen OUTSIDE the transaction because:
-  //   a) Email is a side effect — it shouldn't block the DB transaction
-  //   b) If email fails, the payment is still valid
-  //   c) Emails are not idempotent anyway (duplicate emails are annoying but harmless)
-  const firstItem = order.items[0]?.registryItem;
-  if (firstItem) {
-    const registry = firstItem.registry;
-    const itemNames = order.items.map((oi) => oi.registryItem.title);
-    const buyerName = order.isAnonymous ? "Yon moun" : order.buyerName;
-
-    // Notify the registry owner
-    if (registry.user?.email) {
-      sendGiftNotification({
-        recipientEmail: registry.user.email,
-        recipientName: registry.user.name || "Zanmi",
-        buyerName,
-        giftMessage: order.giftMessage,
-        itemNames,
-        registryTitle: registry.title,
-        registrySlug: registry.slug,
-        orderNumber: order.orderNumber,
-      });
-    }
-
-    // Confirm to the buyer
-    const totalAmount = order.payment?.currency === "HTG"
-      ? Number(order.totalHTG || 0)
-      : Number(order.totalUSD || 0);
-
-    sendOrderConfirmation({
-      buyerEmail: order.buyerEmail,
-      buyerName: order.buyerName,
-      itemNames,
-      registryTitle: registry.title,
-      orderNumber: order.orderNumber,
-      totalAmount,
-      currency: (order.payment?.currency as "HTG" | "USD") || "USD",
-    });
-  }
-
+  // Step 4 (emails) happens via the outbox rows queued inside the transaction.
   return order;
 }
 

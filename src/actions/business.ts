@@ -1,6 +1,6 @@
 "use server";
 
-import { auth } from "@/lib/auth";
+import { auth, refreshSession } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { generateUniqueSlug } from "@/lib/slug";
 import { Prisma } from "@prisma/client";
@@ -59,6 +59,9 @@ export async function registerBusiness(formData: FormData) {
     throw err;
   }
 
+  // Re-issue the JWT now so the new BUSINESS_OWNER role applies on the very
+  // next request instead of after the 5-minute claim re-check (WS2).
+  await refreshSession();
   revalidatePath("/business/dashboard");
   redirect("/business/dashboard");
 }

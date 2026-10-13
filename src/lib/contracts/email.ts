@@ -1,7 +1,6 @@
 /**
  * Email outbox contract (plan §4.3). Implemented by WS4 in src/lib/email/**
- * on top of the `email_outbox` table. Until then, `enqueueEmail` from
- * ./stubs logs and does nothing, so callers can be written today.
+ * on top of the `email_outbox` table (src/lib/email/outbox.ts).
  */
 import type { Currency } from "../money";
 
