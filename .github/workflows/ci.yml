@@ -113,6 +113,7 @@ jobs:
           --health-interval 5s --health-timeout 5s --health-retries 10
     env:
       DATABASE_URL: postgresql://postgres:postgres@localhost:5432/kadolakay_ci
+      DIRECT_URL: postgresql://postgres:postgres@localhost:5432/kadolakay_ci
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -155,6 +156,7 @@ jobs:
     needs: [lint, typecheck, test]
     env:
       DATABASE_URL: "postgresql://fake:fake@localhost:5432/fake"
+      DIRECT_URL: "postgresql://fake:fake@localhost:5432/fake"
       AUTH_SECRET: "ci-secret-not-real"
       NEXT_PUBLIC_APP_URL: "http://localhost:3000"
     steps:
