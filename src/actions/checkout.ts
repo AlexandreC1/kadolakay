@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
 import { auth } from "@/lib/auth";
-import { checkoutSchema } from "@/lib/validators/checkout";
+import { checkoutSchema, checkoutAccessAllowed } from "@/lib/validators/checkout";
 import { getPaymentProvider, isProviderEnabled, PROVIDER_CURRENCY, providerEnum, type PaymentProviderType } from "@/lib/payments";
 import { priceOrder } from "@/lib/payments/pricing";
 import { generateOrderNumber } from "@/lib/utils";
@@ -70,9 +70,12 @@ export async function createOrder(formData: FormData) {
     where: { id: { in: data.registryItemIds } },
     select: {
       id: true, registryId: true, priceHTG: true, priceUSD: true, quantity: true, fulfilledQty: true, status: true,
-      registry: { select: { id: true, slug: true, status: true } },
+      registry: { select: { id: true, slug: true, status: true, isPublic: true, shareToken: true } },
     },
   });
+
+  const shareToken = (formData.get("share") as string | null) || null;
+  if (rows.some((r) => !checkoutAccessAllowed(r.registry, shareToken))) throw new Error(MESSAGES.NOT_FOUND ?? "Not found");
 
   let priced;
   try {
