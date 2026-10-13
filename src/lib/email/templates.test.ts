@@ -50,3 +50,28 @@ describe("renderEmail", () => {
     expect(all[0].html).not.toContain("javascript:");
   });
 });
+
+describe("locales", () => {
+  const gift = {
+    recipientName: "Ana", buyerName: "Jan", giftMessage: null, itemNames: ["Blender"],
+    registryTitle: "Maryaj", registrySlug: "maryaj", orderNumber: "KL-1",
+  };
+  it("renders ht / fr / en copy", () => {
+    expect(renderEmail("gift-notification", gift, "ht").subject).toContain("te voye yon kado");
+    expect(renderEmail("gift-notification", gift, "fr").subject).toContain("vous a offert un cadeau");
+    expect(renderEmail("gift-notification", gift, "en").subject).toContain("sent you a gift");
+    expect(renderEmail("gift-notification", gift, "fr").html).toContain('lang="fr"');
+    expect(renderEmail("order-shipped", { buyerName: "A", orderNumber: "1", businessName: "B" }, "en").text).toContain("shipped your order");
+  });
+  it("unknown locale falls back to ht", () => {
+    expect(renderEmail("gift-notification", gift, "de" as never).subject).toContain("te voye yon kado");
+  });
+  it("escapes in every locale", () => {
+    for (const l of ["ht", "fr", "en"] as const) {
+      const r = renderEmail("gift-notification", { ...gift, buyerName: XSS, registryTitle: XSS }, l);
+      expect(r.html).not.toContain("<img");
+      const s = renderEmail("payment-rejected", { buyerName: XSS, orderNumber: XSS, reason: XSS }, l);
+      expect(s.html).not.toContain("<img");
+    }
+  });
+});
