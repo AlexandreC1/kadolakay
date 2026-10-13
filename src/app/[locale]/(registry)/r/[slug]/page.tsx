@@ -63,7 +63,12 @@ export default async function RegistryPage({ params, searchParams }: PageProps) 
   ).length;
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-  const registryUrl = `${appUrl}/r/${registry.slug}`;
+  // Private registries: keep the visitor's (already validated) share token in
+  // the link they re-share, so it still works for the next person.
+  const registryUrl =
+    !registry.isPublic && share
+      ? `${appUrl}/r/${registry.slug}?share=${encodeURIComponent(share)}`
+      : `${appUrl}/r/${registry.slug}`;
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">

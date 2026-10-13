@@ -63,3 +63,8 @@ export const optionalImageUrl = z
   .optional()
   .transform((v) => (v ? v : undefined))
   .refine((v) => v === undefined || isAllowedImageUrl(v), { message: "Image must be uploaded to KadoLakay" });
+
+/** Link an owner hands out: plain for public registries, `?share=` for private ones. */
+export function buildShareUrl(baseUrl: string, isPublic: boolean, token: string): string {
+  return isPublic ? baseUrl : `${baseUrl}?share=${encodeURIComponent(token)}`;
+}
