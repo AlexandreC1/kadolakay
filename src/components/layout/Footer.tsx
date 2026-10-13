@@ -42,7 +42,7 @@ export function Footer() {
 
         <div className="mt-6 border-t border-gray-200 pt-4 text-center">
           <p className="text-xs text-gray-400">
-            &copy; {new Date().getFullYear()} KadoLakay. Tout dwa rezève.
+            &copy; {new Date().getFullYear()} KadoLakay. {t("footer.rights")}
           </p>
         </div>
       </div>
