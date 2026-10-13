@@ -29,7 +29,7 @@ describe("ownership globs", () => {
 describe("coverage", () => {
   it("every tracked source file has an owner", () => {
     const files = execSync("git ls-files src public prisma", { encoding: "utf8" }).split("\n").filter(Boolean);
-    const shared = map.shared.map(globToRegExp);
+    const shared: RegExp[] = (map.shared as string[]).map((g) => globToRegExp(g));
     const unowned = files.filter((f) => !shared.some((r) => r.test(f)) && !ownerOf(f, map));
     expect(unowned).toEqual([]);
   });
