@@ -5,16 +5,21 @@ import { getRegistryBySlug } from "@/actions/registry";
 import { CurrencyDisplay } from "@/components/shared/CurrencyDisplay";
 import { RegistryShareButton } from "./RegistryShareButton";
 import { RegistryItemCard } from "./RegistryItemCard";
+import { safeHref } from "@/lib/url";
 
 interface PageProps {
   params: Promise<{ slug: string; locale: string }>;
+  searchParams: Promise<{ share?: string }>;
 }
 
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+export async function generateMetadata({ params, searchParams }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  const registry = await getRegistryBySlug(slug);
+  const { share } = await searchParams;
+  const registry = await getRegistryBySlug(slug, share);
 
   if (!registry) return { title: "Not Found" };
+  // Private registries: no search indexing, no OG preview card.
+  if (!registry.isPublic) return { title: registry.title, robots: { index: false, follow: false } };
 
   return {
     title: registry.title,
@@ -40,13 +45,16 @@ const registryTypeLabels: Record<string, Record<string, string>> = {
   BIRTHDAY: { ht: "Fèt Anivesè", fr: "Anniversaire", en: "Birthday" },
 };
 
-export default async function RegistryPage({ params }: PageProps) {
+export default async function RegistryPage({ params, searchParams }: PageProps) {
   const { slug, locale } = await params;
-  const registry = await getRegistryBySlug(slug);
+  const { share } = await searchParams;
+  // Visibility (draft / private / share token) is enforced inside getRegistryBySlug.
+  const registry = await getRegistryBySlug(slug, share);
 
-  if (!registry || registry.status === "DRAFT") {
+  if (!registry) {
     notFound();
   }
+  const amazonWishlistHref = safeHref(registry.amazonWishlistUrl);
 
   const t = await getTranslations("registry");
   const totalItems = registry.items.length;
@@ -55,7 +63,12 @@ export default async function RegistryPage({ params }: PageProps) {
   ).length;
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-  const registryUrl = `${appUrl}/r/${registry.slug}`;
+  // Private registries: keep the visitor's (already validated) share token in
+  // the link they re-share, so it still works for the next person.
+  const registryUrl =
+    !registry.isPublic && share
+      ? `${appUrl}/r/${registry.slug}?share=${encodeURIComponent(share)}`
+      : `${appUrl}/r/${registry.slug}`;
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
@@ -131,7 +144,7 @@ export default async function RegistryPage({ params }: PageProps) {
       </div>
 
       {/* Amazon wishlist link */}
-      {registry.amazonWishlistUrl && (
+      {amazonWishlistHref && (
         <div className="mb-8 p-4 rounded-xl border border-amber-200 bg-amber-50">
           <div className="flex items-center gap-3">
             <span className="text-2xl">📦</span>
@@ -140,7 +153,7 @@ export default async function RegistryPage({ params }: PageProps) {
                 {t("amazonWishlist")}
               </p>
               <a
-                href={registry.amazonWishlistUrl}
+                href={amazonWishlistHref ?? undefined}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-sm text-blue-600 hover:underline"
