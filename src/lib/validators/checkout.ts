@@ -1,3 +1,4 @@
+import { timingSafeEqual } from "node:crypto";
 import { z } from "zod";
 
 export const checkoutSchema = z.object({
@@ -12,3 +13,19 @@ export const checkoutSchema = z.object({
 });
 
 export type CheckoutInput = z.infer<typeof checkoutSchema>;
+
+/**
+ * Who may buy from a registry: it must be PUBLISHED, and a private registry
+ * additionally needs its share token (same rule as the registry page, WS3).
+ */
+export function checkoutAccessAllowed(
+  registry: { status: string; isPublic: boolean; shareToken: string },
+  shareToken?: string | null,
+): boolean {
+  if (registry.status !== "PUBLISHED") return false;
+  if (registry.isPublic) return true;
+  if (!shareToken) return false;
+  const a = Buffer.from(shareToken);
+  const b = Buffer.from(registry.shareToken);
+  return a.length === b.length && timingSafeEqual(a, b);
+}
