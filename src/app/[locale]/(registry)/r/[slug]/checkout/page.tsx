@@ -1,11 +1,13 @@
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { db } from "@/lib/db";
+import { isProviderEnabled, type PaymentProviderType } from "@/lib/payments";
+import { checkoutAccessAllowed } from "@/lib/validators/checkout";
 import { CheckoutForm } from "./CheckoutForm";
 
 interface PageProps {
   params: Promise<{ slug: string; locale: string }>;
-  searchParams: Promise<{ items?: string }>;
+  searchParams: Promise<{ items?: string; share?: string }>;
 }
 
 export default async function CheckoutPage({
@@ -13,7 +15,7 @@ export default async function CheckoutPage({
   searchParams,
 }: PageProps) {
   const { slug, locale } = await params;
-  const { items: itemIds } = await searchParams;
+  const { items: itemIds, share } = await searchParams;
 
   const registry = await db.registry.findUnique({
     where: { slug },
@@ -32,9 +34,13 @@ export default async function CheckoutPage({
     },
   });
 
-  if (!registry || registry.status !== "PUBLISHED") {
+  // Draft or private-without-valid-share-token registries are not purchasable.
+  if (!registry || !checkoutAccessAllowed(registry, share)) {
     notFound();
   }
+  const enabledProviders = (["stripe", "paypal", "moncash", "natcash"] as PaymentProviderType[]).filter((p) =>
+    isProviderEnabled(p),
+  );
 
   const t = await getTranslations();
 
@@ -59,6 +65,8 @@ export default async function CheckoutPage({
           businessName: item.business?.name || null,
         }))}
         locale={locale}
+        enabledProviders={enabledProviders}
+        shareToken={registry.isPublic ? null : (share ?? null)}
       />
     </div>
   );

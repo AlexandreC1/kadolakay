@@ -7,6 +7,7 @@ const state = vi.hoisted(() => ({
   orderStatus: "PENDING" as string,
   fulfilledQty: 0,
   itemIncrements: 0,
+  queued: [] as unknown[],
 }));
 
 vi.mock("./db", () => {
@@ -25,6 +26,7 @@ vi.mock("./db", () => {
         return { count: 1 };
       },
     },
+    emailOutbox: { create: async (args: unknown) => { state.queued.push(args); } },
     $executeRaw: async () => {
       state.itemIncrements += 1;
       state.fulfilledQty += 1;
@@ -54,6 +56,7 @@ vi.mock("./db", () => {
                 title: "Crib",
                 registry: {
                   title: "Baby shower",
+                  locale: "fr",
                   slug: "baby",
                   user: { email: "owner@example.com", name: "Owner" },
                 },
@@ -71,20 +74,19 @@ vi.mock("./db", () => {
   };
 });
 
-vi.mock("./email", () => ({
-  sendGiftNotification: vi.fn(),
-  sendOrderConfirmation: vi.fn(),
-}));
+vi.mock("./email", () => ({ deliverEmail: vi.fn() }));
+vi.mock("next/server", () => ({ after: vi.fn() }));
 
 import { fulfillOrder } from "./orders";
-import { sendGiftNotification } from "./email";
+
+type Queued = { data: { template: string; to: string; dedupeKey: string; locale: string } };
 
 describe("fulfillOrder", () => {
   beforeEach(() => {
     state.orderStatus = "PENDING";
     state.fulfilledQty = 0;
     state.itemIncrements = 0;
-    vi.mocked(sendGiftNotification).mockClear();
+    state.queued = [];
   });
 
   it("fulfills an order exactly once when two webhooks arrive together", async () => {
@@ -98,7 +100,11 @@ describe("fulfillOrder", () => {
     expect(results.filter((r) => r !== null)).toHaveLength(1);
     expect(state.itemIncrements).toBe(1);
     expect(state.fulfilledQty).toBe(1);
-    expect(sendGiftNotification).toHaveBeenCalledTimes(1);
+    const q = state.queued as Queued[];
+    expect(q.map((x) => x.data.template).sort()).toEqual(["gift-notification", "order-receipt"]);
+    expect(q.find((x) => x.data.template === "gift-notification")?.data).toMatchObject({
+      to: "owner@example.com", dedupeKey: "order:order_1:gift-notification", locale: "fr",
+    });
   });
 
   it("skips a late retry of an already paid order", async () => {
@@ -106,5 +112,6 @@ describe("fulfillOrder", () => {
 
     expect(await fulfillOrder("order_1")).toBeNull();
     expect(state.itemIncrements).toBe(0);
+    expect(state.queued).toHaveLength(0);
   });
 });

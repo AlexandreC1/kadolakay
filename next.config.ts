@@ -9,13 +9,24 @@ const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 // Stripe.js, PayPal SDK, Google fonts, R2 images, OAuth avatars). Tighten per route as needed.
 const isProd = process.env.NODE_ENV === "production";
 
+// Public CDN for uploaded images (S3_PUBLIC_URL, e.g. https://cdn.kadolakay.com).
+// Without it in img-src / remotePatterns every uploaded image is blocked.
+function cdnHost(): string | null {
+  try {
+    return process.env.S3_PUBLIC_URL ? new URL(process.env.S3_PUBLIC_URL).host : null;
+  } catch {
+    return null;
+  }
+}
+const CDN_HOST = cdnHost();
+
 const csp = [
   "default-src 'self'",
   "base-uri 'self'",
   "form-action 'self' https://checkout.stripe.com https://www.paypal.com https://www.sandbox.paypal.com",
   "frame-ancestors 'none'",
   "object-src 'none'",
-  "img-src 'self' data: blob: https://lh3.googleusercontent.com https://*.r2.cloudflarestorage.com https://*.stripe.com",
+  `img-src 'self' data: blob: https://lh3.googleusercontent.com https://*.r2.cloudflarestorage.com https://*.stripe.com${CDN_HOST ? ` https://${CDN_HOST}` : ""}`,
   "font-src 'self' data: https://fonts.gstatic.com",
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   // 'unsafe-eval' kept off in prod; Next.js dev needs it.
@@ -35,6 +46,7 @@ const securityHeaders = [
   { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(), interest-cohort=()" },
   { key: "X-DNS-Prefetch-Control", value: "on" },
   { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
+  { key: "Cross-Origin-Resource-Policy", value: "same-site" },
 ];
 
 const nextConfig: NextConfig = {
@@ -49,6 +61,7 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "*.r2.cloudflarestorage.com", // Cloudflare R2
       },
+      ...(CDN_HOST ? [{ protocol: "https" as const, hostname: CDN_HOST }] : []),
     ],
   },
   async headers() {
