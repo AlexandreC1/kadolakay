@@ -110,3 +110,23 @@ describe("reconcilePayments", () => {
     expect(r.outcomes).toMatchObject({ rejected: 1, skipped: 1 });
   });
 });
+
+describe("scheduleDrain", () => {
+  it("is a safe no-op outside a request scope", async () => {
+    const { scheduleDrain } = await import("@/lib/email/outbox");
+    expect(() => scheduleDrain()).not.toThrow();
+  });
+});
+
+describe("vercel.json", () => {
+  it("only uses daily schedules (Vercel Hobby limit)", async () => {
+    const fs = await import("node:fs");
+    const cfg = JSON.parse(fs.readFileSync("vercel.json", "utf8")) as { crons: { schedule: string }[] };
+    for (const c of cfg.crons) {
+      const [min, hour, ...rest] = c.schedule.split(" ");
+      expect(min).toMatch(/^\d+$/);
+      expect(hour).toMatch(/^\d+$/);
+      expect(rest).toEqual(["*", "*", "*"]);
+    }
+  });
+});

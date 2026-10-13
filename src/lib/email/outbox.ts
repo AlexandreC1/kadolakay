@@ -8,6 +8,7 @@ import { Prisma } from "@prisma/client";
 import type { EmailTemplate, EnqueueEmail, EnqueueEmailInput, EmailLocale, EmailPayloads } from "@/lib/contracts/email";
 import { db } from "@/lib/db";
 import { log } from "@/lib/log";
+import { after } from "next/server";
 import { deliverEmail } from "../email";
 
 export const MAX_ATTEMPTS = 6;
@@ -106,4 +107,24 @@ export async function drainOutbox(opts: { batch?: number; deliver?: Deliver; now
     }
   }
   return result;
+}
+
+/**
+ * Drain the outbox right after the current response is sent (Next `after()`).
+ * Call after the transaction that enqueued rows has COMMITTED. On Vercel Hobby
+ * the send-emails cron runs only daily, so this is the primary delivery path;
+ * the cron is the retry safety net. Outside a request scope it is a no-op.
+ */
+export function scheduleDrain(batch = 20): void {
+  try {
+    after(async () => {
+      try {
+        await drainOutbox({ batch });
+      } catch (err) {
+        log.warn("email.drain_after_failed", { err });
+      }
+    });
+  } catch {
+    // Not in a request scope (scripts/tests): the cron will pick rows up.
+  }
 }
