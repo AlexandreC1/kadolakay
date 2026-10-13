@@ -1,29 +1,18 @@
 import { NextResponse } from "next/server";
-import { db } from "@/lib/db";
+import { parsePageRequest, parseSearch } from "@/lib/pagination";
+import { browseProducts } from "@/lib/queries/browse";
 
-export async function GET() {
-  const products = await db.product.findMany({
-    where: {
-      inStock: true,
-      business: { status: "APPROVED" },
-    },
-    include: {
-      business: { select: { name: true } },
-    },
-    orderBy: { name: "asc" },
-    take: 100,
+/**
+ * GET /api/products/browse?q=&cursor=&take=  (max take 50)
+ * Response: { items: Product[], nextCursor: string | null }.
+ * Public catalogue data only, so it is CDN-cached.
+ */
+export async function GET(req: Request) {
+  const sp = new URL(req.url).searchParams;
+  const page = parsePageRequest({ cursor: sp.get("cursor"), take: sp.get("take") });
+  const q = parseSearch(sp.get("q"));
+  const result = await browseProducts(page, q);
+  return NextResponse.json(result, {
+    headers: { "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300" },
   });
-
-  return NextResponse.json(
-    products.map((p) => ({
-      id: p.id,
-      name: p.name,
-      description: p.description,
-      priceHTG: p.priceHTG ? Number(p.priceHTG) : null,
-      priceUSD: p.priceUSD ? Number(p.priceUSD) : null,
-      imageUrl: p.imageUrl,
-      businessId: p.businessId,
-      businessName: p.business.name,
-    }))
-  );
 }
