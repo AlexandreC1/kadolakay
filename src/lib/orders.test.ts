@@ -75,6 +75,7 @@ vi.mock("./db", () => {
 });
 
 vi.mock("./email", () => ({ deliverEmail: vi.fn() }));
+vi.mock("next/server", () => ({ after: vi.fn() }));
 
 import { fulfillOrder } from "./orders";
 
