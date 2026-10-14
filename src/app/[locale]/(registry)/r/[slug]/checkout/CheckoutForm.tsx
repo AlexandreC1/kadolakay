@@ -24,6 +24,10 @@ interface CheckoutFormProps {
   registrySlug: string;
   items: CheckoutItem[];
   locale: string;
+  /** Only providers whose feature flag is on (server-computed). */
+  enabledProviders: string[];
+  /** Share token for private registries, forwarded to the checkout action. */
+  shareToken?: string | null;
 }
 
 const paymentMethods = [
@@ -53,12 +57,13 @@ const paymentMethods = [
   },
 ];
 
-export function CheckoutForm({ registrySlug, items, locale }: CheckoutFormProps) {
+export function CheckoutForm({ registrySlug, items, locale, enabledProviders, shareToken }: CheckoutFormProps) {
+  const methods = paymentMethods.filter((m) => enabledProviders.includes(m.id));
   const t = useTranslations();
   const [selectedItems, setSelectedItems] = useState<Record<string, number>>(
     Object.fromEntries(items.map((item) => [item.id, 1]))
   );
-  const [paymentMethod, setPaymentMethod] = useState("stripe");
+  const [paymentMethod, setPaymentMethod] = useState(methods[0]?.id ?? "");
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -101,6 +106,7 @@ export function CheckoutForm({ registrySlug, items, locale }: CheckoutFormProps)
     formData.set("registryItemIds", JSON.stringify(selectedIds));
     formData.set("quantities", JSON.stringify(selectedItems));
     formData.set("paymentProvider", paymentMethod);
+    if (shareToken) formData.set("share", shareToken);
 
     try {
       const result = await createOrder(formData);
@@ -226,7 +232,10 @@ export function CheckoutForm({ registrySlug, items, locale }: CheckoutFormProps)
           {t("checkout.payWith")}
         </h2>
         <div className="grid grid-cols-2 gap-2">
-          {paymentMethods.map((method) => (
+          {methods.length === 0 && (
+            <p className="col-span-2 text-sm text-gray-500">Pa gen metòd peman disponib kounye a. / No payment method is available right now.</p>
+          )}
+          {methods.map((method) => (
             <button
               key={method.id}
               type="button"
@@ -271,7 +280,7 @@ export function CheckoutForm({ registrySlug, items, locale }: CheckoutFormProps)
         variant="gold"
         size="xl"
         className="w-full"
-        disabled={pending || Object.keys(selectedItems).length === 0}
+        disabled={pending || methods.length === 0 || Object.keys(selectedItems).length === 0}
       >
         {pending ? t("common.loading") : t("checkout.sendGift")}
       </Button>
