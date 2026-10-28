@@ -9,10 +9,10 @@ import { getReconcileDeps } from "./reconcile-wiring";
 import { claimAndFulfill } from "@/lib/orders";
 
 describe("getReconcileDeps", () => {
-  it("wires Stripe + PayPal verifiers to claimAndFulfill, never Natcash/MonCash", async () => {
+  it("wires Stripe, PayPal and MonCash verifiers to claimAndFulfill, never Natcash", async () => {
     const deps = await getReconcileDeps();
     expect(deps).not.toBeNull();
-    expect(Object.keys(deps!.verifiers).sort()).toEqual(["PAYPAL", "STRIPE"]);
+    expect(Object.keys(deps!.verifiers).sort()).toEqual(["MONCASH", "PAYPAL", "STRIPE"]);
     expect(deps!.claimAndFulfill).toBe(claimAndFulfill);
   });
 });

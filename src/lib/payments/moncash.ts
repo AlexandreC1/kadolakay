@@ -66,13 +66,34 @@ export const moncashProvider: PaymentVerifier = {
     };
   },
 
+  /**
+   * By transactionId (the return URL) or, without one, by our orderId
+   * (RetrieveOrderPayment). The second form is what reconcile uses when the
+   * buyer paid but never came back through the return URL. "No payment for
+   * this order yet" comes back as PENDING, not an error.
+   */
   async verify(ref: VerifyRef): Promise<VerifiedPayment> {
-    if (!ref.transactionId || !/^[A-Za-z0-9-]{1,64}$/.test(ref.transactionId)) throw new ProviderError("MONCASH", "BAD_RESPONSE");
-    const { data } = await providerFetchJson<MonCashRetrieveResponse>("MONCASH", apiUrl("/v1/RetrieveTransactionPayment"), {
+    if (ref.transactionId) {
+      if (!/^[A-Za-z0-9-]{1,64}$/.test(ref.transactionId)) throw new ProviderError("MONCASH", "BAD_RESPONSE");
+      const { data } = await providerFetchJson<MonCashRetrieveResponse>("MONCASH", apiUrl("/v1/RetrieveTransactionPayment"), {
+        method: "POST",
+        headers: { Authorization: `Bearer ${await token.get()}`, "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({ transactionId: ref.transactionId }),
+      });
+      return verifiedFromMonCash(data);
+    }
+    if (!ref.orderId || !/^[A-Za-z0-9_-]{1,64}$/.test(ref.orderId)) throw new ProviderError("MONCASH", "BAD_RESPONSE");
+    const { status, data } = await providerFetchJson<MonCashRetrieveResponse>("MONCASH", apiUrl("/v1/RetrieveOrderPayment"), {
       method: "POST",
       headers: { Authorization: `Bearer ${await token.get()}`, "Content-Type": "application/json", Accept: "application/json" },
-      body: JSON.stringify({ transactionId: ref.transactionId }),
+      body: JSON.stringify({ orderId: ref.orderId }),
+      allowStatus: [404],
     });
+    if (status === 404 || !data.payment?.transaction_id) return notPaidYet(ref.orderId);
     return verifiedFromMonCash(data);
   },
 };
+
+function notPaidYet(orderId: string): VerifiedPayment {
+  return { orderId, provider: "MONCASH", providerTxId: "", amount: money(0), currency: "HTG", status: "PENDING", rawSummary: { found: false } };
+}

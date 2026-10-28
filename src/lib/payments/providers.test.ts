@@ -69,6 +69,22 @@ describe("MonCash (C4)", () => {
     expect(verifiedFromMonCash({ payment: { reference: "o", transaction_id: 1, cost: 1, message: "failed" } }).status).toBe("FAILED");
     expect(() => verifiedFromMonCash({})).toThrow();
   });
+  it("without a transactionId, looks the payment up by our orderId (reconcile)", async () => {
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(json(200, { access_token: "t", expires_in: 3600 }))
+      .mockResolvedValueOnce(json(200, { payment: { reference: "ord_9", transaction_id: 77, cost: 1500, message: "successful" } }));
+    vi.stubGlobal("fetch", fetchMock);
+    const v = await moncashProvider.verify({ orderId: "ord_9", providerRef: "tok" });
+    expect(String(fetchMock.mock.calls[1][0])).toContain("/v1/RetrieveOrderPayment");
+    expect(JSON.parse(fetchMock.mock.calls[1][1].body)).toEqual({ orderId: "ord_9" });
+    expect(v).toMatchObject({ orderId: "ord_9", providerTxId: "77", status: "COMPLETED" });
+  });
+  it("an order MonCash has no payment for yet is PENDING, not an error", async () => {
+    vi.stubGlobal("fetch", vi.fn(async (url: string) =>
+      url.includes("/oauth/token") ? json(200, { access_token: "t", expires_in: 3600 }) : json(404, { message: "not found" })));
+    const v = await moncashProvider.verify({ orderId: "ord_10" });
+    expect(v).toMatchObject({ orderId: "ord_10", status: "PENDING" });
+  });
   it("refuses non-HTG payments", async () => {
     await expect(moncashProvider.create({ orderId: "o", publicToken: "p", amount: money(1), currency: "USD", description: "", returnUrl: "https://x", cancelUrl: "https://x" })).rejects.toMatchObject({ code: "UNSUPPORTED_CURRENCY" });
   });
