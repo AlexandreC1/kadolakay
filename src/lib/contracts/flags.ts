@@ -1,6 +1,8 @@
 /**
  * Feature flags (plan §2). Read from env at call time so tests can toggle them.
- * Defaults keep today's behaviour: every provider on, queue off.
+ * Defaults: Stripe, PayPal and MonCash on; Natcash OFF until the admin screen
+ * that confirms manual transfers (confirmManualPayment) exists, otherwise
+ * buyers would send money that nobody can mark as received. Queue off.
  */
 export interface Flags {
   stripeEnabled: boolean;
@@ -22,7 +24,7 @@ export function getFlags(env: NodeJS.ProcessEnv = process.env): Flags {
     stripeEnabled: flag("STRIPE_ENABLED", true, env),
     paypalEnabled: flag("PAYPAL_ENABLED", true, env),
     moncashEnabled: flag("MONCASH_ENABLED", true, env),
-    natcashEnabled: flag("NATCASH_ENABLED", true, env),
+    natcashEnabled: flag("NATCASH_ENABLED", false, env),
     emailQueueEnabled: flag("EMAIL_QUEUE_ENABLED", false, env),
     maintenanceMode: flag("MAINTENANCE_MODE", false, env),
   };
