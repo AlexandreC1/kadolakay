@@ -93,6 +93,12 @@ export async function updateRegistryItem(itemId: string, formData: FormData) {
   const parsed = updateItemSchema.safeParse(raw);
   if (!parsed.success) throw new Error("Invalid item data");
   const updates = parsed.data;
+  // A business product's title, price, image and links belong to the business:
+  // the registry owner may only change how many they want. Otherwise an owner
+  // could reprice a 5000 HTG cake to 1 HTG and a guest would buy it at that price.
+  if (item.source === "LOCAL_BUSINESS" && Object.keys(updates).some((k) => k !== "quantity")) {
+    throw new Error("Only the quantity of a business product can be changed");
+  }
   if (updates.quantity !== undefined && updates.quantity < item.fulfilledQty) {
     throw new Error("Quantity can't be lower than the number already gifted");
   }

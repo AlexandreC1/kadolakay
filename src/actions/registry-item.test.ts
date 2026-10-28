@@ -26,6 +26,14 @@ describe("updateRegistryItem (H1)", () => {
   it("won't lower quantity below what was already gifted", async () => {
     await expect(updateRegistryItem("i1", fd({ quantity: "1" }))).rejects.toThrow(/already gifted/);
   });
+  it("won't let the owner reprice or rename a business product", async () => {
+    m.find.mockResolvedValue({ id: "i1", source: "LOCAL_BUSINESS", fulfilledQty: 0, registry: { userId: "owner", slug: "s" } });
+    await expect(updateRegistryItem("i1", fd({ priceHTG: "1" }))).rejects.toThrow(/quantity/);
+    await expect(updateRegistryItem("i1", fd({ title: "Cheap cake" }))).rejects.toThrow(/quantity/);
+    expect(m.update).not.toHaveBeenCalled();
+    await updateRegistryItem("i1", fd({ quantity: "3" }));
+    expect(m.update).toHaveBeenCalledWith({ where: { id: "i1" }, data: { quantity: 3 } });
+  });
   it("other users can't edit", async () => {
     m.auth.mockResolvedValue({ user: { id: "attacker" } });
     await expect(updateRegistryItem("i1", fd({ title: "x" }))).rejects.toThrow();
