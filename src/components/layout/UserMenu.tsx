@@ -9,6 +9,7 @@ interface UserMenuProps {
     name?: string | null;
     image?: string | null;
     email?: string | null;
+    role?: string | null;
   };
 }
 
@@ -74,6 +75,33 @@ export function UserMenu({ user }: UserMenuProps) {
           >
             {t("nav.orders")}
           </Link>
+          <Link
+            href="/settings"
+            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+            onClick={() => setOpen(false)}
+          >
+            {t("nav.settings")}
+          </Link>
+          {user.role === "ADMIN" && (
+            <>
+              <div className="border-t border-gray-100 my-1" />
+              {[
+                ["/admin/orders", "nav.adminOrders"],
+                ["/admin/payments/natcash", "nav.adminNatcash"],
+                ["/admin/users", "nav.adminUsers"],
+                ["/admin/businesses", "nav.adminBusinesses"],
+              ].map(([href, key]) => (
+                <Link
+                  key={href}
+                  href={href}
+                  className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                  onClick={() => setOpen(false)}
+                >
+                  {t(key)}
+                </Link>
+              ))}
+            </>
+          )}
           <div className="border-t border-gray-100 my-1" />
           <form action="/api/auth/signout" method="POST">
             <button
