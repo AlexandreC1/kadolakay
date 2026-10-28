@@ -51,7 +51,7 @@ export async function loadPendingPayments(now: Date, minAgeMs = 10 * 60_000, bat
 }
 
 export async function reconcilePayments(rows: PendingPaymentRow[], deps: ReconcileDeps): Promise<ReconcileResult> {
-  const outcomes: ReconcileResult["outcomes"] = { fulfilled: 0, duplicate: 0, rejected: 0, pending: 0, failed: 0, error: 0, skipped: 0 };
+  const outcomes: ReconcileResult["outcomes"] = { fulfilled: 0, duplicate: 0, rejected: 0, needs_refund: 0, pending: 0, failed: 0, error: 0, skipped: 0 };
   for (const row of rows) {
     const verifier = deps.verifiers[row.provider];
     if (!verifier || !AUTO.includes(row.provider)) {

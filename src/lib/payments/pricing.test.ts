@@ -39,6 +39,13 @@ describe("priceOrder", () => {
     expect(code(() => priceOrder({ requestedIds: ["a"], quantities: { a: 1 }, currency: "USD", rows: [a] }))).toBe("OK");
     expect(code(() => priceOrder({ requestedIds: ["a"], quantities: { a: 0 }, currency: "USD", rows: [a] }))).toBe("INVALID_INPUT");
   });
+  it("counts quantity held by other checkouts in progress", () => {
+    const a = row({ id: "a", priceUSD: "1", quantity: 3, fulfilledQty: 1, reservedQty: 1 });
+    expect(code(() => priceOrder({ requestedIds: ["a"], quantities: { a: 2 }, currency: "USD", rows: [a] }))).toBe("INVALID_INPUT");
+    expect(code(() => priceOrder({ requestedIds: ["a"], quantities: { a: 1 }, currency: "USD", rows: [a] }))).toBe("OK");
+    const held = row({ id: "a", priceUSD: "1", quantity: 1, reservedQty: 1 });
+    expect(code(() => priceOrder({ requestedIds: ["a"], quantities: {}, currency: "USD", rows: [held] }))).toBe("CONFLICT");
+  });
   it("de-duplicates repeated ids", () => {
     const r = priceOrder({ requestedIds: ["a", "a"], quantities: {}, currency: "USD", rows: [row({ id: "a", priceUSD: "2" })] });
     expect(r.total.toFixed(2)).toBe("2.00");

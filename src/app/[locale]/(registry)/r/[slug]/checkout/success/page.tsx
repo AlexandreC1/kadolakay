@@ -48,7 +48,7 @@ export default async function CheckoutSuccessPage({ params, searchParams }: Prop
       })
       : null;
   const order =
-    found && found.registry?.slug === slug && ["PENDING", "PAID", "CONFIRMED", "SHIPPED", "DELIVERED"].includes(found.status)
+    found && found.registry?.slug === slug && ["PENDING", "PAID", "CONFIRMED", "SHIPPED", "DELIVERED", "NEEDS_REFUND"].includes(found.status)
       ? found
       : null;
   const awaitingNatcash = order?.payment?.provider === "NATCASH" && order.payment.status !== "COMPLETED";
@@ -68,6 +68,14 @@ export default async function CheckoutSuccessPage({ params, searchParams }: Prop
       <h1 className="text-3xl font-bold text-gray-900 mb-2">
         {t("checkout.thankYou")}
       </h1>
+
+      {order?.status === "NEEDS_REFUND" && (
+        <Card className="mt-8 text-left border-amber-200">
+          <CardContent className="p-6 text-sm text-gray-700">
+            <p>{t("checkout.needsRefund")}</p>
+          </CardContent>
+        </Card>
+      )}
 
       {awaitingNatcash && (
         <Card className="mt-8 text-left border-amber-200">

@@ -116,7 +116,8 @@
     "thankYou": "Merci pour votre cadeau !",
     "redirecting": "Redirection vers le magasin...",
     "total": "Total",
-    "platformFee": "Frais de plateforme"
+    "platformFee": "Frais de plateforme",
+    "needsRefund": "Quelqu'un d'autre a offert ce cadeau pendant votre paiement. Nous allons vous rembourser, vous n'avez rien à faire."
   },
   "orders": {
     "subtitle": "Cadeaux achetés pour vous",
@@ -139,7 +140,8 @@
       "CANCELLED": "Annulée",
       "REFUNDED": "Remboursée",
       "EXPIRED": "Expirée",
-      "PAYMENT_FAILED": "Paiement échoué"
+      "PAYMENT_FAILED": "Paiement échoué",
+      "NEEDS_REFUND": "À rembourser"
     }
   },
   "business": {

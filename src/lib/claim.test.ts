@@ -62,6 +62,12 @@ describe("confirmManualPayment", () => {
     m.paymentUpdateMany.mockResolvedValue({ count: 0 });
     expect(await confirmManualPayment({ orderId: "ord_1", reference: "NC-123", adminId: "adm" })).toBe("duplicate");
   });
+  it("can still confirm a transfer after the expire job failed the payment", async () => {
+    m.paymentUpdateMany.mockResolvedValue({ count: 1 });
+    m.orderFind.mockResolvedValue({ id: "ord_1", status: "EXPIRED", items: [], payment: null, isAnonymous: false });
+    expect(await confirmManualPayment({ orderId: "ord_1", reference: "NC-124", adminId: "adm" })).toBe("fulfilled");
+    expect(m.paymentUpdateMany.mock.calls[0][0].where.status.in).toContain("FAILED");
+  });
   it("rejects malformed references", async () => {
     expect(await confirmManualPayment({ orderId: "o", reference: "<script>", adminId: "a" })).toBe("rejected");
   });

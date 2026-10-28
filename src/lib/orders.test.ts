@@ -6,8 +6,10 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 const state = vi.hoisted(() => ({
   orderStatus: "PENDING" as string,
   fulfilledQty: 0,
+  itemQuantity: 1,
   itemIncrements: 0,
   queued: [] as unknown[],
+  audits: [] as unknown[],
 }));
 
 vi.mock("./db", () => {
@@ -20,12 +22,15 @@ vi.mock("./db", () => {
       update: async () => {
         state.orderStatus = "PAID";
       },
-      updateMany: async ({ where }: { where: { status: { not: string } } }) => {
-        if (state.orderStatus === where.status.not) return { count: 0 };
-        state.orderStatus = "PAID";
+      updateMany: async ({ where, data }: { where: { status: { in: string[] } }; data: { status: string } }) => {
+        if (!where.status.in.includes(state.orderStatus)) return { count: 0 };
+        state.orderStatus = data.status;
         return { count: 1 };
       },
     },
+    auditLog: { create: async (args: unknown) => { state.audits.push(args); } },
+    // SELECT ... FOR UPDATE on registry_items
+    $queryRaw: async () => [{ id: "item_1", quantity: state.itemQuantity, fulfilledQty: state.fulfilledQty }],
     emailOutbox: { create: async (args: unknown) => { state.queued.push(args); } },
     $executeRaw: async () => {
       state.itemIncrements += 1;
@@ -85,8 +90,10 @@ describe("fulfillOrder", () => {
   beforeEach(() => {
     state.orderStatus = "PENDING";
     state.fulfilledQty = 0;
+    state.itemQuantity = 1;
     state.itemIncrements = 0;
     state.queued = [];
+    state.audits = [];
   });
 
   it("fulfills an order exactly once when two webhooks arrive together", async () => {
@@ -113,5 +120,37 @@ describe("fulfillOrder", () => {
     expect(await fulfillOrder("order_1")).toBeNull();
     expect(state.itemIncrements).toBe(0);
     expect(state.queued).toHaveLength(0);
+  });
+
+  it("never re-fulfills an order that moved past PAID (refunded, shipped...)", async () => {
+    for (const status of ["REFUNDED", "SHIPPED", "CANCELLED", "NEEDS_REFUND"]) {
+      state.orderStatus = status;
+      expect(await fulfillOrder("order_1")).toBeNull();
+      expect(state.orderStatus).toBe(status);
+    }
+    expect(state.itemIncrements).toBe(0);
+    expect(state.queued).toHaveLength(0);
+  });
+
+  it("a late payment for an item someone else already gave becomes NEEDS_REFUND", async () => {
+    state.orderStatus = "EXPIRED";
+    state.fulfilledQty = 1; // the only crib was gifted while this buyer was paying
+
+    const result = await fulfillOrder("order_1");
+
+    expect(result?.status).toBe("NEEDS_REFUND");
+    expect(state.orderStatus).toBe("NEEDS_REFUND");
+    expect(state.itemIncrements).toBe(0);
+    expect(state.queued).toHaveLength(0);
+    expect(state.audits).toHaveLength(1);
+  });
+
+  it("a late payment that still fits is fulfilled normally", async () => {
+    state.orderStatus = "EXPIRED";
+    state.itemQuantity = 2;
+    state.fulfilledQty = 1;
+
+    expect((await fulfillOrder("order_1"))?.status).toBe("PAID");
+    expect(state.fulfilledQty).toBe(2);
   });
 });

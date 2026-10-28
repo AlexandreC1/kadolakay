@@ -2,13 +2,14 @@
  * PayPal return URL handler. PayPal redirects the buyer here with ?token=<PayPal order id>
  * after approval. We CAPTURE the order (money only moves on capture, review C3),
  * then claimAndFulfill() checks orderId, amount and currency before fulfilling.
+ * A late return whose items were gifted meanwhile is NOT captured (orderStillFits).
  * Reloads are safe: capture is idempotent (PayPal-Request-Id / ORDER_ALREADY_CAPTURED)
  * and the claim is unique per (provider, transaction).
  */
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { paypalProvider } from "@/lib/payments/paypal";
-import { claimAndFulfill, getOrderRedirectTarget } from "@/lib/orders";
+import { claimAndFulfill, getOrderRedirectTarget, orderStillFits } from "@/lib/orders";
 import { log } from "@/lib/log";
 
 export const dynamic = "force-dynamic";
@@ -29,6 +30,12 @@ export async function GET(req: NextRequest) {
     }
 
     if (payment.status !== "COMPLETED") {
+      // verify() CAPTURES. A buyer coming back after the order expired may be
+      // paying for gifts someone else gave meanwhile: don't take that money.
+      if (!(await orderStillFits(payment.orderId))) {
+        log.warn("paypal return: order no longer fits, not capturing", { orderId: payment.orderId });
+        return fail("unavailable");
+      }
       const verified = await paypalProvider.verify({ orderId: payment.orderId, providerRef: token });
       // The capture must be for the order we looked up, not one chosen by the caller.
       if (verified.orderId !== payment.orderId) {

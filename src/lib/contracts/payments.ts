@@ -55,7 +55,8 @@ export interface PaymentVerifier {
   verify(ref: VerifyRef): Promise<VerifiedPayment>;
 }
 
-export type ClaimOutcome = "fulfilled" | "duplicate" | "rejected";
+/** needs_refund: the payment was claimed but the items were already fully gifted (order NEEDS_REFUND). */
+export type ClaimOutcome = "fulfilled" | "duplicate" | "rejected" | "needs_refund";
 
 /** Implemented in src/lib/orders.ts (WS1). */
 export type ClaimAndFulfill = (verified: VerifiedPayment) => Promise<ClaimOutcome>;

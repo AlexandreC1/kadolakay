@@ -116,7 +116,8 @@
     "thankYou": "Mèsi pou kado ou a!",
     "redirecting": "Nap voye ou sou sit magazen an...",
     "total": "Total",
-    "platformFee": "Frè platfòm"
+    "platformFee": "Frè platfòm",
+    "needsRefund": "Yon lòt moun te fin ofri kado sa a pandan w t ap peye. Nou pral ranbouse w; ou pa bezwen fè anyen."
   },
   "orders": {
     "subtitle": "Kado moun achte pou ou",
@@ -139,7 +140,8 @@
       "CANCELLED": "Anile",
       "REFUNDED": "Ranbouse",
       "EXPIRED": "Ekspire",
-      "PAYMENT_FAILED": "Peman echwe"
+      "PAYMENT_FAILED": "Peman echwe",
+      "NEEDS_REFUND": "Pou ranbouse"
     }
   },
   "business": {

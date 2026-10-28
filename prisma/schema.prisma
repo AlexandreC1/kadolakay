@@ -256,6 +256,8 @@ enum OrderStatus {
   REFUNDED
   EXPIRED
   PAYMENT_FAILED
+  // Paid, but the items were already fully gifted: nothing fulfilled, refund the buyer.
+  NEEDS_REFUND
 }
 
 enum PaymentProvider {

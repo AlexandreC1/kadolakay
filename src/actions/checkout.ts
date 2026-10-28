@@ -13,6 +13,7 @@ import { checkRateLimit } from "@/lib/rate-limit";
 import { ActionError } from "@/lib/contracts/action";
 import { ProviderError } from "@/lib/contracts/payments";
 import { log } from "@/lib/log";
+import { NATCASH_GRACE_HOURS } from "@/lib/jobs/expire-orders";
 
 const ORDER_TTL_MS = 2 * 60 * 60 * 1000;
 
@@ -20,7 +21,7 @@ const ORDER_TTL_MS = 2 * 60 * 60 * 1000;
 const MESSAGES: Record<string, string> = {
   INVALID_INPUT: "Some items can't be purchased with this payment method or quantity.",
   NOT_FOUND: "Some items are no longer available.",
-  CONFLICT: "Some items have already been fully gifted.",
+  CONFLICT: "Some items have already been gifted, or someone else is paying for them right now.",
   PROVIDER_ERROR: "The payment provider is unavailable. Please try again or choose another method.",
 };
 
@@ -66,69 +67,92 @@ export async function createOrder(formData: FormData) {
   if (!isProviderEnabled(providerKey)) throw new Error("This payment method is not available right now.");
   const currency = PROVIDER_CURRENCY[providerKey];
 
-  const rows = await db.registryItem.findMany({
-    where: { id: { in: data.registryItemIds } },
-    select: {
-      id: true, registryId: true, priceHTG: true, priceUSD: true, quantity: true, fulfilledQty: true, status: true,
-      registry: { select: { id: true, slug: true, status: true, isPublic: true, shareToken: true } },
-    },
-  });
-
   const shareToken = (formData.get("share") as string | null) || null;
-  if (rows.some((r) => !checkoutAccessAllowed(r.registry, shareToken))) throw new Error(MESSAGES.NOT_FOUND ?? "Not found");
+  const ids = [...new Set(data.registryItemIds)].sort();
+  // Natcash is a manual transfer: hold the items for as long as the buyer has
+  // to send it, not just the 2h a card or MonCash checkout gets.
+  const ttlMs = providerKey === "natcash" ? NATCASH_GRACE_HOURS * 3_600_000 : ORDER_TTL_MS;
 
-  let priced;
+  // Stock check and order creation happen under a row lock on the items, and
+  // quantity already held by other unpaid, unexpired orders counts as taken.
+  // Without this, two guests could both pay for the last crib (review #2).
+  // Lock order (items, then order) matches fulfillOrder, so no deadlocks.
+  let created;
   try {
-    priced = priceOrder({ requestedIds: data.registryItemIds, quantities: data.quantities, currency, rows });
+    created = await db.$transaction(async (tx) => {
+      await tx.$queryRaw`SELECT id FROM registry_items WHERE id IN (${Prisma.join(ids)}) ORDER BY id FOR UPDATE`;
+      const now = new Date();
+      const [rows, held] = await Promise.all([
+        tx.registryItem.findMany({
+          where: { id: { in: ids } },
+          select: {
+            id: true, registryId: true, priceHTG: true, priceUSD: true, quantity: true, fulfilledQty: true, status: true,
+            registry: { select: { id: true, slug: true, status: true, isPublic: true, shareToken: true } },
+          },
+        }),
+        tx.orderItem.groupBy({
+          by: ["registryItemId"],
+          where: { registryItemId: { in: ids }, order: { status: "PENDING", expiresAt: { gt: now } } },
+          _sum: { quantity: true },
+        }),
+      ]);
+      if (rows.some((r) => !checkoutAccessAllowed(r.registry, shareToken))) throw new ActionError("NOT_FOUND", "registryItemIds");
+      const reserved = new Map(held.map((h) => [h.registryItemId, h._sum.quantity ?? 0]));
+
+      const priced = priceOrder({
+        requestedIds: data.registryItemIds,
+        quantities: data.quantities,
+        currency,
+        rows: rows.map((r) => ({ ...r, reservedQty: reserved.get(r.id) ?? 0 })),
+      });
+      const totalHTG = currency === "HTG" ? priced.total : null;
+      const totalUSD = currency === "USD" ? priced.total : null;
+
+      // Order + Payment in one transaction so there is never an order without a payment row (H6).
+      const order = await tx.order.create({
+        data: {
+          orderNumber: generateOrderNumber(),
+          registryId: priced.registryId,
+          buyerId: session?.user?.id || null,
+          buyerName: data.buyerName,
+          buyerEmail: data.buyerEmail,
+          buyerPhone: data.buyerPhone,
+          giftMessage: data.giftMessage,
+          isAnonymous: data.isAnonymous,
+          totalHTG,
+          totalUSD,
+          platformFee: priced.platformFee,
+          expiresAt: new Date(now.getTime() + ttlMs),
+          items: {
+            create: priced.lines.map((l) => ({
+              registryItemId: l.registryItemId,
+              quantity: l.quantity,
+              priceHTG: l.priceHTG,
+              priceUSD: l.priceUSD,
+            })),
+          },
+        },
+        select: { id: true, orderNumber: true, publicToken: true },
+      });
+      await tx.payment.create({
+        data: {
+          orderId: order.id,
+          provider: providerEnum(providerKey),
+          currency,
+          amountHTG: totalHTG,
+          amountUSD: totalUSD,
+          amountExpected: priced.total,
+        },
+      });
+      return { order, priced };
+    });
   } catch (err) {
     if (err instanceof ActionError) throw new Error(MESSAGES[err.code] ?? "Invalid order");
     throw err;
   }
+  const { order, priced } = created;
 
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-  const totalHTG = currency === "HTG" ? priced.total : null;
-  const totalUSD = currency === "USD" ? priced.total : null;
-
-  // Order + Payment in one transaction so there is never an order without a payment row (H6).
-  const order = await db.$transaction(async (tx) => {
-    const created = await tx.order.create({
-      data: {
-        orderNumber: generateOrderNumber(),
-        registryId: priced.registryId,
-        buyerId: session?.user?.id || null,
-        buyerName: data.buyerName,
-        buyerEmail: data.buyerEmail,
-        buyerPhone: data.buyerPhone,
-        giftMessage: data.giftMessage,
-        isAnonymous: data.isAnonymous,
-        totalHTG,
-        totalUSD,
-        platformFee: priced.platformFee,
-        expiresAt: new Date(Date.now() + ORDER_TTL_MS),
-        items: {
-          create: priced.lines.map((l) => ({
-            registryItemId: l.registryItemId,
-            quantity: l.quantity,
-            priceHTG: l.priceHTG,
-            priceUSD: l.priceUSD,
-          })),
-        },
-      },
-      select: { id: true, orderNumber: true, publicToken: true },
-    });
-    await tx.payment.create({
-      data: {
-        orderId: created.id,
-        provider: providerEnum(providerKey),
-        currency,
-        amountHTG: totalHTG,
-        amountUSD: totalUSD,
-        amountExpected: priced.total,
-      },
-    });
-    return created;
-  });
-
   const successUrl = `${baseUrl}/r/${priced.registrySlug}/checkout/success?t=${order.publicToken}`;
   const cancelUrl = `${baseUrl}/r/${priced.registrySlug}?status=cancelled`;
   // PayPal must return to our capture handler; MonCash's return URL is set in its merchant portal.

@@ -17,6 +17,8 @@ export interface PricedItemRow {
   priceUSD: { toString(): string } | null;
   quantity: number;
   fulfilledQty: number;
+  /** Quantity held by other unpaid, unexpired orders (see createOrder). */
+  reservedQty?: number;
   status: string;
   registry: { id: string; slug: string; status: string };
 }
@@ -60,7 +62,9 @@ export function priceOrder(input: {
 
   const lines: OrderLine[] = rows.map((r) => {
     if (r.status === "FULFILLED") throw new ActionError("CONFLICT", "registryItemIds");
-    const remaining = r.quantity - r.fulfilledQty;
+    const remaining = r.quantity - r.fulfilledQty - (r.reservedQty ?? 0);
+    // Everything left is held by someone else's checkout in progress.
+    if (remaining <= 0) throw new ActionError("CONFLICT", "registryItemIds");
     const qty = input.quantities[r.id] ?? 1;
     if (!Number.isInteger(qty) || qty < 1 || qty > MAX_QTY_PER_ITEM || qty > remaining) {
       throw new ActionError("INVALID_INPUT", "quantities");

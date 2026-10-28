@@ -42,7 +42,7 @@
  * =============================================================================
  */
 
-import { Prisma } from "@prisma/client";
+import { Prisma, type OrderStatus } from "@prisma/client";
 import { db } from "./db";
 import { enqueueEmailWith, scheduleDrain } from "./email/outbox";
 import { emailDedupeKey, type EmailLocale } from "./contracts/email";
@@ -55,6 +55,14 @@ import {
   type ConfirmManualPayment,
   type VerifiedPayment,
 } from "./contracts/payments";
+
+/**
+ * Statuses a verified payment may move to PAID. EXPIRED and PAYMENT_FAILED are
+ * here because money can still arrive late (Stripe async methods, a Natcash
+ * transfer confirmed after the order expired). Anything past PAID (shipped,
+ * refunded, cancelled, needs refund) is final for this path.
+ */
+export const CLAIMABLE_STATUSES: OrderStatus[] = ["PENDING", "EXPIRED", "PAYMENT_FAILED"];
 
 /**
  * Mark an order as paid and fulfill the associated registry items.
@@ -88,8 +96,8 @@ export async function fulfillOrder(orderId: string) {
   // ── Step 2: Fast-path idempotency check ──
   // Cheap early exit for the common case: a retry that arrives long after the
   // first delivery finished. This check alone is NOT enough — see Step 3.
-  if (order.status === "PAID") {
-    console.log(`Order ${orderId} already fulfilled, skipping (idempotent).`);
+  if (!CLAIMABLE_STATUSES.includes(order.status)) {
+    console.log(`Order ${orderId} is ${order.status}, not claimable, skipping (idempotent).`);
     return null;
   }
 
@@ -97,7 +105,26 @@ export async function fulfillOrder(orderId: string) {
   // Wrap order status update AND item fulfillment in a single transaction.
   // If anything fails, everything rolls back.
   const claimed = await db.$transaction(async (tx) => {
-    // Claim the order with a conditional write: "set PAID only if not PAID".
+    // Lock the items first (same order as createOrder: items, then order) and
+    // read their committed counts. If someone else's gift filled an item while
+    // this buyer was paying (late payment after expiry, Natcash confirmed days
+    // later), we must not pretend this one was fulfilled: the order becomes
+    // NEEDS_REFUND and no item is touched.
+    const itemIds = [...new Set(order.items.map((oi) => oi.registryItemId))].sort();
+    const locked = itemIds.length
+      ? await tx.$queryRaw<{ id: string; quantity: number; fulfilledQty: number }[]>`
+          SELECT id, quantity, "fulfilledQty" FROM registry_items
+          WHERE id IN (${Prisma.join(itemIds)}) ORDER BY id FOR UPDATE`
+      : [];
+    const byId = new Map(locked.map((r) => [r.id, r]));
+    const oversold = order.items.some((oi) => {
+      const r = byId.get(oi.registryItemId);
+      return !r || r.fulfilledQty + oi.quantity > r.quantity;
+    });
+
+    // Claim the order with a conditional write: only a claimable status
+    // (PENDING, EXPIRED, PAYMENT_FAILED) can become PAID. A refunded,
+    // cancelled or shipped order is never re-fulfilled by a replayed webhook.
     //
     // The Step 2 check reads, then this writes — a check-then-act gap. Two
     // deliveries of the same webhook (MonCash and PayPal retry; only Stripe
@@ -106,15 +133,23 @@ export async function fulfillOrder(orderId: string) {
     // the items and the gift would be counted twice.
     //
     // `updateMany` with a status condition compiles to a single
-    // `UPDATE ... WHERE id = ? AND status <> 'PAID'`. Postgres row-locks the
+    // `UPDATE ... WHERE id = ? AND status IN (...)`. Postgres row-locks the
     // order during that statement, so the second transaction waits, re-checks
     // the condition after the first commits, and matches zero rows. The
     // database decides the winner, not JavaScript.
+    const target: OrderStatus = oversold ? "NEEDS_REFUND" : "PAID";
     const { count } = await tx.order.updateMany({
-      where: { id: orderId, status: { not: "PAID" } },
-      data: { status: "PAID" },
+      where: { id: orderId, status: { in: CLAIMABLE_STATUSES } },
+      data: { status: target },
     });
-    if (count === 0) return false;
+    if (count === 0) return null;
+
+    if (oversold) {
+      await tx.auditLog.create({
+        data: { action: "order.needs_refund", targetType: "order", targetId: orderId, meta: { reason: "items_already_gifted" } },
+      });
+      return target;
+    }
 
     // Update each registry item's fulfillment.
     //
@@ -123,12 +158,9 @@ export async function fulfillOrder(orderId: string) {
     // then read the result back and set status — which is both an extra round
     // trip and a stale read if anything else touched the row in between.
     //
-    // LEAST() is the important part. `createOrder` checks stock before taking
-    // payment, but two buyers can pass that check at the same moment for the
-    // last remaining item; both then pay, and both webhooks land here. Without
-    // the clamp the registry ends up reporting more gifts received than were
-    // ever asked for (2 of 1 cribs). Clamping keeps the displayed count
-    // truthful; the duplicate payment is a refund question, not a data one.
+    // LEAST() is a last line of defence: the oversold check above already
+    // routes an order that doesn't fit to NEEDS_REFUND, so the clamp should
+    // never actually bite.
     for (const oi of order.items) {
       await tx.$executeRaw`
         UPDATE registry_items
@@ -185,7 +217,7 @@ export async function fulfillOrder(orderId: string) {
         },
       });
     }
-    return true;
+    return target;
   });
 
   // Lost the race: another delivery already fulfilled this order. Returning
@@ -194,11 +226,15 @@ export async function fulfillOrder(orderId: string) {
     console.log(`Order ${orderId} fulfilled concurrently, skipping (idempotent).`);
     return null;
   }
+  if (claimed === "NEEDS_REFUND") {
+    log.error("order.needs_refund: paid for items that were already fully gifted", { orderId });
+    return { ...order, status: claimed };
+  }
 
   // Step 4: the outbox rows queued inside the transaction are now committed;
   // deliver them right after the response (the daily cron is only a fallback).
   scheduleDrain();
-  return order;
+  return { ...order, status: claimed };
 }
 
 /**
@@ -271,16 +307,22 @@ export const claimAndFulfill: ClaimAndFulfill = async (v: VerifiedPayment): Prom
       throw err;
     }
   }
-  const fulfilled = await fulfillOrder(v.orderId);
-  return fulfilled ? "fulfilled" : "duplicate";
+  return outcomeOf(await fulfillOrder(v.orderId));
 };
+
+function outcomeOf(fulfilled: Awaited<ReturnType<typeof fulfillOrder>>): ClaimOutcome {
+  if (!fulfilled) return "duplicate";
+  return fulfilled.status === "NEEDS_REFUND" ? "needs_refund" : "fulfilled";
+}
 
 /** Admin confirmation of a manual Natcash transfer (used by WS5's admin screen). */
 export const confirmManualPayment: ConfirmManualPayment = async ({ orderId, reference, adminId }) => {
   const ref = reference.trim();
   if (!/^[A-Za-z0-9-]{3,64}$/.test(ref)) return "rejected";
   const { count } = await db.payment.updateMany({
-    where: { orderId, provider: "NATCASH", status: { in: ["PENDING", "PROCESSING"] } },
+    // FAILED too: the expire job fails the payment of an expired Natcash order,
+    // but the buyer's transfer may still arrive after that and must be confirmable.
+    where: { orderId, provider: "NATCASH", status: { in: ["PENDING", "PROCESSING", "FAILED"] } },
     data: {
       status: "COMPLETED",
       providerTxId: ref,
@@ -298,9 +340,42 @@ export const confirmManualPayment: ConfirmManualPayment = async ({ orderId, refe
   await db.auditLog.create({
     data: { actorId: adminId, action: "payment.manual_confirm", targetType: "order", targetId: orderId, meta: { reference: ref } },
   });
-  const fulfilled = await fulfillOrder(orderId);
-  return fulfilled ? "fulfilled" : "duplicate";
+  return outcomeOf(await fulfillOrder(orderId));
 };
+
+/**
+ * Can this order still be fulfilled right now? An unpaid, unexpired order
+ * holds its own reservation, so it always fits. An expired one lost it: it
+ * fits only if what's left, minus other checkouts in progress, covers it.
+ * Used before capturing a late PayPal approval, so we don't take money for
+ * gifts someone else already gave. (Stripe and MonCash charge before we hear
+ * back; fulfillOrder turns their late payments into NEEDS_REFUND instead.)
+ */
+export async function orderStillFits(orderId: string, now = new Date()): Promise<boolean> {
+  const order = await db.order.findUnique({
+    where: { id: orderId },
+    select: {
+      status: true,
+      expiresAt: true,
+      items: { select: { registryItemId: true, quantity: true, registryItem: { select: { quantity: true, fulfilledQty: true } } } },
+    },
+  });
+  if (!order || !CLAIMABLE_STATUSES.includes(order.status)) return false;
+  if (order.status === "PENDING" && order.expiresAt && order.expiresAt > now) return true;
+  const held = await db.orderItem.groupBy({
+    by: ["registryItemId"],
+    where: {
+      registryItemId: { in: order.items.map((i) => i.registryItemId) },
+      orderId: { not: orderId },
+      order: { status: "PENDING", expiresAt: { gt: now } },
+    },
+    _sum: { quantity: true },
+  });
+  const reserved = new Map(held.map((h) => [h.registryItemId, h._sum.quantity ?? 0]));
+  return order.items.every(
+    (i) => i.registryItem.quantity - i.registryItem.fulfilledQty - (reserved.get(i.registryItemId) ?? 0) >= i.quantity
+  );
+}
 
 /** Order lookup for redirect pages: publicToken + slug of the order's registry. */
 export async function getOrderRedirectTarget(orderId: string) {
