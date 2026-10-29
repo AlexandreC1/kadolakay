@@ -1,7 +1,8 @@
 import { getTranslations } from "next-intl/server";
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import { getMyRegistries } from "@/actions/registry";
+import { pageHref, parsePageRequest } from "@/lib/pagination";
+import { getMyRegistriesPage } from "@/lib/queries/registries";
 import { Link } from "@/i18n/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -18,14 +19,19 @@ const statusColors: Record<string, string> = {
   ARCHIVED: "bg-gray-100 text-gray-500",
 };
 
-export default async function MyRegistriesPage() {
+export default async function MyRegistriesPage({ searchParams }: { searchParams: Promise<{ cursor?: string }> }) {
   const session = await auth();
-  if (!session?.user) {
+  if (!session?.user?.id) {
     redirect("/login?callbackUrl=/my-registries");
   }
 
   const t = await getTranslations();
-  const registries = await getMyRegistries();
+  const { cursor } = await searchParams;
+  const { items: registries, nextCursor } = await getMyRegistriesPage(
+    session.user.id,
+    parsePageRequest({ cursor, take: 20 }),
+  );
+  const nextHref = pageHref("/my-registries", {}, nextCursor);
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
@@ -50,10 +56,8 @@ export default async function MyRegistriesPage() {
       ) : (
         <div className="space-y-4">
           {registries.map((registry) => {
-            const fulfilled = registry.items.filter(
-              (i) => i.status === "FULFILLED"
-            ).length;
-            const total = registry.items.length;
+            const fulfilled = registry.fulfilledItems;
+            const total = registry.totalItems;
 
             return (
               <Link key={registry.id} href={`/r/${registry.slug}`}>
@@ -94,6 +98,13 @@ export default async function MyRegistriesPage() {
               </Link>
             );
           })}
+          {nextHref && (
+            <div className="pt-2 text-center">
+              <Link href={nextHref} className="text-sm font-medium text-amber-700 hover:underline">
+                {t("common.next")} →
+              </Link>
+            </div>
+          )}
         </div>
       )}
     </div>
