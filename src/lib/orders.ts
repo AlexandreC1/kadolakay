@@ -42,8 +42,18 @@
  * =============================================================================
  */
 
+import { Prisma } from "@prisma/client";
 import { db } from "./db";
 import { sendGiftNotification, sendOrderConfirmation } from "./email";
+import { log } from "./log";
+import { money, type Currency } from "./money";
+import {
+  verificationMismatch,
+  type ClaimAndFulfill,
+  type ClaimOutcome,
+  type ConfirmManualPayment,
+  type VerifiedPayment,
+} from "./contracts/payments";
 
 /**
  * Mark an order as paid and fulfill the associated registry items.
@@ -203,4 +213,96 @@ export async function getRegistrySlugForOrder(orderId: string) {
   });
 
   return orderItem?.registryItem.registry.slug || null;
+}
+
+function isUniqueViolation(err: unknown): boolean {
+  return err instanceof Prisma.PrismaClientKnownRequestError
+    ? err.code === "P2002"
+    : typeof err === "object" && err !== null && (err as { code?: string }).code === "P2002";
+}
+
+/**
+ * The single entry point every provider handler calls after verify()
+ * (contract §4.2). Compares what the provider reported with what we
+ * expected, claims the transaction exactly once, then fulfills.
+ */
+export const claimAndFulfill: ClaimAndFulfill = async (v: VerifiedPayment): Promise<ClaimOutcome> => {
+  const payment = await db.payment.findUnique({
+    where: { orderId: v.orderId },
+    select: { provider: true, status: true, currency: true, amountExpected: true, amountHTG: true, amountUSD: true },
+  });
+  if (!payment || payment.provider !== v.provider) {
+    log.warn("claimAndFulfill: unknown order or provider mismatch", { orderId: v.orderId, provider: v.provider });
+    return "rejected";
+  }
+  const currency = payment.currency as Currency;
+  // Orders created before amountExpected existed fall back to the stored total.
+  const expectedRaw = payment.amountExpected ?? (currency === "HTG" ? payment.amountHTG : payment.amountUSD);
+  if (expectedRaw == null) return "rejected";
+  const mismatch = verificationMismatch(v, { orderId: v.orderId, amount: money(expectedRaw.toString()), currency });
+  if (mismatch) {
+    log.error("claimAndFulfill: verification mismatch, NOT fulfilling", {
+      orderId: v.orderId, provider: v.provider, mismatch, reported: v.amount.toFixed(2), currency: v.currency,
+    });
+    return "rejected";
+  }
+
+  if (payment.status !== "COMPLETED") {
+    try {
+      await db.payment.update({
+        where: { orderId: v.orderId },
+        data: {
+          status: "COMPLETED",
+          providerTxId: v.providerTxId,
+          providerEventId: v.providerEventId ?? null,
+          paidAt: new Date(),
+          providerResponse: v.rawSummary as Prisma.InputJsonValue,
+        },
+      });
+    } catch (err) {
+      // Same tx / event already claimed (by this order on a retry, or another order).
+      if (isUniqueViolation(err)) return "duplicate";
+      throw err;
+    }
+  }
+  const fulfilled = await fulfillOrder(v.orderId);
+  return fulfilled ? "fulfilled" : "duplicate";
+};
+
+/** Admin confirmation of a manual Natcash transfer (used by WS5's admin screen). */
+export const confirmManualPayment: ConfirmManualPayment = async ({ orderId, reference, adminId }) => {
+  const ref = reference.trim();
+  if (!/^[A-Za-z0-9-]{3,64}$/.test(ref)) return "rejected";
+  const { count } = await db.payment.updateMany({
+    where: { orderId, provider: "NATCASH", status: { in: ["PENDING", "PROCESSING"] } },
+    data: {
+      status: "COMPLETED",
+      providerTxId: ref,
+      manualReference: ref,
+      manualConfirmedById: adminId,
+      manualConfirmedAt: new Date(),
+      paidAt: new Date(),
+    },
+  }).catch((err: unknown) => {
+    if (isUniqueViolation(err)) return { count: -1 };
+    throw err;
+  });
+  if (count === -1) return "rejected"; // reference already used for another order
+  if (count === 0) return "duplicate";
+  await db.auditLog.create({
+    data: { actorId: adminId, action: "payment.manual_confirm", targetType: "order", targetId: orderId, meta: { reference: ref } },
+  });
+  const fulfilled = await fulfillOrder(orderId);
+  return fulfilled ? "fulfilled" : "duplicate";
+};
+
+/** Order lookup for redirect pages: publicToken + slug of the order's registry. */
+export async function getOrderRedirectTarget(orderId: string) {
+  const order = await db.order.findUnique({
+    where: { id: orderId },
+    select: { publicToken: true, registry: { select: { slug: true } } },
+  });
+  if (!order) return null;
+  const slug = order.registry?.slug ?? (await getRegistrySlugForOrder(orderId));
+  return slug ? `/r/${slug}/checkout/success?t=${order.publicToken}` : null;
 }
