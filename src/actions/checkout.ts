@@ -5,8 +5,27 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { checkoutSchema } from "@/lib/validators/checkout";
 import { checkRateLimit } from "@/lib/rate-limit";
-import { beginCheckout, CheckoutError } from "@/services/checkout";
+import { beginCheckout, resumeCheckout, CheckoutError } from "@/services/checkout";
+import { z } from "zod";
 import { revalidatePath } from "next/cache";
+
+const resumeSchema = z.strictObject({ checkoutRequestId: checkoutSchema.shape.checkoutRequestId, registrySlug: checkoutSchema.shape.registrySlug });
+
+export async function resumeOrder(input: unknown) {
+  const session = await auth();
+  const h = await headers();
+  const ip = h.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "anon";
+  const rl = await checkRateLimit("checkout", session?.user?.id ? `user:${session.user.id}` : `ip:${ip}`);
+  if (!rl.ok) return { error: "RATE_LIMITED" };
+  const parsed = resumeSchema.safeParse(input);
+  if (!parsed.success) return { error: "INVALID_INPUT" };
+  try { return await resumeCheckout(parsed.data, session?.user?.id); }
+  catch (error) {
+    if (error instanceof CheckoutError) return { error: error.message };
+    console.error("Checkout resume failed", { code: "CHECKOUT_FAILED" });
+    return { error: "CHECKOUT_FAILED" };
+  }
+}
 
 export async function createOrder(formData: FormData) {
   const session = await auth();
@@ -14,10 +33,12 @@ export async function createOrder(formData: FormData) {
   const ip = h.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "anon";
   const rl = await checkRateLimit("checkout", session?.user?.id ? `user:${session.user.id}` : `ip:${ip}`);
   if (!rl.ok) return { error: "RATE_LIMITED" };
-  const allowed = new Set(["registrySlug", "locale", "registryItemIds", "quantities", "buyerName", "buyerEmail", "buyerPhone", "giftMessage", "isAnonymous", "paymentProvider"]);
+  const allowed = new Set(["checkoutRequestId", "registrySlug", "locale", "registryItemIds", "quantities", "buyerName", "buyerEmail", "buyerPhone", "giftMessage", "isAnonymous", "paymentProvider"]);
   if ([...formData.keys()].some((key) => !key.startsWith("$ACTION_") && !allowed.has(key))) return { error: "INVALID_INPUT" };
+  if ([...allowed].some(key => formData.getAll(key).length > 1)) return { error: "INVALID_INPUT" };
   try {
     const parsed = checkoutSchema.safeParse({
+      checkoutRequestId: formData.get("checkoutRequestId"),
       registrySlug: formData.get("registrySlug"), locale: formData.get("locale"),
       registryItemIds: JSON.parse(String(formData.get("registryItemIds"))),
       quantities: JSON.parse(String(formData.get("quantities"))),

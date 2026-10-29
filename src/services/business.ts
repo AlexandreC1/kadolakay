@@ -35,7 +35,9 @@ export async function editOwnedProduct(actorId: string, productId: string, input
   const data = editProductSchema.parse(input);
   await db.$transaction(async tx => {
   await tx.$queryRaw`SELECT id FROM products WHERE id = ${productId} FOR UPDATE`;
-  if (await tx.orderItem.count({ where: { registryItem: { productId }, order: { status: "PENDING" } } })) throw new Error("This product has an active checkout. Try again after it completes.");
+  const product = await tx.product.findFirst({ where: { id: productId, business: { ownerId: actorId, status: { not: "SUSPENDED" } } }, select: { reservedStock: true } });
+  if (!product) throw new Error("This product is unavailable or cannot be changed");
+  if (product.reservedStock > 0 || await tx.orderItem.count({ where: { OR: [{ productId }, { registryItem: { productId } }], order: { status: "PENDING" } } })) throw new Error("This product has an active checkout. Try again after it completes.");
   const result = await tx.product.updateMany({
     where: { id: productId, business: { ownerId: actorId, status: { not: "SUSPENDED" } } },
     data: { ...data, priceHTG: data.priceHTG ?? null, priceUSD: data.priceUSD ?? null, imageUrl: data.imageUrl || null },

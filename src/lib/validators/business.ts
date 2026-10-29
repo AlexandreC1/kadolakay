@@ -17,6 +17,7 @@ export const registerBusinessSchema = z.strictObject({
 const productFields = {
   name: z.string().trim().min(1).max(200), description: z.string().max(1000).optional(),
   priceHTG: moneyPrice.optional(), priceUSD: moneyPrice.optional(), category: optionalText, imageUrl: optionalWebUrl,
+  stockQuantity: z.number().int().min(0).max(1000000).nullable().optional(),
 };
 export const addProductSchema = z.strictObject(productFields).refine(v => v.priceHTG !== undefined || v.priceUSD !== undefined, "Add a price before listing this product");
 export const editProductSchema = z.strictObject({ ...productFields, inStock: z.boolean() }).refine(v => v.priceHTG !== undefined || v.priceUSD !== undefined, "Add a price before listing this product");

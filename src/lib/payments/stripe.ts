@@ -45,7 +45,7 @@ export const stripeProvider: PaymentProviderInterface = {
         },
       ],
       mode: "payment",
-      expires_at: Math.floor(Date.now() / 1000) + 30 * 60,
+      expires_at: params.expiresAt ?? Math.floor(Date.now() / 1000) + 30 * 60,
       success_url: params.returnUrl,
       cancel_url: params.cancelUrl,
       metadata: {

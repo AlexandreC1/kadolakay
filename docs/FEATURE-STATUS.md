@@ -1,5 +1,11 @@
 # KadoLakay feature status
 
+## October 29: shared stock and checkout retry foundation implemented
+
+Merchants can enter confirmed physical stock and inspect units held/available. One shared SKU count applies across registries; unknown stock cannot be paid for. Conditional database reservation, payment consumption and expiry release are atomic and duplicate-safe. Historical product references are preserved. Identical browser retries reuse one order and hold; reloads can resume the original provider session. Changed details/buyer are rejected, uncertain provider responses retain holds, and errors are localized/revealed. Three additive migrations applied locally without reset or seed.
+
+Verified: 240 unit tests, 23 PostgreSQL integration tests, TypeScript, production build and full lint (zero errors, 12 existing warnings); all-dependency audit zero. Provider boundary is mocked in database tests. Existing real Google session still works through Prisma 7 in development. Full merchant stock UI and real-provider checkout/resume browser journeys remain unverified. Payment activation and hosting are unchanged. Basket builder in both confirmed modes is next; fulfillment/refund/settlement operations and hosted recovery/security gates remain unfinished.
+
 ## October 29: dependency remediation verified
 
 Prisma 7.10.1 uses the PostgreSQL driver adapter with a bounded four-connection pool, connection timeout and normal TLS verification. CLI configuration moved to prisma.config.ts. Vitest/coverage 5.0.5 and patched transitive packages remove the known advisories: full npm audit reports zero vulnerabilities, including development dependencies. No force overrides, database reset or seed. All 230 unit tests and 14 local PostgreSQL integration tests, migration status, TypeScript and production build pass. Lint has zero errors and 12 existing warnings. Production private-page redirect works; Google initiation correctly fails closed because shared Redis is not configured locally for production. Hosted identity/limiter verification remains open.
@@ -51,9 +57,10 @@ Updated October 27, 2026. This is implementation evidence, not release approval.
 | Product-item Tilt | Reference recorded; not implemented |
 | Admin merchant approvals | Implemented basic review screen; no complete superadmin operations dashboard |
 | Admin metrics and brand/seasonal editor | Not implemented; visitor appearance switch is a separate feature |
-| Google/other external sign-in | Provider code present; credentials and hosted callback verification missing |
+| Google/other external sign-in | Real local Google login/session verified; hosted Google and other providers remain unconfigured/unverified |
 | Native payment | Stripe implementation/tests exist; new checkout disabled pending eligible entity/provider and operational rules; no live payment claim |
-| Shared physical SKU stock, fulfillment/refunds/settlements | Remaining release work |
+| Shared physical SKU stock and checkout retry/resume | Implemented with local concurrency/identity tests; real merchant/provider browser journey remains open |
+| Fulfillment/refunds/settlements | Remaining release work; no automatic restock on refunds |
 | Free hosting, production DB, domain | Configuration/plan only; no successful public deployment or purchase claimed |
 | Security and operations release gates | Dependency audit clean October 29; provider/hosted verification, backup/restore and monitoring remain open |
 

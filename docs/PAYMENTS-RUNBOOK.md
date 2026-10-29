@@ -2,9 +2,9 @@
 
 ## Scope
 
-This release accepts USD card payments through Stripe Checkout only. PayPal, MonCash and Natcash are not enabled. Their callback routes return 503 and checkout never advertises them as available payment choices. No card data passes through KadoLakay.
+The integration targets USD card payments through Stripe Checkout. New checkout stays disabled by default until the operating model, eligible provider account and hosted acceptance checks are approved. PayPal, MonCash and Natcash are not enabled. Their callback routes return 503 and checkout never advertises them as available payment choices. No card data passes through KadoLakay.
 
-KadoLakay is the merchant in this MVP. This does not implement automatic payouts to registry owners or local businesses. Before launch, decide who supplies and delivers each gift, who receives the Stripe settlement, how business vendors are paid, and who handles refunds and disputes. Do not represent the platform as a money transfer or escrow service.
+The seller and settlement model still require confirmation. This does not implement automatic payouts to registry owners or local businesses. Before launch, decide who supplies and delivers each gift, who receives the Stripe settlement, how business vendors are paid, and who handles refunds and disputes. Do not represent the platform as a money transfer or escrow service.
 
 Stripe onboarding requires a business and bank account in a supported country. Verify the merchant's eligibility before choosing this payment route. Haiti is not currently listed as a directly supported Stripe merchant country. A diaspora-owned business must use its genuine eligible legal details. Source checked 2026-10-25: https://stripe.com/global
 
@@ -23,7 +23,7 @@ A publishable Stripe key is not required for this server-created hosted checkout
 
 ## Provision and deploy
 
-1. Back up the database and apply `npx prisma migrate deploy`.
+1. Disable new checkout, back up the database, and reconcile all pending local-product orders before applying `npx prisma migrate deploy`. The shared-inventory migration rejects legacy pending orders because their physical stock was not held. Do not guess counts or override the guard. Coordinate application cutover while checkout remains disabled.
 2. Run `npm run db:generate` during installation/build.
 3. Create a Stripe webhook endpoint for `https://YOUR_DOMAIN/api/webhooks/stripe`.
 4. Subscribe to `checkout.session.completed`, `checkout.session.expired`, `checkout.session.async_payment_succeeded` and `checkout.session.async_payment_failed`.
@@ -34,12 +34,13 @@ A publishable Stripe key is not required for this server-created hosted checkout
 ## Business rules enforced
 
 - Only published public registries without a password can be purchased in the current MVP.
-- All selected items must belong to the submitted registry, have a USD price and use an internal source.
+- All selected items must belong to the submitted registry, have a USD price and reference an approved merchant product with a confirmed physical stock quantity. Custom/external items are not eligible for native payment.
 - Quantities are bounded positive integers. Duplicate IDs, extra quantity keys and unrecognized form fields fail validation.
 - Database decimals are converted to integer cents before total calculations. The transaction stores only its actual USD price, with no converted HTG totals or hidden platform fee. The current fee is zero.
 - Orders are limited to $0.50 through $9,999.99. Shipping and sales tax are not automatically calculated; settle the merchant's pricing and tax policy before public launch.
-- Stock is reserved by one conditional PostgreSQL update per item. All reservation writes and order creation share a transaction. Database constraints prevent negative or overfilled stock.
-- Stripe sessions expire after 30 minutes. Signed expiration events release reservations. The return/cancel URL never confirms a payment or frees a still-payable session.
+- Registry quantities and shared physical product stock are reserved conditionally in one transaction. A SKU appearing on several registries has one shared count. Unknown stock cannot be purchased. The merchant enters unsold physical units, including held units. Paid orders consume both physical units and holds; provider-confirmed expiry releases only holds. Constraints prevent negative/overfilled counts. Product identity is stored on each new order line and referenced products cannot be deleted.
+- Each browser attempt carries a random UUID retained in session storage, with an in-memory fallback. A unique database key plus transaction lock maps identical retries to one order and hold. Changed payloads or signed-in buyers cannot reuse that attempt. Resume uses the capability and original buyer binding, returning only the Stripe destination. No contact/card data is stored in browser storage.
+- Stripe sessions expire 35 minutes after order creation. The stable timestamp keeps provider idempotency parameters identical on retries. Missing sessions cannot be newly created after the first five minutes. Signed expiration events release reservations. The return/cancel URL never confirms payment or frees a still-payable session.
 - Successful signed events must match the order's provider session, amount and USD currency. Payment, order status and reservation consumption commit together.
 - Duplicate deliveries cannot fulfill twice. A failed database transaction returns HTTP 500 so Stripe retries.
 - Confirmations use the unguessable Stripe session ID and retrieve provider details server-side. Order-number URLs no longer expose receipts or gift messages.
@@ -48,7 +49,7 @@ A publishable Stripe key is not required for this server-created hosted checkout
 
 ## Failure recovery
 
-If Stripe explicitly rejects session creation with an HTTP 4xx, the reservation is released. Network timeouts and HTTP 5xx are ambiguous: a payable session may exist, so stock remains held until reconciliation verifies the provider state. The job discovers sessions whose IDs were not saved, confirms paid sessions, closes open stale sessions before freeing stock, and releases expired sessions. A provider outage retains holds safely and logs only a generic code.
+Session-creation errors retain the existing order and hold, including HTTP 409/429: another identical provider request may still be running. Retry uses the same order, total, deadline and provider idempotency key. A saved Stripe destination can be resumed after a reload even if the buyer holds the last unit. Reconciliation verifies the provider state, discovers sessions whose IDs were not saved, confirms paid sessions, closes open stale sessions before freeing stock, and releases expired sessions or fully verified missing sessions. A provider outage retains holds safely and logs only a generic code.
 
 Monitor pending orders older than 45 minutes. Check reconciliation failures, Stripe webhook delivery failures and database capacity. At higher traffic, add a webhook event inbox and email outbox with retry queues; notification delivery currently remains best-effort after payment commits.
 
@@ -72,4 +73,4 @@ Refund handling is manual in the Stripe Dashboard for this MVP. Refunding money 
 - https://docs.stripe.com/api/checkout/sessions/expire
 - https://stripe.com/global
 
-Registry availability is distinct from a retailer warehouse inventory. The MVP enforces the registry requested quantity and rechecks the linked product's in-stock flag, approved business status and unchanged USD price. It does not track a shared physical stock count across multiple registries. A changed catalog price makes the old gift unavailable until the owner replaces it with the current catalog listing.
+Registry requested quantity is distinct from shared merchant physical stock. Both are now enforced, with approval, availability and unchanged USD price rechecked at checkout. A changed catalog price makes the old gift unavailable until the owner replaces it with the current listing. Refunding a paid order does not automatically restock physical units; the merchant must confirm returned/resellable units under the agreed refund policy before adjusting stock.

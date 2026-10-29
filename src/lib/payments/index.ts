@@ -7,6 +7,7 @@ export interface CreatePaymentParams {
   description: string;
   returnUrl: string;
   cancelUrl: string;
+  expiresAt?: number;
 }
 
 export interface CreatePaymentResult {

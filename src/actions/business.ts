@@ -21,9 +21,9 @@ export async function registerBusiness(formData: FormData) {
   redirect("/business/dashboard");
 }
 function productValues(formData: FormData, edit = false) {
-  const raw = parseFormFields(formData, ["name", "description", "priceHTG", "priceUSD", "category", "imageUrl", ...(edit ? ["inStock"] : [])]);
+  const raw = parseFormFields(formData, ["name", "description", "priceHTG", "priceUSD", "category", "imageUrl", "stockQuantity", ...(edit ? ["inStock"] : [])]);
   if (edit && raw.inStock !== "true" && raw.inStock !== "false") throw new Error("Choose product availability");
-  return { ...raw, priceHTG: raw.priceHTG ? Number(raw.priceHTG) : undefined, priceUSD: raw.priceUSD ? Number(raw.priceUSD) : undefined, ...(edit ? { inStock: raw.inStock === "true" } : {}) };
+  return { ...raw, stockQuantity: raw.stockQuantity?.trim() ? Number(raw.stockQuantity) : null, priceHTG: raw.priceHTG ? Number(raw.priceHTG) : undefined, priceUSD: raw.priceUSD ? Number(raw.priceUSD) : undefined, ...(edit ? { inStock: raw.inStock === "true" } : {}) };
 }
 export async function addProduct(formData: FormData) {
   const actor = await requireActor("product:add");

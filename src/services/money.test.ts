@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { toMinorUnits, fromMinorUnits } from "./money";
 import { checkoutSchema } from "@/lib/validators/checkout";
 import { escapeHtml } from "@/lib/email";
-const valid = { registrySlug: "baby", locale: "en", registryItemIds: ["i1"], quantities: { i1: 1 }, buyerName: "Buyer", buyerEmail: "buyer@example.com", paymentProvider: "stripe" };
+const valid = { checkoutRequestId: "1e36ed21-6cbc-4eb8-b575-420ead1a434b", registrySlug: "baby", locale: "en", registryItemIds: ["i1"], quantities: { i1: 1 }, buyerName: "Buyer", buyerEmail: "buyer@example.com", paymentProvider: "stripe" };
 describe("checkout boundary validation", () => {
   it("rejects unknown keys, inactive providers, duplicate IDs, and hidden quantity keys", () => {
     for (const invalid of [{ ...valid, userId: "admin" }, { ...valid, paymentProvider: "natcash" }, { ...valid, registryItemIds: ["i1", "i1"] }, { ...valid, quantities: { i1: 1, extra: 2 } }, { ...valid, quantities: { i1: 0 } }, { ...valid, quantities: { i1: 1.5 } }]) expect(checkoutSchema.safeParse(invalid).success).toBe(false);

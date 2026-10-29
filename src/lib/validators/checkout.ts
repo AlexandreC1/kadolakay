@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 export const checkoutSchema = z.strictObject({
+  checkoutRequestId: z.string().uuid(),
   registrySlug: z.string().min(1).max(150),
   locale: z.enum(["ht", "fr", "en"]),
   registryItemIds: z.array(z.string().min(1).max(100)).min(1).max(50),

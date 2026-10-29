@@ -3,12 +3,13 @@ import { db } from "@/lib/db";
 import { entitySlugSchema, parseEntityId } from "@/lib/validators/entity-id";
 import { optionalWebUrl } from "@/lib/validators/shared";
 const safeImage = (url: string | null) => url && optionalWebUrl.safeParse(url).success ? url : null;
-const productSelect = { id: true, name: true, description: true, category: true, priceHTG: true, priceUSD: true, imageUrl: true, inStock: true } as const;
+const productSelect = { id: true, name: true, description: true, category: true, priceHTG: true, priceUSD: true, imageUrl: true, inStock: true, stockQuantity: true, reservedStock: true } as const;
 export async function listHomepageBusinesses() {
   return db.business.findMany({ where: { status: "APPROVED" }, select: { id: true, name: true, slug: true, city: true, category: true }, take: 3, orderBy: [{ name: "asc" }, { id: "asc" }] });
 }
-function serializeProduct<T extends { imageUrl: string | null; priceHTG: unknown; priceUSD: unknown }>(product: T) {
-  return { ...product, imageUrl: safeImage(product.imageUrl), priceHTG: product.priceHTG === null ? null : Number(product.priceHTG), priceUSD: product.priceUSD === null ? null : Number(product.priceUSD) };
+function serializeProduct<T extends { imageUrl: string | null; priceHTG: unknown; priceUSD: unknown; inStock: boolean; stockQuantity: number | null; reservedStock: number }>(product: T) {
+  const { stockQuantity, reservedStock, ...publicProduct } = product;
+  return { ...publicProduct, inStock: product.inStock && (stockQuantity === null || stockQuantity > reservedStock), imageUrl: safeImage(product.imageUrl), priceHTG: product.priceHTG === null ? null : Number(product.priceHTG), priceUSD: product.priceUSD === null ? null : Number(product.priceUSD) };
 }
 export async function listApprovedBusinesses() {
   const businesses = await db.business.findMany({ where: { status: "APPROVED" }, take: 60, select: {

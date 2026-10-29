@@ -2,7 +2,7 @@
 
 # KadoLakay: scope, design, and launch plan
 
-Planning draft for review. Researched October 26, 2026. No production implementation, deployment, account provisioning, or purchase is authorized by this document alone. This turn changes planning documents only.
+Original research draft, October 26, 2026; subsequently approved for implementation. Current evidence is in HANDOFF.md and FEATURE-STATUS.md. The historical baseline and design explorations below do not override later owner decisions. By October29, shared physical stock, retry/resume and dependency remediation are implemented locally; hosted/payment/operational gates remain open. The owner-approved current palette is mint HSL170.6 76.9%64.3% on pale mint HSL166.2 76.5%96.7%, with Fraunces/Figtree fonts.
 
 ## 1. Product definition
 
@@ -26,7 +26,7 @@ The application runs locally on Next.js with PostgreSQL and Prisma. It is not pu
 | Operations | Payment status and reconciliation source | Fulfillment workflow, refunds, settlements, commissions, recipient delivery information, support and exception handling |
 | Security | Session ownership checks, strict validation, nonce script CSP, safe URLs, database constraints, Redis limiter integration | Hosted verification, provider configuration, recovery exercise, dependency advisory resolution |
 
-Important corrections: local payment integration tests mock Stripe session creation. Passing them is not evidence of money reaching a merchant. Product has an in-stock flag, not stock quantity shared across registries. Paid is not delivered. A commission field is not implemented commission accounting. Raw queries still remain in several actions despite the requested service-layer direction.
+Historical baseline corrections: payment integration tests mock Stripe session creation; passing them is not evidence of money reaching a merchant. Shared physical stock and retry/resume were added October29, superseding the original in-stock-flag limitation in this table. Paid is not delivered. A commission field is not implemented commission accounting. Some raw queries still remain in actions despite the requested service-layer direction.
 
 ## 3. Commercial rules to settle before checkout design
 

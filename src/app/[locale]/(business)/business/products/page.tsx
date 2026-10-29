@@ -39,6 +39,8 @@ export default async function BusinessProductsPage() {
           priceUSD: p.priceUSD ? Number(p.priceUSD) : null,
           imageUrl: p.imageUrl,
           inStock: p.inStock,
+          stockQuantity: p.stockQuantity,
+          reservedStock: p.reservedStock,
           category: p.category,
         }))}
       />

@@ -1,6 +1,7 @@
 import { db } from "./db";
 import { sendGiftNotification, sendOrderConfirmation } from "./email";
 import { toMinorUnits } from "@/services/money";
+import { settleProductStock } from "@/services/inventory";
 
 export interface PaymentEvidence {
   sessionId: string;
@@ -26,6 +27,7 @@ export async function fulfillOrder(orderId: string, evidence?: PaymentEvidence) 
   const claimed = await db.$transaction(async (tx) => {
     const { count } = await tx.order.updateMany({ where: { id: orderId, status: "PENDING" }, data: { status: "PAID" } });
     if (!count) return false;
+    await settleProductStock(tx, order.items, true);
     for (const item of [...order.items].sort((a, b) => a.registryItemId.localeCompare(b.registryItemId))) {
       const changed = await tx.$executeRaw`
         UPDATE registry_items

@@ -48,6 +48,7 @@ export default async function CheckoutPage({
       <p className="text-gray-600 mb-8">{registry.title}</p>
 
       <CheckoutForm
+        key={registry.slug}
         registrySlug={registry.slug}
         items={registry.items.filter(supportsNativeCheckout).map((item) => ({
           id: item.id,
