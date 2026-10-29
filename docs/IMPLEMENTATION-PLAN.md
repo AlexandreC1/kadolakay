@@ -28,9 +28,9 @@ The application runs locally on Next.js with PostgreSQL and Prisma. It is not pu
 
 Historical baseline corrections: payment integration tests mock Stripe session creation; passing them is not evidence of money reaching a merchant. Shared physical stock and retry/resume were added October29, superseding the original in-stock-flag limitation in this table. Paid is not delivered. A commission field is not implemented commission accounting. Some raw queries still remain in actions despite the requested service-layer direction.
 
-## 3. Commercial rules to settle before checkout design
+## 3. Commercial rules and current decisions
 
-Two answers are still needed: the legal registration country of the entity receiving payments, and whether KadoLakay, merchants, or both fulfill gifts. These determine provider eligibility and the order model.
+Confirmed by the owner October 29: Bayou will be registered in Haiti. Each merchant sells, receives customer payment, delivers and handles refunds. Buyers are expected in Haiti and the diaspora, including the US, Canada, Dominican Republic, Brazil and Chile. Platform transaction/click fees and user premium features are future products, with no rates or collection system approved yet. See PUBLIC-RELEASE-GATES.md for the current release boundaries. These answers replace the earlier unresolved seller/country questions, but do not establish provider approval or legal registration evidence.
 
 Decide and record:
 

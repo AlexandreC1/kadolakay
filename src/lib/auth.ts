@@ -10,6 +10,7 @@ import { PrismaAdapter } from "@auth/prisma-adapter";
 import type { Adapter } from "next-auth/adapters";
 import type { Role } from "@prisma/client";
 import { db } from "./db";
+import { resolveSessionClaims } from "./session-claims";
 
 const availability = getAuthAvailability(process.env);
 
@@ -52,23 +53,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       return safeAuthRedirect(url, baseUrl);
     },
     async jwt({ token, user }) {
-      // On sign-in, hydrate token from the user record.
-      if (user) {
-        token.id = user.id;
-        token.role = (user as { role?: Role }).role ?? "USER";
-        return token;
-      }
-      // Read current authorization on every session resolution. Never trust stale JWT roles.
-      if (token.sub) {
-        const dbUser = await db.user.findUnique({
-          where: { id: token.sub },
-          select: { role: true, name: true },
-        });
-        if (!dbUser) return null;
-        token.role = dbUser.role;
-        token.name = dbUser.name;
-      }
-      return token;
+      const id = user?.id ?? token.sub;
+      if (!id) return null;
+      // Recheck every resolution, including sign-in. Previously copied cookies
+      // cannot regain access after the account revokes its sessions.
+      const account = await db.user.findUnique({
+        where: { id }, select: { id: true, role: true, name: true, sessionVersion: true },
+      });
+      return resolveSessionClaims(token, account, Boolean(user));
     },
     session({ session, token }) {
       if (session.user) {

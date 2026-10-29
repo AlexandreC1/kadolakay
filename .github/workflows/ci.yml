@@ -6,8 +6,46 @@ on:
     branches: [main]
 permissions:
   contents: read
+env:
+  DATABASE_URL: postgresql://test:test@localhost:5432/kadolakay_test
+  AUTH_SECRET: ci-only-random-placeholder-not-for-deployment
+  NEXT_PUBLIC_APP_URL: http://localhost:3000
 jobs:
-  verify:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npm run lint
+  typecheck:
+    name: Type Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npm run db:generate
+      - run: npx tsc --noEmit
+  audit:
+    name: Dependency Audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm audit --audit-level=high
+  test:
+    name: Test
     runs-on: ubuntu-latest
     services:
       postgres:
@@ -22,22 +60,55 @@ jobs:
           --health-interval 5s
           --health-timeout 5s
           --health-retries 10
-    env:
-      DATABASE_URL: postgresql://test:test@localhost:5432/kadolakay_test
-      AUTH_SECRET: ci-only-random-placeholder-not-for-deployment
-      NEXT_PUBLIC_APP_URL: http://localhost:3000
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 24
           cache: npm
-      - run: npm ci
+      - run: npm ci --no-audit --no-fund
       - run: npm run db:generate
       - run: npx prisma migrate deploy
-      - run: npm run lint
-      - run: npx tsc --noEmit
+      - name: Reject schema drift after migrations
+        run: npx prisma migrate diff --from-config-datasource --to-schema prisma/schema.prisma --exit-code
       - run: npm test
       - run: npm run test:db
-      - run: npm audit --audit-level=high
+  build:
+    name: Build
+    needs: [lint, typecheck, test, audit]
+    if: always()
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: kadolakay_test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      # A skipped audit must not accidentally satisfy main's required Build check.
+      - name: Require every prerequisite gate
+        run: |
+          test "${{ needs.lint.result }}" = success
+          test "${{ needs.typecheck.result }}" = success
+          test "${{ needs.test.result }}" = success
+          test "${{ needs.audit.result }}" = success
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npm run db:generate
+      - run: npx prisma migrate deploy
       - run: npm run build
+      - name: Verify session revocation through the production server
+        run: npm run test:session:http
+        env:
+          RUN_SESSION_HTTP_TESTS: "1"

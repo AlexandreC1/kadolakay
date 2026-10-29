@@ -6,8 +6,14 @@ describe("checkout launch boundaries", () => {
   it("does not start collecting money just because keys were provisioned", () => {
     expect(checkoutConfigured(credentials)).toBe(false);
     expect(checkoutConfigured({ ...credentials, CHECKOUT_ENABLED: "false" })).toBe(false);
-    expect(checkoutConfigured({ ...credentials, CHECKOUT_ENABLED: "true" })).toBe(true);
+    expect(checkoutConfigured({ ...credentials, CHECKOUT_ENABLED: "true" })).toBe(false);
+    expect(checkoutConfigured({ ...credentials, CHECKOUT_ENABLED: "true", PAYMENT_MODE: "sandbox" })).toBe(true);
     expect(checkoutConfigured({ CHECKOUT_ENABLED: "true" })).toBe(false);
+  });
+  it("cannot charge live money into the platform account for merchant-owned sales", () => {
+    for (const PAYMENT_MODE of [undefined, "sandbox", "live"]) {
+      expect(checkoutConfigured({ CHECKOUT_ENABLED: "true", PAYMENT_MODE, STRIPE_SECRET_KEY: "sk_live_example", STRIPE_WEBHOOK_SECRET: "whsec_example" })).toBe(false);
+    }
   });
   it("rejects manual cash-like gifts and external purchases without a seller contract", () => {
     for (const source of ["CUSTOM", "EXTERNAL", "AMAZON"]) {

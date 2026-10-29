@@ -14,7 +14,7 @@ import { editOwnedProduct } from "./business";
 import { findPublicProduct } from "./catalog";
 const run = process.env.RUN_DB_TESTS === "1";
 const users: string[] = [];
-beforeEach(() => { vi.stubEnv("CHECKOUT_ENABLED", "true"); provider.calls = []; provider.failNext = false; });
+beforeEach(() => { vi.stubEnv("CHECKOUT_ENABLED", "true"); vi.stubEnv("PAYMENT_MODE", "sandbox"); provider.calls = []; provider.failNext = false; });
 afterAll(async () => {
   for (const id of users) {
     const items = await db.registryItem.findMany({ where: { registry: { userId: id } }, select: { id: true } });

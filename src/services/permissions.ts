@@ -3,6 +3,7 @@ const members: readonly Role[] = ["USER", "BUSINESS_OWNER", "ADMIN", "SUPERADMIN
 const merchants: readonly Role[] = ["BUSINESS_OWNER", "ADMIN", "SUPERADMIN"];
 export function isAdministrator(role: Role | undefined): boolean { return role === "ADMIN" || role === "SUPERADMIN"; }
 export const permissions = {
+  "session:revoke": members,
   profile: members, "onboarding:profile": members, "onboarding:finish": members,
   "registry:create": members, "registry:update": members, "registry:publish": members, "registry:archive": members,
   "item:add": members, "item:remove": members, "item:update": members, "item:catalog": members,

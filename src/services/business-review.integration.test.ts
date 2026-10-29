@@ -18,6 +18,7 @@ describe.skipIf(!run)("privileged review and audit on PostgreSQL", () => {
     await db.user.update({ where: { id: f.admin.id }, data: { role: "SUPERADMIN" } });
     expect(await reviewBusiness(f.admin.id, { businessId: f.business.id, status: "APPROVED" })).toEqual({ changed: true });
     await registerOwnedBusiness(f.admin.id, { name: "Owner registration fixture", category: "home" });
+    expect((await db.business.findUniqueOrThrow({ where: { ownerId: f.admin.id } })).commissionRate.toString()).toBe("0");
     expect((await db.user.findUniqueOrThrow({ where: { id: f.admin.id } })).role).toBe("SUPERADMIN");
   });
   it("denies owners and demoted administrators without status changes or audit writes", async () => {

@@ -1,6 +1,6 @@
 type Outcome = "ok" | "denied" | "failed";
-const events = new Set(["authorization_denied", "business_review", "rate_limiter_unavailable", "checkout_failed", "webhook_processing", "payment_reconciliation"]);
-export type OperationalEvent = "authorization_denied" | "business_review" | "rate_limiter_unavailable" | "checkout_failed" | "webhook_processing" | "payment_reconciliation";
+const events = new Set(["authorization_denied", "business_review", "rate_limiter_unavailable", "checkout_failed", "webhook_processing", "payment_reconciliation", "session_revocation"]);
+export type OperationalEvent = "authorization_denied" | "business_review" | "rate_limiter_unavailable" | "checkout_failed" | "webhook_processing" | "payment_reconciliation" | "session_revocation";
 /** Explicit allowlist: never serialize exceptions, request bodies, identities or tokens. */
 export function recordOperationalEvent(event: OperationalEvent, fields: { outcome: Outcome; durationMs?: number; count?: number }) {
   if (!events.has(event) || !["ok", "denied", "failed"].includes(fields.outcome)) return;

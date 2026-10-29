@@ -18,6 +18,7 @@
     "db:studio": "prisma studio",
     "db:setup": "prisma migrate dev && npx tsx prisma/seed.ts",
     "test:db": "node scripts/test-db.mjs",
+    "test:session:http": "tsx scripts/verify-session-http.ts",
     "release:env": "node scripts/check-release-env.mjs",
     "typecheck": "tsc --noEmit"
   },
