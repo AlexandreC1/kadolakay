@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,28 +29,39 @@ export function ProductPicker({ registryId, onAdd, onClose }: ProductPickerProps
   const [products, setProducts] = useState<BusinessProduct[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [query, setQuery] = useState("");
+  const [nextCursor, setNextCursor] = useState<string | null>(null);
 
-  useEffect(() => {
-    async function loadProducts() {
-      try {
-        const response = await fetch("/api/products/browse");
-        if (response.ok) {
-          const data = await response.json();
-          setProducts(data);
-        }
-      } catch {
-        // error handled
+  const load = useCallback(async (q: string, cursor: string | null) => {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams({ take: "30" });
+      if (q) params.set("q", q);
+      if (cursor) params.set("cursor", cursor);
+      const response = await fetch(`/api/products/browse?${params}`);
+      if (response.ok) {
+        const data = (await response.json()) as { items: BusinessProduct[]; nextCursor: string | null };
+        setProducts((prev) => (cursor ? [...prev, ...data.items] : data.items));
+        setNextCursor(data.nextCursor);
       }
-      setLoading(false);
+    } catch {
+      // network error: keep what we have
     }
-    loadProducts();
+    setLoading(false);
   }, []);
 
-  const filtered = products.filter(
-    (p) =>
-      p.name.toLowerCase().includes(search.toLowerCase()) ||
-      p.businessName.toLowerCase().includes(search.toLowerCase())
-  );
+  // Debounce typing → server-side search (the API caps results at 50/page).
+  // State updates happen in the timer callback, not synchronously in the effect.
+  useEffect(() => {
+    const q = search.trim();
+    const id = setTimeout(() => {
+      setQuery(q);
+      void load(q, null);
+    }, q ? 300 : 0);
+    return () => clearTimeout(id);
+  }, [search, load]);
+
+  const filtered = products;
 
   return (
     <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
@@ -78,7 +89,7 @@ export function ProductPicker({ registryId, onAdd, onClose }: ProductPickerProps
 
         {/* Products */}
         <div className="flex-1 overflow-y-auto p-4">
-          {loading ? (
+          {loading && products.length === 0 ? (
             <div className="text-center py-8 text-gray-500">
               {t("common.loading")}
             </div>
@@ -119,6 +130,13 @@ export function ProductPicker({ registryId, onAdd, onClose }: ProductPickerProps
                   </CardContent>
                 </Card>
               ))}
+              {nextCursor && (
+                <div className="text-center">
+                  <Button size="sm" variant="outline" disabled={loading} onClick={() => load(query, nextCursor)}>
+                    {loading ? t("common.loading") : t("common.loadMore")}
+                  </Button>
+                </div>
+              )}
             </div>
           )}
         </div>

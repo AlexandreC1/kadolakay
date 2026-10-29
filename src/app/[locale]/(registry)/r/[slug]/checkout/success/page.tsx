@@ -6,12 +6,12 @@ import { Card, CardContent } from "@/components/ui/card";
 
 interface Props {
   params: Promise<{ slug: string }>;
-  searchParams: Promise<{ order?: string }>;
+  searchParams: Promise<{ t?: string; provider?: string }>;
 }
 
 export default async function CheckoutSuccessPage({ params, searchParams }: Props) {
   const { slug } = await params;
-  const { order: orderNumber } = await searchParams;
+  const { t: publicToken } = await searchParams;
   const t = await getTranslations();
 
   const registry = await db.registry.findUnique({
@@ -19,20 +19,39 @@ export default async function CheckoutSuccessPage({ params, searchParams }: Prop
     select: { title: true, slug: true, type: true },
   });
 
-  // If we have an order number, fetch the order details
-  const order = orderNumber
-    ? await db.order.findUnique({
-        where: { orderNumber },
-        include: {
+  // Orders are looked up by their unguessable publicToken (never by the
+  // human-readable orderNumber) and only shown on their own registry's page
+  // (review H3). Buyer email/phone are never selected.
+  const found =
+    publicToken && /^[A-Za-z0-9_-]{16,64}$/.test(publicToken)
+      ? await db.order.findUnique({
+        where: { publicToken },
+        select: {
+          id: true,
+          orderNumber: true,
+          status: true,
+          totalHTG: true,
+          totalUSD: true,
+          giftMessage: true,
+          registry: { select: { slug: true } },
           items: {
-            include: {
+            select: {
+              id: true,
+              quantity: true,
+              priceHTG: true,
+              priceUSD: true,
               registryItem: { select: { title: true } },
             },
           },
-          payment: { select: { provider: true, currency: true } },
+          payment: { select: { provider: true, currency: true, status: true } },
         },
       })
-    : null;
+      : null;
+  const order =
+    found && found.registry?.slug === slug && ["PENDING", "PAID", "CONFIRMED", "SHIPPED", "DELIVERED", "NEEDS_REFUND"].includes(found.status)
+      ? found
+      : null;
+  const awaitingNatcash = order?.payment?.provider === "NATCASH" && order.payment.status !== "COMPLETED";
 
   const registryTypeEmoji: Record<string, string> = {
     BABY_SHOWER: "👶",
@@ -49,6 +68,30 @@ export default async function CheckoutSuccessPage({ params, searchParams }: Prop
       <h1 className="text-3xl font-bold text-gray-900 mb-2">
         {t("checkout.thankYou")}
       </h1>
+
+      {order?.status === "NEEDS_REFUND" && (
+        <Card className="mt-8 text-left border-amber-200">
+          <CardContent className="p-6 text-sm text-gray-700">
+            <p>{t("checkout.needsRefund")}</p>
+          </CardContent>
+        </Card>
+      )}
+
+      {awaitingNatcash && (
+        <Card className="mt-8 text-left border-amber-200">
+          <CardContent className="p-6 text-sm text-gray-700 space-y-2">
+            <p className="font-medium">Natcash</p>
+            <p>
+              {process.env.NATCASH_MERCHANT_NUMBER
+                ? `→ ${process.env.NATCASH_MERCHANT_NUMBER}`
+                : null}
+            </p>
+            <p className="font-mono">
+              {`G${Number(order?.totalHTG || 0).toFixed(2)} · ${order?.orderNumber}`}
+            </p>
+          </CardContent>
+        </Card>
+      )}
 
       {order && (
         <Card className="mt-8 text-left">

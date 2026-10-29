@@ -17,7 +17,8 @@
     "success": "Reyisi!",
     "or": "oswa",
     "viewAll": "Wè tout",
-    "learnMore": "Aprann plis"
+    "learnMore": "Aprann plis",
+    "loadMore": "Plis"
   },
   "nav": {
     "home": "Akèy",
@@ -26,7 +27,11 @@
     "businesses": "Biznis lokal",
     "dashboard": "Tablo bò",
     "orders": "Kòmand yo",
-    "settings": "Paramèt"
+    "settings": "Paramèt",
+    "adminOrders": "Kòmand (admin)",
+    "adminNatcash": "Peman Natcash",
+    "adminUsers": "Itilizatè",
+    "adminBusinesses": "Biznis (admin)"
   },
   "landing": {
     "heroTitle": "Selebre ansanm, kèlkeswa distans la",
@@ -111,7 +116,8 @@
     "thankYou": "Mèsi pou kado ou a!",
     "redirecting": "Nap voye ou sou sit magazen an...",
     "total": "Total",
-    "platformFee": "Frè platfòm"
+    "platformFee": "Frè platfòm",
+    "needsRefund": "Yon lòt moun te fin ofri kado sa a pandan w t ap peye. Nou pral ranbouse w; ou pa bezwen fè anyen."
   },
   "orders": {
     "subtitle": "Kado moun achte pou ou",
@@ -120,7 +126,23 @@
     "viewOrders": "Wè kòmand ou yo",
     "paid": "Peye",
     "anonymous": "Yon moun",
-    "giftsReceived": "Kado resevwa"
+    "giftsReceived": "Kado resevwa",
+    "tabReceived": "Kado mwen resevwa",
+    "tabPlaced": "Kado mwen achte",
+    "noPlacedYet": "Ou poko achte okenn kado",
+    "noPlacedDesc": "Kado ou achte lè ou konekte ap parèt isit la.",
+    "status": {
+      "PENDING": "Annatant",
+      "PAID": "Peye",
+      "CONFIRMED": "Konfime",
+      "SHIPPED": "Voye",
+      "DELIVERED": "Livre",
+      "CANCELLED": "Anile",
+      "REFUNDED": "Ranbouse",
+      "EXPIRED": "Ekspire",
+      "PAYMENT_FAILED": "Peman echwe",
+      "NEEDS_REFUND": "Pou ranbouse"
+    }
   },
   "business": {
     "signup": "Enskri biznis ou",
@@ -196,12 +218,39 @@
     "emailHint": "Imèl ou pa ka chanje isit la.",
     "phone": "Telefòn",
     "language": "Lang ou prefere",
-    "saved": "Chanjman yo anrejistre!"
+    "saved": "Chanjman yo anrejistre!",
+    "account": {
+      "title": "Kont ou",
+      "exportTitle": "Telechaje done ou",
+      "exportDesc": "Yon fichye JSON ak pwofil ou, rejis ou, ak kòmand ou. Yon fwa pa jou.",
+      "exportButton": "Telechaje",
+      "signOutAllTitle": "Dekonekte tout aparèy",
+      "signOutAllDesc": "Fèmen sesyon ou sou tout telefòn ak òdinatè.",
+      "signOutAllButton": "Dekonekte tout kote",
+      "deleteTitle": "Efase kont ou",
+      "deleteDesc": "Sa pa ka defèt. Nou efase enfòmasyon pèsonèl ou; rejis ki gen kòmand ap achive.",
+      "deleteConfirmLabel": "Tape imèl ou ({email}) pou konfime",
+      "deleteButton": "Efase kont mwen",
+      "deleteMismatch": "Imèl la pa matche.",
+      "deleteBlockedBusiness": "Biznis ou gen kòmand ki poko fini. Kontakte nou."
+    }
   },
   "footer": {
     "tagline": "Kado pou tout okazyon, lakay ou.",
     "privacy": "Règ sou vi prive",
     "terms": "Kondisyon itilizasyon",
-    "contact": "Kontakte nou"
+    "contact": "Kontakte nou",
+    "rights": "Tout dwa rezève."
+  },
+  "contact": {
+    "title": "Kontakte nou",
+    "intro": "Ekri nou isit la oswa voye yon imèl bay",
+    "name": "Non",
+    "email": "Imèl",
+    "message": "Mesaj",
+    "send": "Voye",
+    "sent": "Mèsi! N ap reponn ou byento.",
+    "invalid": "Tanpri ranpli tout chan yo (mesaj la dwe gen omwen 10 karaktè).",
+    "rateLimited": "Twòp mesaj. Eseye ankò pita."
   }
 }

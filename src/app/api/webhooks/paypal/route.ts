@@ -1,113 +1,55 @@
 /**
- * =============================================================================
- * PayPal Return URL Handler
- * =============================================================================
- *
- * HOW PAYPAL WORKS:
- * 1. User clicks "Pay with PayPal" → we create a PayPal order via API
- * 2. PayPal returns an approval URL → user goes to PayPal to approve
- * 3. After approval, PayPal redirects user back HERE with a `token` (order ID)
- * 4. We capture the payment (PayPal requires an explicit "capture" step)
- * 5. If captured → fulfill the order → redirect to success page
- *
- * SECURITY:
- * - We capture (not just verify) the PayPal order — this moves the money
- * - We look up payment by paypalOrderId (set during order creation)
- * - We use shared `fulfillOrder()` with idempotency guards
- *
- * PAYPAL QUIRK: "Approve" ≠ "Pay"
- * When the user approves on PayPal, the money is only authorized, not captured.
- * We must call the Capture API to actually collect the payment. If we skip
- * this step, the authorization expires after ~3 days and no money moves.
- * =============================================================================
+ * PayPal return URL handler. PayPal redirects the buyer here with ?token=<PayPal order id>
+ * after approval. We CAPTURE the order (money only moves on capture, review C3),
+ * then claimAndFulfill() checks orderId, amount and currency before fulfilling.
+ * A late return whose items were gifted meanwhile is NOT captured (orderStillFits).
+ * Reloads are safe: capture is idempotent (PayPal-Request-Id / ORDER_ALREADY_CAPTURED)
+ * and the claim is unique per (provider, transaction).
  */
-
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { paypalProvider } from "@/lib/payments/paypal";
-import { fulfillOrder, getRegistrySlugForOrder } from "@/lib/orders";
+import { claimAndFulfill, getOrderRedirectTarget, orderStillFits } from "@/lib/orders";
+import { log } from "@/lib/log";
+
+export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
-  const { searchParams } = new URL(req.url);
-  const token = searchParams.get("token"); // PayPal order ID
-
-  if (!token) {
-    return NextResponse.redirect(new URL("/?payment=failed", req.url));
-  }
+  const token = req.nextUrl.searchParams.get("token");
+  const fail = (reason: string) => NextResponse.redirect(new URL(`/?payment=${reason}`, req.url));
+  if (!token || !/^[A-Z0-9]{5,40}$/i.test(token)) return fail("failed");
 
   try {
-    // Step 1: Look up the payment record FIRST. If we don't recognize this
-    // PayPal order ID, the request is forged or stale — bail before calling
-    // PayPal so we don't leak any state.
     const payment = await db.payment.findFirst({
-      where: {
-        paypalOrderId: token,
-        provider: "PAYPAL",
-      },
+      where: { paypalOrderId: token, provider: "PAYPAL" },
       select: { orderId: true, status: true },
     });
-
     if (!payment) {
-      console.error(`PayPal: No payment found for order ${token}`);
-      return NextResponse.redirect(new URL("/?payment=failed", req.url));
+      log.warn("paypal return: unknown PayPal order");
+      return fail("failed");
     }
 
-    // Idempotency: if this payment is already completed, skip capture and
-    // just redirect to success. Prevents double-capture if the user reloads.
     if (payment.status !== "COMPLETED") {
-      // Step 2: Capture the payment (verify + collect money)
-      const result = await paypalProvider.verifyPayment({
-        transactionId: token,
-      });
-
-      if (!result.success) {
-        return NextResponse.redirect(new URL("/?payment=failed", req.url));
+      // verify() CAPTURES. A buyer coming back after the order expired may be
+      // paying for gifts someone else gave meanwhile: don't take that money.
+      if (!(await orderStillFits(payment.orderId))) {
+        log.warn("paypal return: order no longer fits, not capturing", { orderId: payment.orderId });
+        return fail("unavailable");
       }
-
-      // Step 3: Update payment status (claim providerEventId atomically)
-      try {
-        await db.payment.update({
-          where: { orderId: payment.orderId },
-          data: {
-            status: "COMPLETED",
-            providerEventId: `paypal:${token}`,
-            paidAt: new Date(),
-            providerResponse: result.rawResponse as object,
-          },
-        });
-      } catch (err) {
-        if (
-          typeof err === "object" &&
-          err !== null &&
-          "code" in err &&
-          (err as { code?: string }).code === "P2002"
-        ) {
-          // Concurrent request already claimed this token — fall through to success.
-        } else {
-          throw err;
-        }
+      const verified = await paypalProvider.verify({ orderId: payment.orderId, providerRef: token });
+      // The capture must be for the order we looked up, not one chosen by the caller.
+      if (verified.orderId !== payment.orderId) {
+        log.error("paypal return: reference_id mismatch", { orderId: payment.orderId });
+        return fail("failed");
       }
-
-      // Step 4: Fulfill the order (idempotent)
-      await fulfillOrder(payment.orderId);
+      const outcome = await claimAndFulfill(verified);
+      if (outcome === "rejected") return fail("failed");
     }
 
-    // Step 5: Redirect to success page
-    const slug = await getRegistrySlugForOrder(payment.orderId);
-    const order = await db.order.findUnique({
-      where: { id: payment.orderId },
-      select: { orderNumber: true },
-    });
-
-    if (slug) {
-      return NextResponse.redirect(
-        new URL(`/r/${slug}/checkout/success?order=${order?.orderNumber}`, req.url)
-      );
-    }
-
-    return NextResponse.redirect(new URL("/?payment=success", req.url));
-  } catch (error) {
-    console.error("PayPal webhook error:", error);
-    return NextResponse.redirect(new URL("/?payment=error", req.url));
+    const target = await getOrderRedirectTarget(payment.orderId);
+    return NextResponse.redirect(new URL(target ?? "/?payment=success", req.url));
+  } catch (err) {
+    log.error("paypal return: error", { err });
+    return fail("error");
   }
 }

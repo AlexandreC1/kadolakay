@@ -1,45 +1,22 @@
-import type {
-  PaymentProviderInterface,
-  CreatePaymentParams,
-  CreatePaymentResult,
-  VerifyPaymentResult,
-} from "./index";
+import { ProviderError, type CreatePaymentInput, type CreatePaymentResult, type PaymentVerifier, type VerifiedPayment } from "@/lib/contracts/payments";
 
-// Natcash - manual payment flow for MVP
-// Users send payment to the platform's Natcash number and provide the transaction reference
-// Full API integration to be added when NATCOM merchant API access is established
+// Natcash: manual flow until NATCOM opens a merchant API. The buyer is sent to
+// our own success page (keyed by the order's publicToken) which shows the
+// merchant number; an admin confirms receipt (WS5 → confirmManualPayment).
+// No amount or order id travels in the URL (review M8).
+export const natcashProvider: PaymentVerifier = {
+  provider: "NATCASH",
 
-export const natcashProvider: PaymentProviderInterface = {
-  async createPayment(
-    params: CreatePaymentParams
-  ): Promise<CreatePaymentResult> {
-    if (params.currency !== "HTG") {
-      throw new Error("Natcash only supports HTG currency");
-    }
-
-    // For MVP: redirect to a page that shows Natcash payment instructions
-    const instructionUrl = new URL(params.returnUrl);
-    instructionUrl.searchParams.set("provider", "natcash");
-    instructionUrl.searchParams.set("orderId", params.orderId);
-    instructionUrl.searchParams.set("amount", params.amount.toString());
-    instructionUrl.searchParams.set(
-      "natcashNumber",
-      process.env.NATCASH_MERCHANT_NUMBER || ""
-    );
-
-    return {
-      redirectUrl: instructionUrl.toString(),
-      providerRef: params.orderId,
-    };
+  async create(input: CreatePaymentInput): Promise<CreatePaymentResult> {
+    if (input.currency !== "HTG") throw new ProviderError("NATCASH", "UNSUPPORTED_CURRENCY");
+    const url = new URL(input.returnUrl);
+    url.searchParams.set("provider", "natcash");
+    return { redirectUrl: url.toString(), providerRef: input.orderId };
   },
 
-  async verifyPayment(params): Promise<VerifyPaymentResult> {
-    // MVP: manual verification — admin confirms payment received
-    // TODO: Integrate Natcash API when available
-    return {
-      success: false, // Requires manual confirmation
-      providerRef: params.transactionId || params.orderId || "",
-      rawResponse: { status: "PENDING_MANUAL_VERIFICATION" },
-    };
+  async verify(ref): Promise<VerifiedPayment> {
+    // Never auto-completes: only an admin can confirm a Natcash payment.
+    void ref;
+    throw new ProviderError("NATCASH", "NOT_COMPLETED");
   },
 };
