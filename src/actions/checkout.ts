@@ -14,6 +14,7 @@ import { ActionError } from "@/lib/contracts/action";
 import { ProviderError } from "@/lib/contracts/payments";
 import { log } from "@/lib/log";
 import { NATCASH_GRACE_HOURS } from "@/lib/jobs/expire-orders";
+import { assertCatalogAvailable, reservationWhere } from "@/lib/payments/reservations";
 
 const ORDER_TTL_MS = 2 * 60 * 60 * 1000;
 
@@ -87,16 +88,18 @@ export async function createOrder(formData: FormData) {
           where: { id: { in: ids } },
           select: {
             id: true, registryId: true, priceHTG: true, priceUSD: true, quantity: true, fulfilledQty: true, status: true,
+            source: true, productId: true, businessId: true,
             registry: { select: { id: true, slug: true, status: true, isPublic: true, shareToken: true } },
           },
         }),
         tx.orderItem.groupBy({
           by: ["registryItemId"],
-          where: { registryItemId: { in: ids }, order: { status: "PENDING", expiresAt: { gt: now } } },
+          where: { registryItemId: { in: ids }, order: reservationWhere(now) },
           _sum: { quantity: true },
         }),
       ]);
       if (rows.some((r) => !checkoutAccessAllowed(r.registry, shareToken))) throw new ActionError("NOT_FOUND", "registryItemIds");
+      await assertCatalogAvailable(tx, rows);
       const reserved = new Map(held.map((h) => [h.registryItemId, h._sum.quantity ?? 0]));
 
       const priced = priceOrder({

@@ -117,7 +117,10 @@
     "redirecting": "Redirection vers le magasin...",
     "total": "Total",
     "platformFee": "Frais de plateforme",
-    "needsRefund": "Quelqu'un d'autre a offert ce cadeau pendant votre paiement. Nous allons vous rembourser, vous n'avez rien à faire."
+    "needsRefund": "Votre paiement a été reçu, mais ce cadeau n'est plus disponible. Un remboursement est nécessaire. Contactez l'assistance avec votre numéro de commande.",
+    "paymentPendingTitle": "Paiement en attente de confirmation",
+    "paymentPendingMessage": "Votre cadeau n'est pas encore confirmé. Ne payez pas à nouveau pendant la vérification de votre paiement.",
+    "contactSupport": "Contacter l'assistance"
   },
   "orders": {
     "subtitle": "Cadeaux achetés pour vous",

@@ -12,7 +12,7 @@ vi.mock("./db", () => ({
     payment: { findUnique: m.paymentFind, update: m.paymentUpdate, updateMany: m.paymentUpdateMany },
     auditLog: { create: m.auditCreate },
     order: { findUnique: m.orderFind },
-    $transaction: async (fn: (tx: unknown) => unknown) => fn({ order: { updateMany: m.updateMany }, $executeRaw: m.exec }),
+    $transaction: async (fn: (tx: unknown) => unknown) => fn({ order: { updateMany: m.updateMany }, payment: { update: m.paymentUpdate }, auditLog: { create: m.auditCreate }, $executeRaw: m.exec }),
   },
 }));
 const { claimAndFulfill, confirmManualPayment } = await import("./orders");
@@ -26,6 +26,7 @@ beforeEach(() => {
   m.paymentFind.mockResolvedValue({ provider: "PAYPAL", status: "PENDING", currency: "USD", amountExpected: "60.07", amountHTG: null, amountUSD: "60.07" });
   m.orderFind.mockResolvedValue({ id: "ord_1", status: "PENDING", items: [], payment: null, isAnonymous: false });
   m.updateMany.mockResolvedValue({ count: 1 });
+  m.paymentUpdate.mockResolvedValue({});
 });
 
 describe("claimAndFulfill", () => {
@@ -46,27 +47,40 @@ describe("claimAndFulfill", () => {
   it("treats a reused transaction id (P2002) as duplicate", async () => {
     m.paymentUpdate.mockRejectedValue(Object.assign(new Error("dup"), { code: "P2002" }));
     expect(await claimAndFulfill(v())).toBe("duplicate");
-    expect(m.updateMany).not.toHaveBeenCalled();
+    // The conditional claim is now inside the rolled-back settlement transaction.
+    expect(m.exec).not.toHaveBeenCalled();
   });
   it("unknown order → rejected", async () => {
     m.paymentFind.mockResolvedValue(null);
     expect(await claimAndFulfill(v())).toBe("rejected");
   });
+  it("propagates transaction failure so a provider retry can repair it", async () => {
+    m.paymentUpdate.mockRejectedValueOnce(new Error("database unavailable"));
+    await expect(claimAndFulfill(v())).rejects.toThrow("database unavailable");
+    expect(m.exec).not.toHaveBeenCalled();
+  });
+  it("repairs a historical completed-payment / unfulfilled-order split commit", async () => {
+    m.paymentFind.mockResolvedValue({ provider: "PAYPAL", status: "COMPLETED", currency: "USD", amountExpected: "60.07" });
+    expect(await claimAndFulfill(v())).toBe("fulfilled");
+    expect(m.updateMany).toHaveBeenCalled();
+    expect(m.paymentUpdate).not.toHaveBeenCalled();
+  });
 });
 
 describe("confirmManualPayment", () => {
+  beforeEach(() => m.paymentFind.mockResolvedValue({ provider: "NATCASH", status: "PENDING" }));
   it("confirms a pending Natcash payment once and audits it", async () => {
     m.paymentUpdateMany.mockResolvedValue({ count: 1 });
     expect(await confirmManualPayment({ orderId: "ord_1", reference: "NC-123", adminId: "adm" })).toBe("fulfilled");
     expect(m.auditCreate).toHaveBeenCalled();
-    m.paymentUpdateMany.mockResolvedValue({ count: 0 });
+    m.paymentFind.mockResolvedValue({ provider: "NATCASH", status: "COMPLETED" });
     expect(await confirmManualPayment({ orderId: "ord_1", reference: "NC-123", adminId: "adm" })).toBe("duplicate");
   });
   it("can still confirm a transfer after the expire job failed the payment", async () => {
     m.paymentUpdateMany.mockResolvedValue({ count: 1 });
     m.orderFind.mockResolvedValue({ id: "ord_1", status: "EXPIRED", items: [], payment: null, isAnonymous: false });
     expect(await confirmManualPayment({ orderId: "ord_1", reference: "NC-124", adminId: "adm" })).toBe("fulfilled");
-    expect(m.paymentUpdateMany.mock.calls[0][0].where.status.in).toContain("FAILED");
+    expect(m.paymentUpdate).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ status: "COMPLETED", manualReference: "NC-124" }) }));
   });
   it("rejects malformed references", async () => {
     expect(await confirmManualPayment({ orderId: "o", reference: "<script>", adminId: "a" })).toBe("rejected");

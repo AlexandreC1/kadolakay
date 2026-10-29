@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { paypalProvider, verifiedFromPayPalOrder, _testing } from "./paypal";
+import { paypalInspector, paypalProvider, verifiedFromPayPalOrder, _testing } from "./paypal";
 import { verifiedFromMonCash, moncashProvider } from "./moncash";
 import { verifiedFromStripeSession } from "./stripe";
 import { natcashProvider } from "./natcash";
@@ -55,6 +55,26 @@ describe("PayPal (C3)", () => {
     const f = vi.fn(); vi.stubGlobal("fetch", f);
     await expect(paypalProvider.verify({ orderId: "o", providerRef: "../../x" })).rejects.toThrow();
     expect(f).not.toHaveBeenCalled();
+  });
+});
+
+describe("PayPal recovery inspection", () => {
+  beforeEach(() => _testing.token.clear());
+  afterEach(() => vi.unstubAllGlobals());
+  it("never captures an approved but unpaid order", async () => {
+    const f = vi.fn().mockResolvedValueOnce(json(200, { access_token: "t" }))
+      .mockResolvedValueOnce(json(200, { id: "PAYPAL123", status: "APPROVED", purchase_units: [{ reference_id: "order1" }] }));
+    vi.stubGlobal("fetch", f);
+    expect(await paypalInspector.verify({ orderId: "order1", providerRef: "PAYPAL123" })).toMatchObject({ status: "PENDING", orderId: "order1" });
+    expect(String(f.mock.calls[1][0])).not.toContain("/capture");
+    expect(f.mock.calls[1][1].method).toBeUndefined();
+  });
+  it("recovers an existing completed capture using GET", async () => {
+    const f = vi.fn().mockResolvedValueOnce(json(200, { access_token: "t" }))
+      .mockResolvedValueOnce(json(200, { id: "PAYPAL123", status: "COMPLETED", purchase_units: [{ reference_id: "order1", payments: { captures: [{ id: "CAP1", status: "COMPLETED", amount: { value: "10.00", currency_code: "USD" } }] } }] }));
+    vi.stubGlobal("fetch", f);
+    expect(await paypalInspector.verify({ orderId: "order1", providerRef: "PAYPAL123" })).toMatchObject({ status: "COMPLETED", providerTxId: "CAP1" });
+    expect(f.mock.calls[1][1].method).toBeUndefined();
   });
 });
 

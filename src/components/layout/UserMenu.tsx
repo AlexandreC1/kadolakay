@@ -86,9 +86,6 @@ export function UserMenu({ user }: UserMenuProps) {
             <>
               <div className="border-t border-gray-100 my-1" />
               {[
-                ["/admin/orders", "nav.adminOrders"],
-                ["/admin/payments/natcash", "nav.adminNatcash"],
-                ["/admin/users", "nav.adminUsers"],
                 ["/admin/businesses", "nav.adminBusinesses"],
               ].map(([href, key]) => (
                 <Link

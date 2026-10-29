@@ -111,4 +111,23 @@ export const paypalProvider: PaymentVerifier = {
   },
 };
 
+/** Recovery is read-only. An approved order is not permission for cron to charge. */
+export const paypalInspector: PaymentVerifier = {
+  ...paypalProvider,
+  async verify(ref: VerifyRef): Promise<VerifiedPayment> {
+    const id = ref.providerRef ?? ref.transactionId;
+    if (!id || !/^[A-Z0-9]{5,40}$/i.test(id)) throw new ProviderError("PAYPAL", "BAD_RESPONSE");
+    const { data } = await providerFetchJson<PayPalOrder>("PAYPAL", `${baseUrl()}/v2/checkout/orders/${encodeURIComponent(id)}`, {
+      headers: { Authorization: `Bearer ${await token.get()}` },
+    });
+    if (data.purchase_units?.[0]?.payments?.captures?.length) return verifiedFromPayPalOrder(data);
+    return {
+      orderId: data.purchase_units?.[0]?.reference_id ?? "",
+      provider: "PAYPAL", providerTxId: id, amount: money(0), currency: "USD",
+      status: data.status === "VOIDED" ? "FAILED" : "PENDING",
+      rawSummary: { paypalOrderId: id, orderStatus: data.status ?? null },
+    };
+  },
+};
+
 export const _testing = { token };

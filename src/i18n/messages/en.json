@@ -117,7 +117,10 @@
     "redirecting": "Redirecting to store...",
     "total": "Total",
     "platformFee": "Platform fee",
-    "needsRefund": "Someone else gave this gift while you were paying. We will refund you; you don't need to do anything."
+    "needsRefund": "Your payment was received, but this gift is no longer available. A refund is required. Contact support with your order number.",
+    "paymentPendingTitle": "Payment awaiting confirmation",
+    "paymentPendingMessage": "Your gift has not been confirmed yet. Please do not pay again while we check your payment status.",
+    "contactSupport": "Contact support"
   },
   "orders": {
     "subtitle": "Gifts purchased for you",

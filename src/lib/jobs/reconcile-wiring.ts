@@ -7,6 +7,7 @@
 import { getPaymentProvider, type PaymentProviderType } from "@/lib/payments";
 import { claimAndFulfill } from "@/lib/orders";
 import type { ReconcileDeps } from "./reconcile-payments";
+import { paypalInspector } from "@/lib/payments/paypal";
 
 const AUTO: PaymentProviderType[] = ["stripe", "paypal", "moncash"];
 
@@ -17,5 +18,6 @@ export async function getReconcileDeps(): Promise<ReconcileDeps | null> {
     const v = getPaymentProvider(p);
     verifiers[v.provider] = v;
   }
+  verifiers.PAYPAL = paypalInspector;
   return { verifiers, claimAndFulfill };
 }
