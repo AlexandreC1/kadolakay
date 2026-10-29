@@ -107,7 +107,12 @@ jobs:
       - run: npm ci --no-audit --no-fund
       - run: npm run db:generate
       - run: npx prisma migrate deploy
-      - run: npm run build
+      - name: Build without runtime database or authentication credentials
+        run: npm run build
+        env:
+          DATABASE_URL: ""
+          DIRECT_DATABASE_URL: ""
+          AUTH_SECRET: ""
       - name: Verify session revocation through the production server
         run: npm run test:session:http
         env:
