@@ -2,6 +2,14 @@ import { db } from "@/lib/db";
 import { createWithUniqueSlug } from "@/lib/slug";
 import { parseEntityId } from "@/lib/validators/entity-id";
 import { addProductSchema, editProductSchema, registerBusinessSchema, type AddProductInput, type EditProductInput, type RegisterBusinessInput } from "@/lib/validators/business";
+import type { Prisma } from "@prisma/client";
+import { canPerform } from "./permissions";
+
+async function assertMerchantRole(tx: Prisma.TransactionClient, actorId: string) {
+  await tx.$queryRaw`SELECT id FROM users WHERE id = ${actorId} FOR SHARE`;
+  const actor = await tx.user.findUnique({ where: { id: actorId }, select: { role: true } });
+  if (!actor || !canPerform(actor.role, "product:edit")) throw new Error("Forbidden");
+}
 
 export async function registerOwnedBusiness(actorId: string, input: RegisterBusinessInput) {
   actorId = parseEntityId(actorId);
@@ -21,6 +29,7 @@ export async function addOwnedProduct(actorId: string, input: AddProductInput) {
   actorId = parseEntityId(actorId);
   const data = addProductSchema.parse(input);
   return db.$transaction(async tx => {
+    await assertMerchantRole(tx, actorId);
     // Share the approval row lock with suspension writes until the product is saved.
     await tx.$queryRaw`SELECT id FROM businesses WHERE "ownerId" = ${actorId} FOR UPDATE`;
     const business = await tx.business.findFirst({ where: { ownerId: actorId, status: { not: "SUSPENDED" } }, select: { id: true } });
@@ -34,6 +43,7 @@ export async function editOwnedProduct(actorId: string, productId: string, input
   productId = parseEntityId(productId);
   const data = editProductSchema.parse(input);
   await db.$transaction(async tx => {
+  await assertMerchantRole(tx, actorId);
   await tx.$queryRaw`SELECT id FROM products WHERE id = ${productId} FOR UPDATE`;
   const product = await tx.product.findFirst({ where: { id: productId, business: { ownerId: actorId, status: { not: "SUSPENDED" } } }, select: { reservedStock: true } });
   if (!product) throw new Error("This product is unavailable or cannot be changed");

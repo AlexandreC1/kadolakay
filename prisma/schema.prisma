@@ -2,6 +2,21 @@ generator client {
   provider = "prisma-client-js"
 }
 
+// Append-only administrative decision history. No contact or credential payloads.
+model SecurityAuditEvent {
+  id String @id @default(cuid())
+  actorId String
+  action String
+  targetId String
+  previousStatus BusinessStatus
+  nextStatus BusinessStatus
+  createdAt DateTime @default(now())
+
+  @@index([actorId, createdAt])
+  @@index([targetId, createdAt])
+  @@map("security_audit_events")
+}
+
 datasource db {
   provider = "postgresql"
 }

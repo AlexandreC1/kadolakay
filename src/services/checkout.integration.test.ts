@@ -82,7 +82,7 @@ describe.skipIf(!run)("catalog checkout eligibility", () => {
 async function stockFixture(stockQuantity: number | null = 1) {
   process.env.STRIPE_SECRET_KEY = "sk_test_not_a_real_key";
   process.env.STRIPE_WEBHOOK_SECRET = "whsec_test";
-  const user = await db.user.create({ data: { email: `${randomUUID()}@example.com` } }); users.push(user.id);
+  const user = await db.user.create({ data: { email: `${randomUUID()}@example.com`, role: "BUSINESS_OWNER" } }); users.push(user.id);
   const business = await db.business.create({ data: { ownerId: user.id, name: "Stock test shop", slug: randomUUID(), category: "Gifts", status: "APPROVED" } });
   const product = await db.product.create({ data: { businessId: business.id, name: "Shared gift", priceUSD: "10.00", stockQuantity } });
   const makeRegistry = () => db.registry.create({ data: { userId: user.id, slug: randomUUID(), title: "Stock test list", type: "BIRTHDAY", status: "PUBLISHED", items: { create: { title: product.name, priceUSD: "10.00", quantity: 3, source: "LOCAL_BUSINESS", productId: product.id, businessId: business.id } } }, include: { items: true } });
@@ -116,7 +116,7 @@ describe.skipIf(!run)("physical SKU inventory across registries", () => {
     const f = await stockFixture(null);
     await expect(beginCheckout(f.inputFor(f.registry))).rejects.toThrow("ITEM_UNAVAILABLE");
     expect(await db.order.count({ where: { items: { some: { registryItemId: f.registry.items[0].id } } } })).toBe(0);
-    const other = await db.user.create({ data: { email: `${randomUUID()}@example.com` } }); users.push(other.id);
+    const other = await db.user.create({ data: { email: `${randomUUID()}@example.com`, role: "BUSINESS_OWNER" } }); users.push(other.id);
     await expect(editOwnedProduct(other.id, f.product.id, { name: "Tampered", priceUSD: 10, inStock: true, stockQuantity: 100 })).rejects.toThrow();
     await expect(editOwnedProduct(f.user.id, f.product.id, { name: f.product.name, priceUSD: 10, inStock: true, stockQuantity: -1 })).rejects.toThrow();
     await expect(db.product.update({ where: { id: f.product.id }, data: { stockQuantity: -1 } })).rejects.toThrow();

@@ -1,5 +1,13 @@
 # Bayou feature status
 
+## October 29 access control and observability hardening
+
+Explicit role-to-permission policy now guards mutations; record ownership remains separately enforced. Merchant product mutations and admin review recheck/lock the current user role inside the transaction. Merchant status transitions create an append-only SecurityAuditEvent in the same transaction, with duplicate/no-op protection and DB guards against update/delete/truncate. This audits review decisions only; no audit dashboard or full financial event ledger is claimed.
+
+Operational events now use bounded JSON labels/metrics without identities, payloads or raw exception text. Checkout and proxy share the trusted host-IP policy. Optional Sentry outbound error filtering drops sensitive event fields; breadcrumbs, traces and replay are disabled pending privacy review. Local Sentry DSNs are absent and alert delivery remains unverified. See SECURITY-OBSERVABILITY.md for the role matrix, activation procedure, current coverage and open gates.
+
+Verification:252 unit tests and26 PostgreSQL integration tests pass; TypeScript/build pass; full lint zero errors/12 existing warnings; dependency audit zero. Browser confirmed an existing ordinary account is redirected away from admin reviews. Audit migration applied locally without resetting data. No user was promoted and no external monitoring service was activated. The fifteen-page specification remains the earlier f3167e8 snapshot; current schema now has12 models, including SecurityAuditEvent.
+
 ## October 29: renamed to Bayou
 
 Owner-selected name Bayou now appears throughout the app, translations, metadata, share cards and outgoing content, with a B monogram/favicon. Technical identifiers and existing URLs/integrations remain compatible; Google consent branding is an external follow-up. No palette, database or live payment activation change.
@@ -59,7 +67,7 @@ Updated October 27, 2026. This is implementation evidence, not release approval.
 | Claude prototype redesign | Reviewed reference only; four-step flow and progress basket not ported into live app |
 | Gravity Stars background | Implemented: upstream canvas interaction, pause/resume, reduced motion, visibility cleanup and mobile/pixel budgets |
 | Product-item Tilt | Reference recorded; not implemented |
-| Admin merchant approvals | Implemented basic review screen; no complete superadmin operations dashboard |
+| Admin merchant approvals | Review screen plus transactional append-only status audit; no audit viewer or complete superadmin operations dashboard |
 | Admin metrics and brand/seasonal editor | Not implemented; visitor appearance switch is a separate feature |
 | Google/other external sign-in | Real local Google login/session verified; hosted Google and other providers remain unconfigured/unverified |
 | Native payment | Stripe implementation/tests exist; new checkout disabled pending eligible entity/provider and operational rules; no live payment claim |

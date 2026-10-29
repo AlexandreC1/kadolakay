@@ -8,13 +8,15 @@ import { checkRateLimit } from "@/lib/rate-limit";
 import { beginCheckout, resumeCheckout, CheckoutError } from "@/services/checkout";
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
+import { rateLimitClientKey } from "@/lib/client-ip";
+import { recordOperationalEvent } from "@/lib/operational-events";
 
 const resumeSchema = z.strictObject({ checkoutRequestId: checkoutSchema.shape.checkoutRequestId, registrySlug: checkoutSchema.shape.registrySlug });
 
 export async function resumeOrder(input: unknown) {
   const session = await auth();
   const h = await headers();
-  const ip = h.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "anon";
+  const ip = rateLimitClientKey(h);
   const rl = await checkRateLimit("checkout", session?.user?.id ? `user:${session.user.id}` : `ip:${ip}`);
   if (!rl.ok) return { error: "RATE_LIMITED" };
   const parsed = resumeSchema.safeParse(input);
@@ -22,7 +24,7 @@ export async function resumeOrder(input: unknown) {
   try { return await resumeCheckout(parsed.data, session?.user?.id); }
   catch (error) {
     if (error instanceof CheckoutError) return { error: error.message };
-    console.error("Checkout resume failed", { code: "CHECKOUT_FAILED" });
+    recordOperationalEvent("checkout_failed", { outcome: "failed" });
     return { error: "CHECKOUT_FAILED" };
   }
 }
@@ -30,7 +32,7 @@ export async function resumeOrder(input: unknown) {
 export async function createOrder(formData: FormData) {
   const session = await auth();
   const h = await headers();
-  const ip = h.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "anon";
+  const ip = rateLimitClientKey(h);
   const rl = await checkRateLimit("checkout", session?.user?.id ? `user:${session.user.id}` : `ip:${ip}`);
   if (!rl.ok) return { error: "RATE_LIMITED" };
   const allowed = new Set(["checkoutRequestId", "registrySlug", "locale", "registryItemIds", "quantities", "buyerName", "buyerEmail", "buyerPhone", "giftMessage", "isAnonymous", "paymentProvider"]);
@@ -53,7 +55,7 @@ export async function createOrder(formData: FormData) {
   } catch (error) {
     if (error instanceof SyntaxError) return { error: "INVALID_INPUT" };
     if (error instanceof CheckoutError) return { error: error.message };
-    console.error("Checkout failed", { code: "CHECKOUT_FAILED" });
+    recordOperationalEvent("checkout_failed", { outcome: "failed" });
     return { error: "CHECKOUT_FAILED" };
   }
 }

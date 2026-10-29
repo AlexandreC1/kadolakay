@@ -90,8 +90,8 @@ describe.skipIf(!run)("merchant catalog boundaries on PostgreSQL", () => {
     expect(first.items[0]).not.toHaveProperty("ownerId");
   }, 30000);
   it("hides pending/suspended businesses and prevents cross-owner edits and duplicate gift races", async () => {
-    const owner = await db.user.create({ data: { email: `${randomUUID()}@example.com` } }); users.push(owner.id);
-    const other = await db.user.create({ data: { email: `${randomUUID()}@example.com` } }); users.push(other.id);
+    const owner = await db.user.create({ data: { email: `${randomUUID()}@example.com`, role: "BUSINESS_OWNER" } }); users.push(owner.id);
+    const other = await db.user.create({ data: { email: `${randomUUID()}@example.com`, role: "BUSINESS_OWNER" } }); users.push(other.id);
     const merchant = await db.business.create({ data: { ownerId: owner.id, name: "Catalog boundary test", slug: `catalog-${randomUUID()}`, category: "Gifts" } });
     const product = await db.product.create({ data: { businessId: merchant.id, name: "Gift", priceUSD: "15.00" } });
     const registry = await db.registry.create({ data: { userId: owner.id, slug: `registry-${randomUUID()}`, title: "Catalog test", type: "BIRTHDAY" } });

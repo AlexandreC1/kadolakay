@@ -2,9 +2,11 @@ import { db } from "@/lib/db";
 import { stripe } from "@/lib/payments/stripe";
 import { fulfillOrder } from "@/lib/orders";
 import { releaseCheckout } from "./checkout";
+import { recordOperationalEvent } from "@/lib/operational-events";
 
 /** Provider verification recovers missed webhooks and ambiguous network errors. */
 export async function reconcileStripeCheckouts({ maxItems = 50, budgetMs = 30000 } = {}) {
+  const started = Date.now();
   if (!process.env.STRIPE_SECRET_KEY || !process.env.STRIPE_WEBHOOK_SECRET) return { checked: 0, recovered: 0, failed: 0 };
   const deadline = Date.now() + Math.min(30000, Math.max(1000, budgetMs));
   const pending = await db.order.findMany({
@@ -40,7 +42,8 @@ export async function reconcileStripeCheckouts({ maxItems = 50, budgetMs = 30000
         await stripe.checkout.sessions.expire(session.id, {}, requestOptions);
         await releaseCheckout(order.id); recovered++;
       }
-    } catch { failed++; console.error("Stripe reconciliation failed", { code: "RECONCILIATION_FAILED" }); }
+    } catch { failed++; recordOperationalEvent("payment_reconciliation", { outcome: "failed" }); }
   }
+  recordOperationalEvent("payment_reconciliation", { outcome: failed ? "failed" : "ok", count: checked, durationMs: Date.now() - started });
   return { checked, recovered, failed };
 }

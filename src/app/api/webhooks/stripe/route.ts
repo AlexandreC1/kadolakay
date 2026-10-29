@@ -4,8 +4,10 @@ import { fulfillOrder } from "@/lib/orders";
 import { releaseCheckout } from "@/services/checkout";
 import type Stripe from "stripe";
 import { readWebhookBody } from "@/lib/webhook-body";
+import { recordOperationalEvent } from "@/lib/operational-events";
 
 export async function POST(req: NextRequest) {
+  const started = Date.now();
   if (!process.env.STRIPE_WEBHOOK_SECRET || !process.env.STRIPE_SECRET_KEY) {
     return NextResponse.json({ error: "Payment service unavailable" }, { status: 503 });
   }
@@ -30,10 +32,11 @@ export async function POST(req: NextRequest) {
       const session = event.data.object as Stripe.Checkout.Session;
       if (session.metadata?.orderId) await releaseCheckout(session.metadata.orderId);
     }
+    recordOperationalEvent("webhook_processing", { outcome: "ok", durationMs: Date.now() - started });
     return NextResponse.json({ received: true });
   } catch {
     // A non-2xx makes Stripe retry. Never acknowledge uncommitted fulfillment.
-    console.error("Stripe event processing failed", { eventId: event.id });
+    recordOperationalEvent("webhook_processing", { outcome: "failed", durationMs: Date.now() - started });
     return NextResponse.json({ error: "Processing failed. Delivery will be retried." }, { status: 500 });
   }
 }
