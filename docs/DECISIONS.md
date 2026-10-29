@@ -124,3 +124,6 @@ Owner selected HSL 166.2 76.5% 96.7% for the app background and retained existin
 
 ### October 28: remove decorative arrows
 Owner rejected decorative arrows. Removed them from action/link labels across homepage, header sign-in, finder, directory, recovery states, legacy hero and OG preview. Social provider buttons keep loading spinners but no trailing arrows. Actual navigation controls and the icon-only email submit remain functional. Do not reintroduce decorative arrows as a styling convention.
+
+### October 29: dependency baseline and Prisma driver
+Use stable Prisma7.10.1 with PostgreSQL adapter and bounded pool; no prerelease8 migration or vulnerable transitive overrides. CLI uses direct URL when provided, runtime uses application URL. Full npm audit clean after compatible fixes and Vitest5 upgrade. Keep production rate limiter fail-closed; local production verification cannot bypass missing shared Redis. Existing stock unknown until merchant enters a physical count.

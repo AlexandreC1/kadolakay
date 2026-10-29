@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { fileURLToPath } from "node:url";
 import createNextIntlPlugin from "next-intl/plugin";
 import { withSentryConfig } from "@sentry/nextjs/config";
 
@@ -20,7 +21,7 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   poweredByHeader: false,
   devIndicators: false,
-  turbopack: { root: __dirname },
+  turbopack: { root: fileURLToPath(new URL(".", import.meta.url)) },
   outputFileTracingIncludes: { "/api/registries/**": ["./src/assets/fonts/**"] },
   experimental: { serverActions: { bodySizeLimit: "1mb" } },
   images: {
