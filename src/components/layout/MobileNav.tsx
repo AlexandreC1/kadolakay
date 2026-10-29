@@ -8,8 +8,10 @@ import { Link } from "@/i18n/navigation";
 import { catalogCopy } from "@/lib/catalog-copy";
 import { ThemeSwitcher } from "@/components/theme/ThemeSwitcher";
 import { onboardingCopy } from "@/lib/onboarding-copy";
+import type { Role } from "@prisma/client";
+import { isAdministrator } from "@/services/permissions";
 
-interface MobileNavProps { user?: { name?: string | null; image?: string | null; email?: string | null } }
+interface MobileNavProps { user?: { name?: string | null; image?: string | null; email?: string | null; role?: Role } }
 
 export function MobileNav({ user }: MobileNavProps) {
   const [open, setOpen] = useState(false);
@@ -32,6 +34,8 @@ export function MobileNav({ user }: MobileNavProps) {
         <svg width="23" height="23" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeWidth="1.5" d={open ? "M6 6l12 12M6 18 18 6" : "M4 8h16M4 16h16"} /></svg>
       </button>
       {open && <nav id="mobile-navigation" className="mobile-navigation" aria-label={t("landing.mainNavigation")}>
+        {user?.role === "SUPERADMIN" && <p className="text-xs font-semibold text-[var(--brand-muted)]">{t("auth.superadmin")}</p>}
+        {isAdministrator(user?.role) && <Link href="/admin/businesses" onClick={() => setOpen(false)}>{t("nav.administration")}</Link>}
         <Link href="/find" onClick={() => setOpen(false)}>{catalogCopy(locale).find}</Link>
         <Link href="/create" onClick={() => setOpen(false)}>{t("nav.createRegistry")}</Link>
         <Link href="/browse" onClick={() => setOpen(false)}>{t("nav.businesses")}</Link>

@@ -31,7 +31,8 @@
     "businesses": "Local businesses",
     "dashboard": "Dashboard",
     "orders": "Orders",
-    "settings": "Settings"
+    "settings": "Settings",
+    "administration": "Administration"
   },
   "landing": {
     "heroTitle": "Celebrate together, no matter the distance",
@@ -266,7 +267,8 @@
     "networkError": "We could not reach the sign-in service. Check your connection and try again.",
     "accountNotLinked": "This email already uses a different sign-in method. Continue with the method you used when you created your account.",
     "accessDenied": "Sign-in was cancelled or access was denied. You can try again.",
-    "expiredLink": "This sign-in link has expired or has already been used. Request a new email link."
+    "expiredLink": "This sign-in link has expired or has already been used. Request a new email link.",
+    "superadmin": "Superadmin"
   },
   "error": {
     "description": "Something went wrong. Please try again.",

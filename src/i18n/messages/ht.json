@@ -31,7 +31,8 @@
     "businesses": "Biznis lokal",
     "dashboard": "Tablo bò",
     "orders": "Kòmand yo",
-    "settings": "Paramèt"
+    "settings": "Paramèt",
+    "administration": "Administrasyon"
   },
   "landing": {
     "heroTitle": "Selebre ansanm, kèlkeswa distans la",
@@ -266,7 +267,8 @@
     "networkError": "Nou pa ka jwenn sèvis koneksyon an. Verifye koneksyon entènèt ou epi eseye ankò.",
     "accountNotLinked": "Imel sa a deja sèvi ak yon lòt fason pou konekte. Sèvi ak fason ou te chwazi lè ou te kreye kont ou.",
     "accessDenied": "Koneksyon an te anile oswa yo te refize aksè a. Ou ka eseye ankò.",
-    "expiredLink": "Lyen sa a ekspire oswa ou deja itilize li. Mande yon nouvo lyen pa imel."
+    "expiredLink": "Lyen sa a ekspire oswa ou deja itilize li. Mande yon nouvo lyen pa imel.",
+    "superadmin": "Administratè prensipal"
   },
   "error": {
     "description": "Yon bagay pa t ale byen. Tanpri eseye ankò.",

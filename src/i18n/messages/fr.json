@@ -31,7 +31,8 @@
     "businesses": "Commerces locaux",
     "dashboard": "Tableau de bord",
     "orders": "Commandes",
-    "settings": "Paramètres"
+    "settings": "Paramètres",
+    "administration": "Administration"
   },
   "landing": {
     "heroTitle": "Célébrez ensemble, peu importe la distance",
@@ -266,7 +267,8 @@
     "networkError": "Le service de connexion est inaccessible. Vérifiez votre connexion et réessayez.",
     "accountNotLinked": "Cette adresse utilise déjà un autre mode de connexion. Utilisez celui choisi lors de la création de votre compte.",
     "accessDenied": "La connexion a été annulée ou refusée. Vous pouvez réessayer.",
-    "expiredLink": "Ce lien a expiré ou a déjà été utilisé. Demandez un nouveau lien par courriel."
+    "expiredLink": "Ce lien a expiré ou a déjà été utilisé. Demandez un nouveau lien par courriel.",
+    "superadmin": "Superadministrateur"
   },
   "error": {
     "description": "Quelque chose s'est mal passé. Veuillez réessayer.",

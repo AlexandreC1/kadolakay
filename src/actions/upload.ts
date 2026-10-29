@@ -1,6 +1,7 @@
 "use server";
 
 import { requireActor } from "@/services/authorization";
+import { isAdministrator } from "@/services/permissions";
 import { db } from "@/lib/db";
 import {
   extensionForContentType,
@@ -81,7 +82,7 @@ export async function getUploadUrl(
     input.context,
     input.contextId,
     actor.id,
-    actor.role === "ADMIN"
+    isAdministrator(actor.role)
   );
 
   if (!extensionForContentType(input.contentType)) {

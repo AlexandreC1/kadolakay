@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "auth:setup": "node scripts/setup-google-auth.mjs",
+    "admin:bootstrap": "node --import tsx scripts/bootstrap-superadmin.ts",
     "build": "prisma generate && next build",
     "start": "next start",
     "lint": "eslint",

@@ -51,6 +51,20 @@ enum Role {
   USER
   BUSINESS_OWNER
   ADMIN
+  SUPERADMIN
+}
+
+model UserRoleAuditEvent {
+  id String @id @default(cuid())
+  actorId String
+  targetId String
+  previousRole Role
+  nextRole Role
+  source String
+  createdAt DateTime @default(now())
+
+  @@index([targetId, createdAt])
+  @@map("user_role_audit_events")
 }
 
 model Account {

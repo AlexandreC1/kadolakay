@@ -2,6 +2,7 @@ import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { AdminBusinessList } from "./AdminBusinessList";
+import { isAdministrator } from "@/services/permissions";
 
 export default async function AdminBusinessesPage() {
   const session = await auth();
@@ -15,7 +16,7 @@ export default async function AdminBusinessesPage() {
     select: { role: true },
   });
 
-  if (user?.role !== "ADMIN") {
+  if (!isAdministrator(user?.role)) {
     redirect("/dashboard");
   }
 

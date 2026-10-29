@@ -1,5 +1,9 @@
 # Bayou feature status
 
+## October 29 owner superadmin initialized
+
+Owner explicitly requested the highest platform role. Added SUPERADMIN with all implemented admin permissions, updated access checks and role-aware desktop/mobile Administration navigation. Operator-only local bootstrap grants the exact existing linked account and atomically records an append-only UserRoleAuditEvent; repeats are no-ops and another owner initialization is refused. No public role-promotion endpoint or hardcoded owner identity. Local authenticated owner account granted; hosted users and OAuth account settings unchanged. Higher privilege is preserved on business registration. Tests259unit/27PostgreSQL, TypeScript/build pass, lint0errors12existingwarnings. Full owner dashboards, web role management and admin MFA remain separate unfinished features.
+
 ## October 29 access control and observability hardening
 
 Explicit role-to-permission policy now guards mutations; record ownership remains separately enforced. Merchant product mutations and admin review recheck/lock the current user role inside the transaction. Merchant status transitions create an append-only SecurityAuditEvent in the same transaction, with duplicate/no-op protection and DB guards against update/delete/truncate. This audits review decisions only; no audit dashboard or full financial event ledger is claimed.

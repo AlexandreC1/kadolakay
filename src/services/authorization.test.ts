@@ -16,6 +16,11 @@ describe("server-side actor authorization", () => {
     await expect(requireActor("admin:business")).rejects.toThrow("Forbidden");
     expect(mocks.limit).not.toHaveBeenCalled();
   });
+  it("recognizes a newly granted superadmin role from the database", async () => {
+    mocks.auth.mockResolvedValue({ user: { id: "owner", role: "USER" } });
+    mocks.findUnique.mockResolvedValue({ id: "owner", role: "SUPERADMIN" });
+    expect(await requireActor("admin:business")).toEqual({ id: "owner", role: "SUPERADMIN" });
+  });
   it("rejects deleted accounts even with a valid session", async () => {
     mocks.findUnique.mockResolvedValue(null); await expect(requireActor("registry:update")).rejects.toThrow("sign in again");
   });

@@ -10,12 +10,21 @@ Updated 29 October 2026. This describes the implementation on codex/ship-ready-m
 | USER | Own profile, onboarding, own registries and gifts; apply for a business | No product-management or admin-review permission. Strict input excludes role assignment. |
 | BUSINESS_OWNER | Member tasks plus product management | Must own the business/product. A suspended business cannot mutate products. |
 | ADMIN | Member tasks and business approval/suspension | Registry and product mutations still use ownership rules. Upload code has an explicit admin exception for non-avatar contexts. No blanket ownership bypass is inferred. |
+| SUPERADMIN | Platform owner with all currently implemented administrative capabilities | Assigned through an explicit audited operator bootstrap. No public role promotion, broad ownership bypass or unimplemented control is implied. |
 
 `src/services/permissions.ts` is the deny-by-default mutation permission matrix. `requireActor` resolves the session, reloads the user role from PostgreSQL, checks the named permission and applies a shared rate limit. Unknown actions and inherited object property names are denied. The role is not taken from a form, browser storage or a stale session claim.
 
 Permissions and ownership are separate. Product/registry services must still constrain the record by owner. Product mutations check the merchant role again under a user-row lock inside the transaction. Business review also locks and reloads the administrator before changing a merchant. A concurrent demotion must be observed before a blocked decision proceeds.
 
-Proxy checks only guide navigation. Sensitive pages/actions must verify permissions on the server. Existing administrator page queries still explicitly reload the database role; not every read route is routed through the shared mutation helper. There is no separate SUPERADMIN role or company staff-membership model. Initial admin assignment and role changes require a controlled operator procedure; there is no public role-promotion form.
+Proxy checks only guide navigation. Sensitive pages/actions must verify permissions on the server. Existing administrator page queries still explicitly reload the database role; not every read route is routed through the shared mutation helper. SUPERADMIN is the platform-owner role; a company staff-membership model and web-based role-management workflow remain unfinished. Initial owner assignment uses the reviewed operator procedure below; there is no public role-promotion form.
+
+### Owner initialization
+
+Verify the exact existing account through its genuine signed-in session before running `npm run admin:bootstrap -- --user-id USER_ID --confirm`. The CLI loads local environment configuration, requires a loopback database and a linked provider account, serializes initialization and refuses a different owner after one has been initialized. It creates no new account and contains no email/account allowlist. Re-running for the same owner is a no-op. Identity-specific grants are database changes, never committed migrations or seed defaults.
+
+The role and an append-only UserRoleAuditEvent commit together. This thirteenth model stores previous/next role, actor/target IDs, timestamp and the fixed OPERATOR_BOOTSTRAP source, without contact or token data. Ordinary update/delete/truncate are guarded. This is currently a bootstrap-grant log, not complete tracking of every possible DBA role change. Database owners can still alter guards. Higher roles are preserved if the owner registers a business.
+
+The local owner's Google account has been initialized at the owner's explicit request. That does not grant a hosted account: each database has its own users and needs separately verified operator initialization. There is no runtime auto-promotion and no production override flag in the local helper. Administration is linked from the desktop/mobile account navigation. MFA and a complete owner control panel are still separate work.
 
 ## Administrative evidence
 

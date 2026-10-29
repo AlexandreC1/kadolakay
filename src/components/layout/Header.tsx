@@ -7,13 +7,14 @@ import { auth } from "@/lib/auth";
 import { UserMenu } from "./UserMenu";
 import { Brand } from "./Brand";
 import { ThemeSwitcher } from "@/components/theme/ThemeSwitcher";
+import type { Role } from "@prisma/client";
 
 export async function Header() {
   const session = await auth();
   return <HeaderContent user={session?.user} />;
 }
 
-function HeaderContent({ user }: { user?: { name?: string | null; image?: string | null; email?: string | null } }) {
+function HeaderContent({ user }: { user?: { name?: string | null; image?: string | null; email?: string | null; role?: Role } }) {
   const t = useTranslations();
   const copy = catalogCopy(useLocale());
   return (

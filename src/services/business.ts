@@ -3,7 +3,7 @@ import { createWithUniqueSlug } from "@/lib/slug";
 import { parseEntityId } from "@/lib/validators/entity-id";
 import { addProductSchema, editProductSchema, registerBusinessSchema, type AddProductInput, type EditProductInput, type RegisterBusinessInput } from "@/lib/validators/business";
 import type { Prisma } from "@prisma/client";
-import { canPerform } from "./permissions";
+import { canPerform, isAdministrator } from "./permissions";
 
 async function assertMerchantRole(tx: Prisma.TransactionClient, actorId: string) {
   await tx.$queryRaw`SELECT id FROM users WHERE id = ${actorId} FOR SHARE`;
@@ -20,7 +20,7 @@ export async function registerOwnedBusiness(actorId: string, input: RegisterBusi
     if (!actor) throw new Error("Please sign in again");
     if (await tx.business.findUnique({ where: { ownerId: actorId }, select: { id: true } })) throw new Error("A business is already registered to this account");
     const business = await tx.business.create({ data: { ...data, slug, ownerId: actorId } });
-    if (actor.role !== "ADMIN") await tx.user.update({ where: { id: actorId }, data: { role: "BUSINESS_OWNER" } });
+    if (!isAdministrator(actor.role)) await tx.user.update({ where: { id: actorId }, data: { role: "BUSINESS_OWNER" } });
     return business.id;
   }));
 }

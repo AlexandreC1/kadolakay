@@ -2,7 +2,7 @@ import { afterAll, describe, expect, it } from "vitest";
 import { randomUUID } from "node:crypto";
 import { db } from "@/lib/db";
 import { reviewBusiness } from "./business-review";
-import { editOwnedProduct } from "./business";
+import { editOwnedProduct, registerOwnedBusiness } from "./business";
 const run = process.env.RUN_DB_TESTS === "1";
 const users: string[] = [];
 afterAll(async () => { if (!run) return; for (const id of users) await db.user.delete({ where: { id } }); await db.$disconnect(); });
@@ -13,6 +13,13 @@ async function fixture() {
   return { admin, owner, business };
 }
 describe.skipIf(!run)("privileged review and audit on PostgreSQL", () => {
+  it("allows superadmin review and preserves the higher role when registering a business", async () => {
+    const f = await fixture();
+    await db.user.update({ where: { id: f.admin.id }, data: { role: "SUPERADMIN" } });
+    expect(await reviewBusiness(f.admin.id, { businessId: f.business.id, status: "APPROVED" })).toEqual({ changed: true });
+    await registerOwnedBusiness(f.admin.id, { name: "Owner registration fixture", category: "home" });
+    expect((await db.user.findUniqueOrThrow({ where: { id: f.admin.id } })).role).toBe("SUPERADMIN");
+  });
   it("denies owners and demoted administrators without status changes or audit writes", async () => {
     const f = await fixture();
     await expect(reviewBusiness(f.owner.id, { businessId: f.business.id, status: "APPROVED" })).rejects.toThrow("Forbidden");
