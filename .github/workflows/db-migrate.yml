@@ -58,13 +58,19 @@ jobs:
       # Unlike `migrate dev`, it does NOT generate new migrations —
       # it only runs migrations that already exist in prisma/migrations/.
       # This is the safe, production-appropriate command.
+      #
+      # schema.prisma reads two URLs: DATABASE_URL (Neon pooled, used by the
+      # app) and DIRECT_URL (unpooled, used by migrate). Prisma refuses to run
+      # if either is missing, so both secrets are passed here.
       - name: Run migrations
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DIRECT_URL: ${{ secrets.DIRECT_URL }}
         run: npx prisma migrate deploy
 
       # After migration, regenerate the Prisma client to match the new schema
       - name: Verify Prisma client
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DIRECT_URL: ${{ secrets.DIRECT_URL }}
         run: npx prisma generate
