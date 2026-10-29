@@ -138,7 +138,7 @@ export async function addBusinessProductToRegistry(
     include: { business: { select: { id: true, name: true, status: true } } },
   });
 
-  if (!product || product.business.status !== "APPROVED") {
+  if (!product || product.deletedAt || !product.inStock || product.business.status !== "APPROVED") {
     throw new Error("Product not found or business not approved");
   }
 

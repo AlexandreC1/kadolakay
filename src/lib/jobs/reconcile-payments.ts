@@ -11,6 +11,7 @@
 import type { ClaimAndFulfill, ClaimOutcome, PaymentVerifier, Provider } from "@/lib/contracts/payments";
 import { db } from "@/lib/db";
 import { log } from "@/lib/log";
+import { releaseVoidedPayPal } from "@/lib/payments/reservations";
 
 export interface ReconcileDeps {
   verifiers: Partial<Record<Provider, PaymentVerifier>>;
@@ -34,13 +35,21 @@ const AUTO: Provider[] = ["STRIPE", "PAYPAL", "MONCASH"];
 export async function loadPendingPayments(now: Date, minAgeMs = 10 * 60_000, batch = 100): Promise<PendingPaymentRow[]> {
   const rows = await db.payment.findMany({
     where: {
-      status: { in: ["PENDING", "PROCESSING"] },
+      // FAILED includes locally expired checkouts; COMPLETED repairs historical
+      // split commits where settlement succeeded but fulfillment did not.
+      status: { in: ["PENDING", "PROCESSING", "FAILED", "COMPLETED"] },
       provider: { in: AUTO },
-      createdAt: { lt: new Date(now.getTime() - minAgeMs), gt: new Date(now.getTime() - 7 * 86_400_000) },
-      order: { status: { in: ["PENDING", "EXPIRED"] } },
+      createdAt: { lt: new Date(now.getTime() - minAgeMs) },
+      OR: [
+        { createdAt: { gt: new Date(now.getTime() - 7 * 86_400_000) } },
+        { status: "COMPLETED" },
+        { captureRequestedAt: { not: null } },
+      ],
+      order: { status: { in: ["PENDING", "EXPIRED", "PAYMENT_FAILED"] } },
     },
     select: { orderId: true, provider: true, stripePaymentId: true, paypalOrderId: true, moncashTxId: true },
-    orderBy: { createdAt: "asc" },
+    // Unpaid/failed checkouts must not monopolize every bounded daily batch.
+    orderBy: [{ lastReconciledAt: { sort: "asc", nulls: "first" } }, { createdAt: "asc" }, { id: "asc" }],
     take: batch,
   });
   return rows.map((r) => ({
@@ -66,11 +75,16 @@ export async function reconcilePayments(rows: PendingPaymentRow[], deps: Reconci
         continue;
       }
       if (verified.status === "PENDING") outcomes.pending++;
-      else if (verified.status === "FAILED") outcomes.failed++;
+      else if (verified.status === "FAILED") {
+        if (row.provider === "PAYPAL" && verified.rawSummary.orderStatus === "VOIDED") await releaseVoidedPayPal(row.orderId);
+        outcomes.failed++;
+      }
       else outcomes[await deps.claimAndFulfill(verified)]++;
     } catch (err) {
       outcomes.error++;
       log.warn("reconcile.verify_failed", { orderId: row.orderId, provider: row.provider, err });
+    } finally {
+      await db.payment.updateMany({ where: { orderId: row.orderId, provider: row.provider }, data: { lastReconciledAt: new Date() } });
     }
   }
   return { checked: rows.length, outcomes };

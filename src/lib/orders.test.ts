@@ -16,6 +16,7 @@ vi.mock("./db", () => {
   let lock: Promise<unknown> = Promise.resolve();
 
   const tx = {
+    orderItem: { groupBy: async () => [] },
     order: {
       // Unconditional write, kept so the test also runs against the old
       // implementation and shows the double count it produced.

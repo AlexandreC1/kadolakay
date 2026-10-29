@@ -4,6 +4,7 @@
  * Natcash is manual: buyers get NATCASH_GRACE_HOURS from creation before the
  * order can expire, regardless of expiresAt.
  */
+import { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
 
 export const NATCASH_GRACE_HOURS = 72;
@@ -14,6 +15,7 @@ export async function expireOrders(now = new Date(), batch = 500): Promise<{ exp
     where: {
       status: "PENDING",
       expiresAt: { lt: now },
+      NOT: { payment: { is: { OR: [{ captureRequestedAt: { not: null } }, { status: "COMPLETED" }] } } },
       OR: [
         { payment: { is: null } },
         { payment: { is: { provider: { not: "NATCASH" } } } },
@@ -26,8 +28,14 @@ export async function expireOrders(now = new Date(), batch = 500): Promise<{ exp
   if (candidates.length === 0) return { expired: 0 };
   const ids = candidates.map((c) => c.id);
   return db.$transaction(async (tx) => {
+    // Take the order lock before the next statement reads capture state. If
+    // capture just started, its committed hold is visible to this UPDATE.
+    await tx.$queryRaw`SELECT id FROM orders WHERE id IN (${Prisma.join([...ids].sort())}) ORDER BY id FOR UPDATE`;
     // Re-check status in the UPDATE so a webhook that fulfilled meanwhile wins.
-    const res = await tx.order.updateMany({ where: { id: { in: ids }, status: "PENDING" }, data: { status: "EXPIRED" } });
+    const res = await tx.order.updateMany({ where: {
+      id: { in: ids }, status: "PENDING",
+      NOT: { payment: { is: { OR: [{ captureRequestedAt: { not: null } }, { status: "COMPLETED" }] } } },
+    }, data: { status: "EXPIRED" } });
     await tx.payment.updateMany({
       where: { orderId: { in: ids }, status: { in: ["PENDING", "PROCESSING"] }, order: { status: "EXPIRED" } },
       data: { status: "FAILED" },

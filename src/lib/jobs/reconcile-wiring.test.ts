@@ -7,6 +7,7 @@ vi.mock("@/lib/orders", () => ({ claimAndFulfill: vi.fn() }));
 
 import { getReconcileDeps } from "./reconcile-wiring";
 import { claimAndFulfill } from "@/lib/orders";
+import { paypalInspector } from "@/lib/payments/paypal";
 
 describe("getReconcileDeps", () => {
   it("wires Stripe, PayPal and MonCash verifiers to claimAndFulfill, never Natcash", async () => {
@@ -14,5 +15,6 @@ describe("getReconcileDeps", () => {
     expect(deps).not.toBeNull();
     expect(Object.keys(deps!.verifiers).sort()).toEqual(["MONCASH", "PAYPAL", "STRIPE"]);
     expect(deps!.claimAndFulfill).toBe(claimAndFulfill);
+    expect(deps!.verifiers.PAYPAL).toBe(paypalInspector);
   });
 });

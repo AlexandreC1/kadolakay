@@ -117,7 +117,10 @@
     "redirecting": "Nap voye ou sou sit magazen an...",
     "total": "Total",
     "platformFee": "Frè platfòm",
-    "needsRefund": "Yon lòt moun te fin ofri kado sa a pandan w t ap peye. Nou pral ranbouse w; ou pa bezwen fè anyen."
+    "needsRefund": "Nou resevwa peman ou, men kado sa a pa disponib ankò. Ou bezwen jwenn yon ranbousman. Kontakte sèvis asistans lan ak nimewo kòmann ou.",
+    "paymentPendingTitle": "Peman an poko konfime",
+    "paymentPendingMessage": "Kado ou a poko konfime. Pa peye ankò pandan n ap verifye peman ou a.",
+    "contactSupport": "Kontakte sèvis asistans"
   },
   "orders": {
     "subtitle": "Kado moun achte pou ou",

@@ -37,8 +37,8 @@
  *      Thread A: INCREMENT fulfilledQty BY 1  → 1
  *      Thread B: INCREMENT fulfilledQty BY 1  → 2  ✓
  *
- * 4. FIRE-AND-FORGET EMAILS — Email failures are logged but never throw.
- *    A failed email shouldn't reverse a successful payment.
+ * 4. DURABLE EMAILS — Queue emails in the fulfillment transaction. Provider
+ *    delivery happens separately; retries must never undo a paid order.
  * =============================================================================
  */
 
@@ -48,6 +48,7 @@ import { enqueueEmailWith, scheduleDrain } from "./email/outbox";
 import { emailDedupeKey, type EmailLocale } from "./contracts/email";
 import { log } from "./log";
 import { money, type Currency } from "./money";
+import { reservationWhere } from "./payments/reservations";
 import {
   verificationMismatch,
   type ClaimAndFulfill,
@@ -69,7 +70,7 @@ export const CLAIMABLE_STATUSES: OrderStatus[] = ["PENDING", "EXPIRED", "PAYMENT
  * Returns the fulfilled order, or null if the order was already fulfilled
  * (idempotency guard).
  */
-export async function fulfillOrder(orderId: string) {
+export async function fulfillOrder(orderId: string, settlement?: Prisma.PaymentUpdateInput, audit?: Prisma.AuditLogUncheckedCreateInput) {
   // ── Step 1: Load the order with all related data ──
   const order = await db.order.findUnique({
     where: { id: orderId },
@@ -117,9 +118,15 @@ export async function fulfillOrder(orderId: string) {
           WHERE id IN (${Prisma.join(itemIds)}) ORDER BY id FOR UPDATE`
       : [];
     const byId = new Map(locked.map((r) => [r.id, r]));
+    const held = itemIds.length ? await tx.orderItem.groupBy({
+      by: ["registryItemId"],
+      where: { registryItemId: { in: itemIds }, orderId: { not: orderId }, order: reservationWhere(new Date()) },
+      _sum: { quantity: true },
+    }) : [];
+    const reserved = new Map(held.map((h) => [h.registryItemId, h._sum.quantity ?? 0]));
     const oversold = order.items.some((oi) => {
       const r = byId.get(oi.registryItemId);
-      return !r || r.fulfilledQty + oi.quantity > r.quantity;
+      return !r || r.fulfilledQty + oi.quantity + (reserved.get(oi.registryItemId) ?? 0) > r.quantity;
     });
 
     // Claim the order with a conditional write: only a claimable status
@@ -143,6 +150,13 @@ export async function fulfillOrder(orderId: string) {
       data: { status: target },
     });
     if (count === 0) return null;
+
+    // Settlement, fulfillment and outbox must roll back together. A committed
+    // COMPLETED payment must never be stranded by a later transaction failure.
+    if (settlement) {
+      await tx.payment.update({ where: { orderId }, data: settlement });
+    }
+    if (audit) await tx.auditLog.create({ data: audit });
 
     if (oversold) {
       await tx.auditLog.create({
@@ -289,25 +303,19 @@ export const claimAndFulfill: ClaimAndFulfill = async (v: VerifiedPayment): Prom
     return "rejected";
   }
 
-  if (payment.status !== "COMPLETED") {
-    try {
-      await db.payment.update({
-        where: { orderId: v.orderId },
-        data: {
-          status: "COMPLETED",
-          providerTxId: v.providerTxId,
-          providerEventId: v.providerEventId ?? null,
-          paidAt: new Date(),
-          providerResponse: v.rawSummary as Prisma.InputJsonValue,
-        },
-      });
-    } catch (err) {
-      // Same tx / event already claimed (by this order on a retry, or another order).
-      if (isUniqueViolation(err)) return "duplicate";
-      throw err;
-    }
+  try {
+    return outcomeOf(await fulfillOrder(v.orderId, payment.status !== "COMPLETED" ? {
+      status: "COMPLETED",
+      providerTxId: v.providerTxId,
+      providerEventId: v.providerEventId ?? null,
+      paidAt: new Date(),
+      providerResponse: v.rawSummary as Prisma.InputJsonValue,
+    } : undefined));
+  } catch (err) {
+    // The entire fulfillment transaction rolled back on a reused transaction.
+    if (isUniqueViolation(err)) return "duplicate";
+    throw err;
   }
-  return outcomeOf(await fulfillOrder(v.orderId));
 };
 
 function outcomeOf(fulfilled: Awaited<ReturnType<typeof fulfillOrder>>): ClaimOutcome {
@@ -319,63 +327,25 @@ function outcomeOf(fulfilled: Awaited<ReturnType<typeof fulfillOrder>>): ClaimOu
 export const confirmManualPayment: ConfirmManualPayment = async ({ orderId, reference, adminId }) => {
   const ref = reference.trim();
   if (!/^[A-Za-z0-9-]{3,64}$/.test(ref)) return "rejected";
-  const { count } = await db.payment.updateMany({
-    // FAILED too: the expire job fails the payment of an expired Natcash order,
-    // but the buyer's transfer may still arrive after that and must be confirmable.
-    where: { orderId, provider: "NATCASH", status: { in: ["PENDING", "PROCESSING", "FAILED"] } },
-    data: {
+  const payment = await db.payment.findUnique({ where: { orderId }, select: { provider: true, status: true } });
+  if (!payment || payment.provider !== "NATCASH") return "rejected";
+  if (!["PENDING", "PROCESSING", "FAILED"].includes(payment.status)) return "duplicate";
+  try {
+    return outcomeOf(await fulfillOrder(orderId, {
       status: "COMPLETED",
       providerTxId: ref,
       manualReference: ref,
       manualConfirmedById: adminId,
       manualConfirmedAt: new Date(),
       paidAt: new Date(),
-    },
-  }).catch((err: unknown) => {
-    if (isUniqueViolation(err)) return { count: -1 };
+    }, {
+      actorId: adminId, action: "payment.manual_confirm", targetType: "order", targetId: orderId, meta: { reference: ref },
+    }));
+  } catch (err) {
+    if (isUniqueViolation(err)) return "rejected";
     throw err;
-  });
-  if (count === -1) return "rejected"; // reference already used for another order
-  if (count === 0) return "duplicate";
-  await db.auditLog.create({
-    data: { actorId: adminId, action: "payment.manual_confirm", targetType: "order", targetId: orderId, meta: { reference: ref } },
-  });
-  return outcomeOf(await fulfillOrder(orderId));
+  }
 };
-
-/**
- * Can this order still be fulfilled right now? An unpaid, unexpired order
- * holds its own reservation, so it always fits. An expired one lost it: it
- * fits only if what's left, minus other checkouts in progress, covers it.
- * Used before capturing a late PayPal approval, so we don't take money for
- * gifts someone else already gave. (Stripe and MonCash charge before we hear
- * back; fulfillOrder turns their late payments into NEEDS_REFUND instead.)
- */
-export async function orderStillFits(orderId: string, now = new Date()): Promise<boolean> {
-  const order = await db.order.findUnique({
-    where: { id: orderId },
-    select: {
-      status: true,
-      expiresAt: true,
-      items: { select: { registryItemId: true, quantity: true, registryItem: { select: { quantity: true, fulfilledQty: true } } } },
-    },
-  });
-  if (!order || !CLAIMABLE_STATUSES.includes(order.status)) return false;
-  if (order.status === "PENDING" && order.expiresAt && order.expiresAt > now) return true;
-  const held = await db.orderItem.groupBy({
-    by: ["registryItemId"],
-    where: {
-      registryItemId: { in: order.items.map((i) => i.registryItemId) },
-      orderId: { not: orderId },
-      order: { status: "PENDING", expiresAt: { gt: now } },
-    },
-    _sum: { quantity: true },
-  });
-  const reserved = new Map(held.map((h) => [h.registryItemId, h._sum.quantity ?? 0]));
-  return order.items.every(
-    (i) => i.registryItem.quantity - i.registryItem.fulfilledQty - (reserved.get(i.registryItemId) ?? 0) >= i.quantity
-  );
-}
 
 /** Order lookup for redirect pages: publicToken + slug of the order's registry. */
 export async function getOrderRedirectTarget(orderId: string) {

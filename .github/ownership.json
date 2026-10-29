@@ -26,6 +26,7 @@
       ".gitignore"
     ],
     "ws1": [
+      "scripts/payment-recovery.integration.ts",
       "src/actions/checkout.ts",
       "src/lib/payments/**",
       "src/app/api/webhooks/**",

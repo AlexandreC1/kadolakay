@@ -52,6 +52,7 @@ export default async function CheckoutSuccessPage({ params, searchParams }: Prop
       ? found
       : null;
   const awaitingNatcash = order?.payment?.provider === "NATCASH" && order.payment.status !== "COMPLETED";
+  const awaitingPayment = order?.status === "PENDING";
 
   const registryTypeEmoji: Record<string, string> = {
     BABY_SHOWER: "👶",
@@ -66,13 +67,18 @@ export default async function CheckoutSuccessPage({ params, searchParams }: Prop
       </div>
 
       <h1 className="text-3xl font-bold text-gray-900 mb-2">
-        {t("checkout.thankYou")}
+        {awaitingPayment ? t("checkout.paymentPendingTitle") : t("checkout.thankYou")}
       </h1>
+
+      {awaitingPayment && (
+        <p role="status" className="mt-4 text-gray-700">{t("checkout.paymentPendingMessage")}</p>
+      )}
 
       {order?.status === "NEEDS_REFUND" && (
         <Card className="mt-8 text-left border-amber-200">
           <CardContent className="p-6 text-sm text-gray-700">
             <p>{t("checkout.needsRefund")}</p>
+            <Link href="/contact" className="mt-3 inline-block underline">{t("checkout.contactSupport")}</Link>
           </CardContent>
         </Card>
       )}
