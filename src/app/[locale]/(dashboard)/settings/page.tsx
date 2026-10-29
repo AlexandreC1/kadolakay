@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { getTranslations } from "next-intl/server";
 import { SettingsForm } from "./SettingsForm";
+import { SessionSecurityForm } from "./SessionSecurityForm";
 
 export default async function SettingsPage() {
   const session = await auth();
@@ -34,6 +35,7 @@ export default async function SettingsPage() {
         {t("nav.settings")}
       </h1>
       <SettingsForm user={user} />
+      <SessionSecurityForm />
     </div>
   );
 }

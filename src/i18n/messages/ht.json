@@ -283,7 +283,12 @@
     "emailHint": "Imèl ou pa ka chanje isit la.",
     "phone": "Telefòn",
     "language": "Lang ou prefere",
-    "saved": "Chanjman yo anrejistre!"
+    "saved": "Chanjman yo anrejistre!",
+    "sessionSecurity": "Sekirite sesyon yo",
+    "signOutEverywhereDescription": "Dekonekte tout navigatè yo, ansanm ak sa w ap itilize kounye a. W ap bezwen konekte ankò sou chak aparèy.",
+    "signOutEverywhere": "Dekonekte tout kote",
+    "signingOut": "N ap dekonekte…",
+    "signOutEverywhereFailed": "Nou pa t ka dekonekte tout aparèy yo. Tanpri eseye ankò."
   },
   "footer": {
     "tagline": "Kado pou tout okazyon, lakay ou.",

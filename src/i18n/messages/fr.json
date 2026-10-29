@@ -283,7 +283,12 @@
     "emailHint": "L'email ne peut pas être modifié ici.",
     "phone": "Téléphone",
     "language": "Langue préférée",
-    "saved": "Modifications enregistrées !"
+    "saved": "Modifications enregistrées !",
+    "sessionSecurity": "Sécurité des sessions",
+    "signOutEverywhereDescription": "Déconnectez tous les navigateurs, y compris celui-ci. Vous devrez vous reconnecter sur chaque appareil.",
+    "signOutEverywhere": "Se déconnecter partout",
+    "signingOut": "Déconnexion…",
+    "signOutEverywhereFailed": "La déconnexion de tous les appareils a échoué. Veuillez réessayer."
   },
   "footer": {
     "tagline": "Des cadeaux pour toute occasion, chez vous.",

@@ -1,5 +1,7 @@
 # Bayou access control and observability
 
+Latest session work is documented in the October29 session-revocation update at the end. Account-wide revocation is implemented; per-device management, administrator MFA and hosted verification remain open.
+
 Updated 29 October 2026. This describes the implementation on codex/ship-ready-mvp, not a production security certification. The application-level security policy is enforced in server code; PostgreSQL row-level security is not configured.
 
 ## Roles and record ownership
@@ -83,3 +85,10 @@ Suggested alert rules must be tuned against the actual schedule and traffic: une
 - Continued ownership tests on every new feature, especially shared baskets and future company staff roles.
 
 New checkout remains disabled. No external monitoring account, paid service, alert destination or live payment was configured by this change.
+## October 29 session-revocation update
+
+Settings now includes an HT/FR/EN sign-out-everywhere control. The server action accepts no client identity fields, authenticates and rate-limits the actor, and uses a fresh user-row lock inside the revocation transaction. The database session version increments atomically with removal of that user's legacy session rows and an append-only SessionRevocationEvent. OAuth account links, registries and other users' sessions remain intact. Logging emits only the bounded session_revocation outcome/count, never cookie or identity payloads.
+
+Auth.js encrypted JWTs still expire after 24 hours. Every session resolution reads the database version and role; a copied pre-revocation cookie and a legacy cookie without a version are rejected. A genuine new sign-in uses the current version. There is no new custom access/refresh-token scheme and no browser localStorage token. This feature revokes all devices, not one chosen device. Administrator MFA, per-device management and provider-token retention remain separate work.
+
+Apply the additive session migration before deploying. Existing cookies intentionally require reauthentication once; the owner's account and role are not changed. Production HTTP checks use an isolated server, ephemeral secret and fictional account to verify actual cookie handling, streamed denial redirects, role downgrade, output escaping and post-revocation rejection. This does not replace hosted Google, HTTPS or Redis verification.
