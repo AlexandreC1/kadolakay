@@ -1,4 +1,8 @@
-# KadoLakay engineering handoff
+# Bayou engineering handoff
+
+## Current brand: Bayou, October 29
+
+Owner renamed the application to Bayou. Header/wordmark and B monogram, favicon, HT/FR/EN copy, login/register, footer, page/OpenGraph metadata, email display labels/content, QR cards/filenames and new payment branding follow the new name. Approved colors/fonts remain. Existing domains, repository, Google Cloud/OAuth project, credentials, database, theme cookie, limiter and checkout retry namespaces stay compatible. Google consent branding is still an external configuration task; no domain purchase/availability or external-account rename claimed. Old order IDs/history stay intact; new orders use BY-, legacy Stripe retries retain their original provider description. See the final rename checkpoint below.
 
 ## Current continuation point: inventory/retry gate, October 29
 
@@ -334,3 +338,8 @@ Next: basket builder in BOTH confirmed modes (creator purchase or shared gifts),
 
 ## Remote verification for inventory/retry checkpoint
 Code checkpoint 4d0f9a82c3aee68190fc6cf1dedb6b85c9fe09d2 pushed to origin/codex/ship-ready-mvp and exact remote SHA matched. Working tree clean and ahead/behind0/0 immediately afterward. Dependency checkpoint00ac191 is included in history. Main unchanged; no deployment. Final npm test240 and npm run test:db23 pass; tsc/build pass; lint0errors12existingwarnings; all-dependency audit0; source secret scan passed292 candidate files. Browser after final restart confirms existing authenticated account and disabled payment state on the public checkout page. Dev server remains running on localhost:3000 (exec28170). Handoff/status/runbook preserved for continuation; surrounding outputs contain copies, not credentials/database. Next is the two-mode basket builder; merchant/provider end-to-end UI, fulfillment/refunds and hosted recovery/security gates still open.
+
+## Bayou rename checkpoint, October 29
+Applied owner-requested application name Bayou across current product surfaces, all three translation files, metadata/OpenGraph, QR cards/download names, email copy/display labels and payment display branding. Header/favicon now use a native SVG B monogram, preserving mint colors and fonts. Package display name is bayou. Original repository/domain/cloud project, OAuth identifiers, secrets, session/theme preferences and checkout capability/limiter namespaces remain unchanged for compatibility. Sender helper renames only the display label before the email address; verified address retained and regression-tested. Existing financial records unchanged; new order references use BY-, legacy KL- descriptions preserved on provider retries. No database migration/reset, account provisioning, domain purchase, Google consent-screen rename or payment activation.
+
+Verification: full240 tests and23 PostgreSQL tests passed before final sender-helper refinement; two new sender-address regression tests plus existing QR/auth configuration tests passed (23 targeted total). TypeScript, production build and targeted lint passed after the helper. Final full242-test rerun passed before push. Fresh browser confirmed Bayou metadata/header/B monogram, French login and footer with existing authenticated account. Screenshot outputs/Bayou-login.jpg, outside Git. App dev remains at localhost:3000. The first browser read during hot reload mixed stale server branding with new client copy; fresh server build/restart resolved it and was verified. Outstanding external task: Google consent label still KadoLakay until updated in Google Cloud. Domain availability and trademark clearance not assessed or claimed.

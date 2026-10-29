@@ -8,6 +8,6 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 <!-- END:nextjs-agent-rules -->
 
-## KadoLakay continuation
+## Bayou continuation
 
 Read CLAUDE.md, docs/IMPLEMENTATION-PLAN.md, docs/DECISIONS.md and docs/HANDOFF.md before continuing. Preserve the modified working tree and never put secrets into artifacts. Update the handoff at each completed gate.

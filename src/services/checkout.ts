@@ -83,7 +83,7 @@ export async function beginCheckout(data: CheckoutInput, buyerId?: string) {
     return tx.order.create({
       data: {
         checkoutRequestId: data.checkoutRequestId, checkoutRequestHash: requestHash, checkoutLocale: data.locale,
-        orderNumber: `KL-${randomUUID()}`,
+        orderNumber: `BY-${randomUUID()}`,
         buyerId: buyerId ?? null,
         buyerName: data.buyerName, buyerEmail: data.buyerEmail,
         buyerPhone: data.buyerPhone, giftMessage: data.giftMessage, isAnonymous: data.isAnonymous,
@@ -119,7 +119,8 @@ async function continueCheckout(order: { id: string; orderNumber: string; totalU
   try {
     const payment = await stripeProvider.createPayment({
       orderId: order.id, amount: Number(order.totalUSD), currency: "USD",
-      description: `KadoLakay ${order.orderNumber}`,
+      // Keep the original provider parameters for pre-rename order retries.
+      description: `${order.orderNumber.startsWith("BY-") ? "Bayou" : "KadoLakay"} ${order.orderNumber}`,
       returnUrl: `${baseUrl}/${locale}/r/${encodeURIComponent(registrySlug)}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
       cancelUrl: `${baseUrl}/${locale}/r/${encodeURIComponent(registrySlug)}/checkout?cancelled=true`,
       expiresAt: Math.floor(order.createdAt.getTime() / 1000) + 35 * 60,

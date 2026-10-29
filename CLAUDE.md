@@ -1,6 +1,6 @@
 @AGENTS.md
 
-# KadoLakay continuation instructions
+# Bayou continuation instructions
 
 Read `docs/IMPLEMENTATION-PLAN.md`, `docs/HANDOFF.md`, and `docs/DECISIONS.md` before changing code. They preserve the approved scope, current evidence, and unresolved launch decisions. Update the handoff and decision log at each completed gate.
 

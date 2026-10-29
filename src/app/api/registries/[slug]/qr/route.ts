@@ -15,6 +15,6 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
   try {
     const image = await createPublicRegistryQr(slug, query.data.locale, base);
     if (!image) return Response.json({ error: "REGISTRY_UNAVAILABLE" }, { status: 404, headers });
-    return new Response(new Uint8Array(image), { headers: { ...headers, "Content-Type": "image/png", "Content-Disposition": `inline; filename="kadolakay-${slug}-registry-card.png"` } });
+    return new Response(new Uint8Array(image), { headers: { ...headers, "Content-Type": "image/png", "Content-Disposition": `inline; filename="bayou-${slug}-registry-card.png"` } });
   } catch { return Response.json({ error: "QR_UNAVAILABLE" }, { status: 503, headers }); }
 }

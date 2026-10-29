@@ -56,7 +56,7 @@ export const paypalProvider: PaymentProviderInterface = {
         application_context: {
           return_url: params.returnUrl,
           cancel_url: params.cancelUrl,
-          brand_name: "KadoLakay",
+          brand_name: "Bayou",
         },
       }),
     });

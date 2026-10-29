@@ -39,7 +39,7 @@
 .login-spinner { animation: login-spin 1s linear infinite; }
 @media(max-width:440px) { .login-shell { padding-inline: 16px; gap: 12px; } .login-card { padding: 26px 23px; border-radius: 25px; } }
 @media(prefers-reduced-motion:reduce) { .login-email-submit, .login-provider { transition: none; } .login-email-submit:hover:not(:disabled) { transform: none; } .login-spinner { animation: none; } }
-/* Spectrum UI login-card adaptation, Apache-2.0; modified for KadoLakay. */
+/* Spectrum UI login-card adaptation, Apache-2.0; modified for Bayou. */
 .login-heading { text-align: center; margin-bottom: 28px; }
 .login-card { max-width: 448px; padding: 32px; border-radius: 24px; }
 .login-heading h1 { font-weight: 500; font-size: 30px; letter-spacing: -.035em; }

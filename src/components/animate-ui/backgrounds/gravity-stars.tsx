@@ -3,7 +3,7 @@
 import * as React from 'react';
 // Adapted from Animate UI, copyright (c) 2025 Elliot Sutton.
 // MIT + Commons Clause: see third-party/animate-ui/LICENSE.md and NOTICE.
-// Modified for KadoLakay: native lifecycle hooks, bounded fixed-step rendering,
+// Modified for Bayou: native lifecycle hooks, bounded fixed-step rendering,
 // viewport pointer handling, paused control, DPR cap and no Motion dependency.
 import { cn } from '@/lib/utils';
 import { gravityCanvasScale, gravityStarCount } from '@/lib/gravity-budget';

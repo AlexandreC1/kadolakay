@@ -24,13 +24,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   return {
     title: registry.title,
-    description: registry.description || `${registry.title} | KadoLakay`,
+    description: registry.description || `${registry.title} | Bayou`,
     openGraph: {
       title: registry.title,
       description: registry.description || undefined,
       images: [`/api/og/${registry.slug}`],
       type: "website",
-      siteName: "KadoLakay",
+      siteName: "Bayou",
     },
     twitter: {
       card: "summary_large_image",

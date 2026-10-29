@@ -1,4 +1,5 @@
 import NextAuth from "next-auth";
+import { brandEmailSender } from "./brand";
 import Google from "next-auth/providers/google";
 import Resend from "next-auth/providers/resend";
 import MicrosoftEntraID from "next-auth/providers/microsoft-entra-id";
@@ -36,7 +37,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     })] : []),
     ...(availability.email ? [Resend({
       apiKey: process.env.AUTH_RESEND_KEY,
-      from: process.env.AUTH_RESEND_FROM,
+      from: brandEmailSender(process.env.AUTH_RESEND_FROM),
       maxAge: 15 * 60,
       normalizeIdentifier: normalizeEmailIdentifier,
     })] : []),

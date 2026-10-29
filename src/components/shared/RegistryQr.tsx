@@ -33,7 +33,7 @@ function RegistryQrContent({ slug, url, title, locale }: { slug: string; url: st
       {/* A same-origin generated PNG is kept out of the shared image optimizer/cache. */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src={image} alt={t("qrAlt", { title })} width={280} className="mx-auto my-4 h-auto max-w-full bg-[var(--brand-surface)]" />
-      <a href={image} download={`kadolakay-${slug}-registry-card.png`} className="flex min-h-12 items-center justify-center rounded-full bg-[var(--brand-action)] px-5 py-3 text-sm font-semibold text-[var(--brand-on-action)]">{t("qrDownload")}</a>
+      <a href={image} download={`bayou-${slug}-registry-card.png`} className="flex min-h-12 items-center justify-center rounded-full bg-[var(--brand-action)] px-5 py-3 text-sm font-semibold text-[var(--brand-on-action)]">{t("qrDownload")}</a>
     </> : <p role="status" className="py-8 text-center text-sm">{t("qrLoading")}</p>}
     <p className="mt-3 text-xs leading-relaxed text-[var(--brand-muted)]">{t("qrPrivacy")}</p>
     {local && <p className="mt-3 text-sm font-medium" role="note">{t("qrLocal")}</p>}

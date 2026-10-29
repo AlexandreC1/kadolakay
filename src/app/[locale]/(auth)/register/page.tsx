@@ -9,7 +9,7 @@ export default async function RegisterPage() {
   return (
     <div className="mx-auto grid min-h-[75vh] max-w-6xl items-center gap-12 px-6 py-16 lg:grid-cols-2 lg:gap-24">
       <div className="space-y-6">
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--brand-ocean)]">KadoLakay</p>
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--brand-ocean)]">Bayou</p>
         <h1 className="max-w-lg text-4xl font-semibold leading-tight tracking-tight sm:text-5xl">{t("signupTitle")}</h1>
         <p className="max-w-md text-lg leading-relaxed text-[var(--brand-muted)]">{t("signupSubtitle")}</p>
         <Link href="/login" className="inline-block text-sm font-semibold text-[var(--brand-ocean)] underline underline-offset-4">{t("hasAccount")}</Link>

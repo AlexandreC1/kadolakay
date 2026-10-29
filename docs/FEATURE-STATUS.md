@@ -1,4 +1,8 @@
-# KadoLakay feature status
+# Bayou feature status
+
+## October 29: renamed to Bayou
+
+Owner-selected name Bayou now appears throughout the app, translations, metadata, share cards and outgoing content, with a B monogram/favicon. Technical identifiers and existing URLs/integrations remain compatible; Google consent branding is an external follow-up. No palette, database or live payment activation change.
 
 ## October 29: shared stock and checkout retry foundation implemented
 

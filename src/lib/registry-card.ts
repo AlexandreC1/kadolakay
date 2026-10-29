@@ -20,7 +20,7 @@ export async function renderRegistryShareCard(registry: { title: string; type: s
   const title = registry.title.replace(/\s+/gu, " ").trim();
   const local = ["localhost", "127.0.0.1", "[::1]"].includes(new URL(url).hostname);
   const [brand, kind, heading, date, instruction, linkLabel, address, notice] = await Promise.all([
-    text("KadoLakay", 38, "#086858", true),
+    text("Bayou", 38, "#086858", true),
     text(c[registry.type as "WEDDING" | "BABY_SHOWER" | "BIRTHDAY"] || (isOccasion(registry.type) ? `${occasionLabel(registry.type, locale)} · ${c.generic}` : c.generic), 25, "#516E64"),
     text(title, 62, "#102E29", true),
     registry.eventDate ? text(formatEventDate(registry.eventDate, locale), 30, "#516E64") : null,
