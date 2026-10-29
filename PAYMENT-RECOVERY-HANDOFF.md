@@ -2,6 +2,8 @@
 
 Base: GitHub main `714697a`. Branch: `codex/fix-payment-recovery`.
 
+Build fix: `npm run build` explicitly runs `prisma generate` before `next build`. Vercel restored a cached client from the previous schema and skipped dependency install hooks, causing missing-field TypeScript errors. Generation is required on every build, including cached installs. It does not apply database migrations.
+
 This fixes the five findings in the Claude changes review. It does not merge the separate Bayou branch into main. Bayou's local UI, owner account and Prisma 7 database are untouched. Do not apply this Prisma 6 migration history to that database.
 
 ## Behavior
