@@ -1,5 +1,15 @@
 # KadoLakay engineering handoff
 
+## GitHub checkpoint verified, October 29
+
+All current project source changes were committed in e9fdb70599e54e24da04688b0cc21cca48a341a8 and pushed to https://github.com/AlexandreC1/kadolakay/tree/codex/ship-ready-mvp . Exact remote refs/heads/codex/ship-ready-mvp hash matched local HEAD; ahead/behind was 0/0 and working tree clean immediately after that checkpoint. The branch tracks origin/codex/ship-ready-mvp. Main was not merged or changed. This follow-up documentation records the completed verification and is pushed separately on the same branch.
+
+The checkpoint contains 250 changed/added source, configuration, migration, test, license and documentation files. Staged-content scan covered all284 tracked candidates and found no local environment-secret values or credential signatures. .env/.env.local, node_modules, .next, local PostgreSQL and surrounding outputs/screenshots are intentionally not part of the repository. Existing third-party license text retained. No deployment/publication of the application occurred.
+
+Final verification for the draft-creation fix: 230 unit tests pass with --maxWorkers=2 --minWorkers=1; 14 local PostgreSQL integration tests pass; production build and TypeScript pass; full lint has zero errors and12 existing warnings. Earlier default-worker run had a transient IPC worker exit, so do not call that particular run a pass. Bounded rerun passed in full.
+
+Next unfinished feature remains the basket builder with BOTH creator-purchase and shared-gift modes. Onboarding task checklist, hosted provider configuration, live payment/fulfillment/stock/refund operations, dependency advisories and hosted release gates remain open. Pushed source is not a ship-ready or deployed claim. Continue on this branch and keep future changes synchronized after checks.
+
 ## Latest completed fix: registry draft creation, October 29
 
 Owner supplied a failed creation screen with otherwise valid visible fields. Sanitized server diagnostics confirmed TypeError Invalid URL in validators/shared.ts called by createRegistry, input empty string. Zod ran webUrl's refinement on an empty optional URL before the union could accept it; new URL("") threw. The shared URL refinement now catches invalid parsing and returns false; optional blank/whitespace URLs normalize through the empty branch. Unsafe protocols, embedded credentials and malformed URLs still fail validation rather than throwing. No user/customer title or message from the screenshot was copied into tests; regression fixtures are fictional.

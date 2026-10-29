@@ -1,5 +1,9 @@
 # KadoLakay feature status
 
+## October 29: source synchronized to GitHub
+
+Code checkpoint e9fdb70599e54e24da04688b0cc21cca48a341a8 pushed and remote-hash verified on codex/ship-ready-mvp. Includes current source, tests, migrations and handoff documentation; secrets and local database excluded. Main unchanged, no application deployment. Final draft-fix checks: 230 unit tests,14 PostgreSQL tests, TypeScript and production build pass; full lint zero errors/12 existing warnings. Basket builder in both confirmed modes remains unfinished.
+
 ## October 29: draft creation fixed
 
 Blank optional Amazon/store link no longer crashes URL validation. Invalid links receive specific field feedback; draft errors distinguish authentication, rate limiting and service failure. Inputs are preserved and error feedback automatically revealed. Browser verified successful private draft creation/editor navigation with empty URL and future date; temporary verification record archived. All 14 local DB integration tests pass, plus unit/action regressions, TypeScript, lint and production build. No migration or payment change. Source synchronization is being verified separately; current release blockers and basket work remain open.

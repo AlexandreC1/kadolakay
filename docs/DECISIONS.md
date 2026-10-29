@@ -1,5 +1,9 @@
 # KadoLakay decision log
 
+### October 29: GitHub source checkpoint verified
+
+Owner asked to continue and ensure everything was pushed. Created and pushed code checkpoint e9fdb70599e54e24da04688b0cc21cca48a341a8 on codex/ship-ready-mvp, verified exact remote hash plus0/0 divergence and clean working tree. Main unchanged; no deployment. Ignored environment secrets, runtime dependencies and local database remain local. A documentation follow-up records this verification. Existing basket/release blockers remain open and source synchronization must not imply product completion.
+
 ### October 29: optional-link crash fixed and source checkpoint requested
 
 Blank Amazon field caused new URL("") to throw inside a Zod refinement before optional-URL fallback. URL parsing now never throws on malformed/blank input; optional whitespace/empty values are accepted and unsafe URLs remain rejected. Draft creation returns bounded field/auth/rate/service errors to the new form; legacy redirect behavior is preserved. Browser persistence and private draft rules verified, temporary test draft archived. Preserve filled values and reveal errors automatically. No schema change.
