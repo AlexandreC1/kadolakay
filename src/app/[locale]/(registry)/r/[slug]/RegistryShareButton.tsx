@@ -8,9 +8,10 @@ import { ShareModal } from "@/components/shared/ShareModal";
 interface RegistryShareButtonProps {
   url: string;
   title: string;
+  slug: string;
 }
 
-export function RegistryShareButton({ url, title }: RegistryShareButtonProps) {
+export function RegistryShareButton({ url, title, slug }: RegistryShareButtonProps) {
   const [showShare, setShowShare] = useState(false);
   const t = useTranslations("registry");
 
@@ -38,6 +39,7 @@ export function RegistryShareButton({ url, title }: RegistryShareButtonProps) {
         onClose={() => setShowShare(false)}
         url={url}
         title={title}
+        registrySlug={slug}
       />
     </>
   );

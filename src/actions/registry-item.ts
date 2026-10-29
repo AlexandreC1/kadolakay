@@ -1,156 +1,76 @@
 "use server";
-
-import { auth } from "@/lib/auth";
+import { parseEntityId } from "@/lib/validators/entity-id";
 import { db } from "@/lib/db";
-import { addItemSchema } from "@/lib/validators/registry";
+import { Prisma } from "@prisma/client";
+import { requireActor } from "@/services/authorization";
+import { addItemSchema, updateItemSchema } from "@/lib/validators/registry";
+import { parseFormFields } from "@/lib/validators/shared";
 import { revalidatePath } from "next/cache";
-
+import { addCatalogGift, addCatalogGifts, CatalogSelectionError, type CatalogSelectionErrorCode } from "@/services/registry-catalog";
+import type { CatalogSelection } from "@/lib/validators/registry-catalog";
+async function ownedRegistry(userId: string, id: string) {
+  id = parseEntityId(id);
+  userId = parseEntityId(userId);
+  const registry = await db.registry.findFirst({ where: { id, userId, status: { not: "ARCHIVED" } }, select: { id: true } });
+  if (!registry) throw new Error("Registry not found");
+}
 export async function addItemToRegistry(registryId: string, formData: FormData) {
-  const session = await auth();
-  if (!session?.user?.id) {
-    throw new Error("Unauthorized");
-  }
-
-  const registry = await db.registry.findUnique({
-    where: { id: registryId },
-  });
-
-  if (!registry || registry.userId !== session.user.id) {
-    throw new Error("Not found or unauthorized");
-  }
-
-  const raw = {
-    title: formData.get("title") as string,
-    description: (formData.get("description") as string) || undefined,
-    priceHTG: formData.get("priceHTG") ? Number(formData.get("priceHTG")) : undefined,
-    priceUSD: formData.get("priceUSD") ? Number(formData.get("priceUSD")) : undefined,
-    quantity: Number(formData.get("quantity")) || 1,
-    source: (formData.get("source") as string) || "CUSTOM",
-    externalUrl: (formData.get("externalUrl") as string) || undefined,
-    businessId: (formData.get("businessId") as string) || undefined,
-    productId: (formData.get("productId") as string) || undefined,
-    imageUrl: (formData.get("imageUrl") as string) || undefined,
-  };
-
-  const data = addItemSchema.parse(raw);
-
-  await db.registryItem.create({
-    data: {
-      ...data,
-      registryId,
-    },
-  });
-
-  revalidatePath(`/r/${registry.slug}`);
+  registryId = parseEntityId(registryId);
+  const actor = await requireActor("item:add");
+  await ownedRegistry(actor.id, registryId);
+  const raw = parseFormFields(formData, ["title", "description", "priceHTG", "priceUSD", "quantity", "source", "externalUrl", "imageUrl"]);
+  const parsed = addItemSchema.safeParse({ ...raw, quantity: raw.quantity ? Number(raw.quantity) : 1, source: raw.source || "CUSTOM", priceHTG: raw.priceHTG ? Number(raw.priceHTG) : undefined, priceUSD: raw.priceUSD ? Number(raw.priceUSD) : undefined });
+  if (!parsed.success || parsed.data.source === "LOCAL_BUSINESS") throw new Error("Check the gift details and try again");
+  if (["EXTERNAL", "AMAZON"].includes(parsed.data.source) && !parsed.data.externalUrl) throw new Error("Add the store link for this gift");
+  await db.registryItem.create({ data: { ...parsed.data, registryId } });
+  revalidatePath("/", "layout");
 }
-
+async function editableItem(tx: Prisma.TransactionClient, actorId: string, id: string) {
+  id = parseEntityId(id);
+  actorId = parseEntityId(actorId);
+  // Lock the same row used by checkout reservations before inspecting paid stock.
+  await tx.$queryRaw`SELECT id FROM registry_items WHERE id = ${id} FOR UPDATE`;
+  const item = await tx.registryItem.findUnique({ where: { id }, include: { registry: { select: { userId: true } }, _count: { select: { orderItems: true } } } });
+  if (!item || item.registry.userId !== actorId) throw new Error("Gift not found");
+  if (item.reservedQty > 0 || item.fulfilledQty > 0 || item._count.orderItems > 0) throw new Error("Gifts with checkout or payment history cannot be changed");
+  return item;
+}
 export async function removeRegistryItem(itemId: string) {
-  const session = await auth();
-  if (!session?.user?.id) {
-    throw new Error("Unauthorized");
-  }
-
-  const item = await db.registryItem.findUnique({
-    where: { id: itemId },
-    include: { registry: { select: { userId: true, slug: true } } },
-  });
-
-  if (!item || item.registry.userId !== session.user.id) {
-    throw new Error("Not found or unauthorized");
-  }
-
-  await db.registryItem.delete({
-    where: { id: itemId },
-  });
-
-  revalidatePath(`/r/${item.registry.slug}`);
+  itemId = parseEntityId(itemId);
+  const actor = await requireActor("item:remove");
+  await db.$transaction(async tx => { await editableItem(tx, actor.id, itemId); await tx.registryItem.delete({ where: { id: itemId } }); });
+  revalidatePath("/", "layout");
 }
-
 export async function updateRegistryItem(itemId: string, formData: FormData) {
-  const session = await auth();
-  if (!session?.user?.id) {
-    throw new Error("Unauthorized");
-  }
-
-  const item = await db.registryItem.findUnique({
-    where: { id: itemId },
-    include: { registry: { select: { userId: true, slug: true } } },
-  });
-
-  if (!item || item.registry.userId !== session.user.id) {
-    throw new Error("Not found or unauthorized");
-  }
-
-  // SECURITY: Whitelist allowed fields to prevent mass assignment.
-  // Without this, a malicious user could send `registryId=someone-elses-id`
-  // or `fulfilledQty=999` in the FormData and modify protected fields.
-  const ALLOWED_FIELDS = ["title", "description", "priceHTG", "priceUSD", "quantity", "externalUrl", "imageUrl"];
-  const updates: Record<string, unknown> = {};
-  for (const [key, value] of formData.entries()) {
-    if (!ALLOWED_FIELDS.includes(key)) continue;
-    if (value !== "") {
-      if (key === "priceHTG" || key === "priceUSD") {
-        updates[key] = Number(value);
-      } else if (key === "quantity") {
-        updates[key] = Number(value);
-      } else {
-        updates[key] = value;
-      }
-    }
-  }
-
-  await db.registryItem.update({
-    where: { id: itemId },
-    data: updates,
-  });
-
-  revalidatePath(`/r/${item.registry.slug}`);
+  itemId = parseEntityId(itemId);
+  const actor = await requireActor("item:update");
+  const raw = parseFormFields(formData, ["title", "description", "priceHTG", "priceUSD", "quantity", "externalUrl", "imageUrl"]);
+  const values: Record<string, unknown> = { ...raw };
+  for (const key of ["priceHTG", "priceUSD", "quantity"]) if (key in raw) values[key] = raw[key] ? Number(raw[key]) : undefined;
+  const parsed = updateItemSchema.safeParse(values);
+  if (!parsed.success) throw new Error("Check the gift details and try again");
+  await db.$transaction(async tx => { await editableItem(tx, actor.id, itemId); await tx.registryItem.update({ where: { id: itemId }, data: parsed.data }); });
+  revalidatePath("/", "layout");
+}
+export async function addBusinessProductToRegistry(registryId: string, productId: string) {
+  registryId = parseEntityId(registryId);
+  productId = parseEntityId(productId);
+  const actor = await requireActor("item:catalog");
+  await addCatalogGift(actor.id, registryId, productId);
+  revalidatePath("/", "layout");
 }
 
-/**
- * Add a product from an approved local business directly into a registry.
- * This bridges the business catalog with user registries — a key feature
- * for supporting Haitian local commerce.
- */
-export async function addBusinessProductToRegistry(
-  registryId: string,
-  productId: string
-) {
-  const session = await auth();
-  if (!session?.user?.id) {
-    throw new Error("Unauthorized");
+export async function addBusinessProductsToRegistry(input: CatalogSelection): Promise<
+  { ok: true; addedCount: number } | { ok: false; code: CatalogSelectionErrorCode }
+> {
+  const actor = await requireActor("item:catalog");
+  try {
+    const result = await addCatalogGifts(actor.id, input);
+    revalidatePath("/", "layout");
+    return { ok: true, ...result };
+  } catch (error) {
+    // Return only bounded, expected domain codes. Auth and unexpected failures propagate.
+    if (error instanceof CatalogSelectionError) return { ok: false, code: error.code };
+    throw error;
   }
-
-  const registry = await db.registry.findUnique({
-    where: { id: registryId },
-  });
-
-  if (!registry || registry.userId !== session.user.id) {
-    throw new Error("Not found or unauthorized");
-  }
-
-  const product = await db.product.findUnique({
-    where: { id: productId },
-    include: { business: { select: { id: true, name: true, status: true } } },
-  });
-
-  if (!product || product.business.status !== "APPROVED") {
-    throw new Error("Product not found or business not approved");
-  }
-
-  await db.registryItem.create({
-    data: {
-      registryId,
-      title: product.name,
-      description: product.description,
-      imageUrl: product.imageUrl,
-      priceHTG: product.priceHTG,
-      priceUSD: product.priceUSD,
-      source: "LOCAL_BUSINESS",
-      businessId: product.business.id,
-      productId: product.id,
-    },
-  });
-
-  revalidatePath(`/r/${registry.slug}`);
 }

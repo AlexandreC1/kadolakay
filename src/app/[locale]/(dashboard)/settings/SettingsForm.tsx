@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useSafeMutation, MutationFeedback } from "@/components/shared/useSafeMutation";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,34 +20,14 @@ interface SettingsFormProps {
 
 export function SettingsForm({ user }: SettingsFormProps) {
   const t = useTranslations();
-  const [pending, setPending] = useState(false);
-  const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
-
+  const { pending, status, run } = useSafeMutation();
   async function handleSubmit(formData: FormData) {
-    setPending(true);
-    setMessage(null);
-    try {
-      await updateProfile(formData);
-      setMessage({ type: "success", text: t("common.success") });
-    } catch {
-      setMessage({ type: "error", text: t("common.error") });
-    }
-    setPending(false);
+    await run(() => updateProfile(formData));
   }
 
   return (
     <form action={handleSubmit} className="space-y-6">
-      {message && (
-        <div
-          className={`rounded-lg p-3 text-sm ${
-            message.type === "success"
-              ? "bg-green-50 text-green-800 border border-green-200"
-              : "bg-red-50 text-red-800 border border-red-200"
-          }`}
-        >
-          {message.text}
-        </div>
-      )}
+      <MutationFeedback status={status} />
 
       <Card>
         <CardHeader>

@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "auth:setup": "node scripts/setup-google-auth.mjs",
+    "build": "prisma generate && next build",
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",
@@ -14,46 +15,54 @@
     "db:push": "prisma db push",
     "db:seed": "npx tsx prisma/seed.ts",
     "db:studio": "prisma studio",
-    "db:setup": "prisma migrate dev && npx tsx prisma/seed.ts"
+    "db:setup": "prisma migrate dev && npx tsx prisma/seed.ts",
+    "test:db": "node scripts/test-db.mjs",
+    "release:env": "node scripts/check-release-env.mjs",
+    "typecheck": "tsc --noEmit"
   },
   "prisma": {
     "seed": "npx tsx prisma/seed.ts"
   },
   "dependencies": {
-    "@auth/prisma-adapter": "^2.11.1",
+    "@auth/prisma-adapter": "^2.11.3",
     "@aws-sdk/client-s3": "^3.1017.0",
     "@aws-sdk/s3-request-presigner": "^3.1017.0",
     "@prisma/client": "^6.19.2",
-    "@sentry/nextjs": "^10.47.0",
+    "@sentry/nextjs": "^11.9.0",
     "@upstash/ratelimit": "^2.0.8",
     "@upstash/redis": "^1.37.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
-    "framer-motion": "^12.38.0",
+    "jsqr": "^1.4.0",
     "lucide-react": "^1.7.0",
-    "next": "16.2.1",
-    "next-auth": "^5.0.0-beta.30",
-    "next-intl": "^4.8.3",
-    "prisma": "^6.19.2",
+    "next": "16.4.3",
+    "next-auth": "5.0.0-beta.32",
+    "next-intl": "^4.14.9",
+    "qrcode": "^1.5.4",
     "react": "19.2.4",
     "react-dom": "19.2.4",
-    "resend": "^6.9.4",
-    "sharp": "^0.34.5",
+    "resend": "^6.34.1",
+    "sharp": "^0.35.5",
     "stripe": "^20.4.1",
     "tailwind-merge": "^3.5.0",
-    "zod": "^4.3.6"
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
+    "@types/qrcode": "^1.5.6",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@vitest/coverage-v8": "^3.2.4",
     "eslint": "^9",
-    "eslint-config-next": "16.2.1",
+    "eslint-config-next": "16.4.3",
+    "prisma": "^6.19.2",
     "tailwindcss": "^4",
     "tsx": "^4.21.0",
     "typescript": "^5",
     "vitest": "^3.2.4"
+  },
+  "engines": {
+    "node": ">=22.12.0 <27"
   }
 }

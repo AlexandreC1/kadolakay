@@ -1,25 +1,28 @@
+import { safeAuthRedirect } from "@/lib/auth-config";
 import { getTranslations } from "next-intl/server";
+import { Link } from "@/i18n/navigation";
+import { getAuthAvailability } from "@/lib/auth-config";
 import { LoginForm } from "./LoginForm";
+import { ArrowLeft } from "lucide-react";
+import "./login.css";
 
-export default async function LoginPage() {
+export default async function LoginPage({ searchParams }: {
+  searchParams: Promise<{ error?: string; verify?: string; callbackUrl?: string }>;
+}) {
   const t = await getTranslations("auth");
-
+  const query = await searchParams;
+  const requested = typeof query.callbackUrl === "string" ? query.callbackUrl : undefined;
+  const safeTarget = requested ? new URL(safeAuthRedirect(requested, process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000")) : undefined;
+  const callbackUrl = safeTarget ? `${safeTarget.pathname}${safeTarget.search}` : undefined;
   return (
-    <div className="flex min-h-[60vh] items-center justify-center px-4">
-      <div className="w-full max-w-md space-y-6">
-        <div className="text-center">
-          <div className="flex items-center justify-center gap-1 mb-4">
-            <span className="text-3xl font-bold text-blue-700">Kado</span>
-            <span className="text-3xl font-bold text-amber-500">Lakay</span>
-          </div>
-          <h1 className="text-2xl font-bold text-gray-900">
-            {t("loginTitle")}
-          </h1>
-          <p className="mt-1 text-gray-600">{t("loginSubtitle")}</p>
-        </div>
-
-        <LoginForm />
-      </div>
+    <div className="login-shell">
+      <section aria-labelledby="login-title" className="login-card">
+        <header className="login-heading"><h1 id="login-title">{t("loginTitle")}</h1>
+        <p className="login-subtitle">{t("loginSubtitle")}</p></header>
+        <LoginForm callbackUrl={callbackUrl} {...getAuthAvailability(process.env)} initialError={typeof query.error === "string" ? query.error : undefined} verified={query.verify === "true"} />
+        <div className="login-public-link"><Link href="/find">{t("findRegistry")}</Link></div>
+      </section>
+      <Link href="/" className="login-back"><ArrowLeft size={15} aria-hidden="true" />{t("backHome")}</Link>
     </div>
   );
 }

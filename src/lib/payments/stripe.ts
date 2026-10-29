@@ -12,7 +12,8 @@ import type {
 let _stripe: Stripe | null = null;
 function getStripe(): Stripe {
   if (!_stripe) {
-    _stripe = new Stripe(process.env.STRIPE_SECRET_KEY ?? "sk_test_build_placeholder");
+    if (!process.env.STRIPE_SECRET_KEY) throw new Error("PAYMENTS_UNAVAILABLE");
+    _stripe = new Stripe(process.env.STRIPE_SECRET_KEY, { timeout: 10000, maxNetworkRetries: 1 });
   }
   return _stripe;
 }
@@ -44,12 +45,13 @@ export const stripeProvider: PaymentProviderInterface = {
         },
       ],
       mode: "payment",
+      expires_at: Math.floor(Date.now() / 1000) + 30 * 60,
       success_url: params.returnUrl,
       cancel_url: params.cancelUrl,
       metadata: {
         orderId: params.orderId,
       },
-    });
+    }, { idempotencyKey: `checkout:${params.orderId}` });
 
     return {
       redirectUrl: session.url ?? undefined,

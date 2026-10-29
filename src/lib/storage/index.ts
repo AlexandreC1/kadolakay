@@ -38,6 +38,7 @@ export async function generatePresignedUploadUrl(
   // signature so the client cannot exceed it.
   contentLength: number
 ) {
+  if (!process.env.S3_BUCKET || !process.env.S3_ACCESS_KEY_ID || !process.env.S3_SECRET_ACCESS_KEY || !process.env.S3_PUBLIC_URL) throw new Error("Image uploads are not available yet. Please try again later.");
   const command = new PutObjectCommand({
     Bucket: BUCKET,
     Key: key,

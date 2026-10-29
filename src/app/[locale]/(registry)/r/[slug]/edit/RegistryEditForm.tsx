@@ -1,13 +1,18 @@
 "use client";
 
+import { useSafeMutation, MutationFeedback } from "@/components/shared/useSafeMutation";
+
 import { useState } from "react";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import {
   updateRegistry,
   publishRegistry,
   deleteRegistry,
 } from "@/actions/registry";
-import { addItemToRegistry, removeRegistryItem } from "@/actions/registry-item";
+import { addItemToRegistry, removeRegistryItem, addBusinessProductsToRegistry } from "@/actions/registry-item";
+import { ProductPicker } from "@/components/registry/ProductPicker";
+import { pickerCopy } from "@/components/registry/product-picker-copy";
+import { catalogCopy } from "@/lib/catalog-copy";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -19,15 +24,17 @@ interface RegistryEditFormProps {
     slug: string;
     title: string;
     description: string | null;
-    eventDate: Date | null;
+    eventDate: string | null;
     status: string;
     amazonWishlistUrl: string | null;
     items: Array<{
       id: string;
+      productId: string | null;
       title: string;
-      priceHTG: unknown;
-      priceUSD: unknown;
+      priceHTG: number | null;
+      priceUSD: number | null;
       quantity: number;
+      canRemove: boolean;
       fulfilledQty: number;
       status: string;
       source: string;
@@ -39,49 +46,45 @@ interface RegistryEditFormProps {
 
 export function RegistryEditForm({ registry }: RegistryEditFormProps) {
   const t = useTranslations();
+  const locale = useLocale();
+  const copy = catalogCopy(locale);
+  const selectionCopy = pickerCopy(locale);
+  const [catalogAddedCount, setCatalogAddedCount] = useState(0);
+  const [showCatalog, setShowCatalog] = useState(false);
   const [showAddItem, setShowAddItem] = useState(false);
-  const [pending, setPending] = useState(false);
+  const { pending, status, run } = useSafeMutation();
 
-  async function handlePublish() {
-    setPending(true);
-    await publishRegistry(registry.id);
-    setPending(false);
-  }
+  async function handlePublish() { await run(() => publishRegistry(registry.id)); }
 
   async function handleDelete() {
-    if (confirm(t("registry.deleteRegistry") + "?")) {
-      await deleteRegistry(registry.id);
-    }
+    if (confirm(t("registry.deleteRegistry") + "?")) await run(() => deleteRegistry(registry.id));
   }
 
   async function handleAddItem(formData: FormData) {
-    setPending(true);
-    await addItemToRegistry(registry.id, formData);
-    setShowAddItem(false);
-    setPending(false);
+    if (await run(() => addItemToRegistry(registry.id, formData))) setShowAddItem(false);
   }
 
   async function handleRemoveItem(itemId: string) {
-    if (confirm(t("common.delete") + "?")) {
-      await removeRegistryItem(itemId);
-    }
+    if (confirm(t("common.delete") + "?")) await run(() => removeRegistryItem(itemId));
   }
 
   return (
     <div className="space-y-8">
+      <MutationFeedback status={status} />
       {/* Actions bar */}
       <div className="flex flex-wrap gap-3">
         {registry.status === "DRAFT" && (
-          <Button variant="gold" onClick={handlePublish} disabled={pending}>
+          <Button variant="gold" onClick={handlePublish} disabled={pending || registry.items.length === 0}>
             {t("registry.publish")}
           </Button>
         )}
+        {registry.status === "DRAFT" && registry.items.length === 0 && <p className="text-sm text-gray-600">{t("registry.addBeforePublish")}</p>}
         {registry.status === "PUBLISHED" && (
           <a href={`/r/${registry.slug}`} target="_blank" rel="noopener">
             <Button variant="secondary">{t("registry.viewRegistry")}</Button>
           </a>
         )}
-        <Button variant="destructive" onClick={handleDelete}>
+        <Button variant="destructive" onClick={handleDelete} disabled={pending}>
           {t("registry.deleteRegistry")}
         </Button>
       </div>
@@ -91,9 +94,7 @@ export function RegistryEditForm({ registry }: RegistryEditFormProps) {
         <CardContent className="p-6">
           <form
             action={async (formData: FormData) => {
-              setPending(true);
-              await updateRegistry(registry.id, formData);
-              setPending(false);
+              await run(() => updateRegistry(registry.id, formData));
             }}
             className="space-y-4"
           >
@@ -111,7 +112,7 @@ export function RegistryEditForm({ registry }: RegistryEditFormProps) {
                 name="description"
                 defaultValue={registry.description || ""}
                 rows={3}
-                className="flex w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="flex w-full rounded-lg border border-gray-300 bg-[var(--brand-surface)] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
             <div>
@@ -151,11 +152,24 @@ export function RegistryEditForm({ registry }: RegistryEditFormProps) {
           <h2 className="text-xl font-semibold text-gray-900">
             {t("registry.items")} ({registry.items.length})
           </h2>
-          <Button onClick={() => setShowAddItem(!showAddItem)}>
+          <div className="flex flex-wrap gap-3"><Button className="rounded-full" onClick={() => { setCatalogAddedCount(0); setShowCatalog(true); }} disabled={pending}>{copy.addLocal}</Button>
+          <Button variant="outline" onClick={() => setShowAddItem(!showAddItem)}>
             {showAddItem ? t("common.cancel") : t("registry.addItem")}
-          </Button>
+          </Button></div>
         </div>
 
+        {catalogAddedCount > 0 && <p role="status" className="mb-4 text-sm text-[var(--brand-success)]">{selectionCopy.added(catalogAddedCount)}</p>}
+        {showCatalog && (
+          <ProductPicker
+            existingProductIds={registry.items.flatMap(item => item.productId ? [item.productId] : [])}
+            onClose={() => setShowCatalog(false)}
+            onAdd={async productIds => {
+              const result = await addBusinessProductsToRegistry({ registryId: registry.id, productIds });
+              if (result.ok) setCatalogAddedCount(result.addedCount);
+              return result;
+            }}
+          />
+        )}
         {/* Add item form */}
         {showAddItem && (
           <Card className="mb-4">
@@ -174,7 +188,7 @@ export function RegistryEditForm({ registry }: RegistryEditFormProps) {
                   <textarea
                     name="description"
                     rows={2}
-                    className="flex w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="flex w-full rounded-lg border border-gray-300 bg-[var(--brand-surface)] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
                 <div className="grid grid-cols-3 gap-4">
@@ -203,7 +217,7 @@ export function RegistryEditForm({ registry }: RegistryEditFormProps) {
                   </label>
                   <select
                     name="source"
-                    className="flex h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="flex h-10 w-full rounded-lg border border-gray-300 bg-[var(--brand-surface)] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
                     <option value="CUSTOM">{t("item.custom")}</option>
                     <option value="AMAZON">{t("item.fromAmazon")}</option>
@@ -264,6 +278,8 @@ export function RegistryEditForm({ registry }: RegistryEditFormProps) {
                   <Button
                     variant="ghost"
                     size="sm"
+                    disabled={pending || !item.canRemove}
+                    title={!item.canRemove ? t("registry.itemLocked") : undefined}
                     onClick={() => handleRemoveItem(item.id)}
                     className="text-red-500 hover:text-red-700 hover:bg-red-50"
                   >

@@ -16,18 +16,18 @@ export function CurrencyDisplay({
   className = "",
 }: CurrencyDisplayProps) {
   const primary =
-    preferred === "HTG" && priceHTG
+    preferred === "HTG" && priceHTG != null
       ? formatHTG(priceHTG)
-      : priceUSD
+      : priceUSD != null
         ? formatUSD(priceUSD)
-        : priceHTG
+        : priceHTG != null
           ? formatHTG(priceHTG)
           : null;
 
   const secondary =
-    preferred === "HTG" && priceUSD
+    preferred === "HTG" && priceUSD != null
       ? formatUSD(priceUSD)
-      : preferred === "USD" && priceHTG
+      : preferred === "USD" && priceHTG != null
         ? formatHTG(priceHTG)
         : null;
 

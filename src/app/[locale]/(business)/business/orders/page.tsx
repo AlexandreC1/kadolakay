@@ -34,6 +34,7 @@ export default async function BusinessOrdersPage() {
   const orderItems = await db.orderItem.findMany({
     where: {
       registryItem: { businessId: business.id },
+      order: { status: { in: ["PAID", "CONFIRMED", "SHIPPED", "DELIVERED"] } },
     },
     include: {
       order: {
@@ -53,6 +54,7 @@ export default async function BusinessOrdersPage() {
         select: { title: true },
       },
     },
+    take: 200,
     orderBy: { order: { createdAt: "desc" } },
   });
 

@@ -17,6 +17,9 @@ model User {
   image           String?
   phone           String?
   preferredLocale String    @default("ht")
+  onboardingStep Int        @default(0)
+  onboardingCompletedAt DateTime?
+  onboardingDeferredAt DateTime?
   role            Role      @default(USER)
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
@@ -52,6 +55,7 @@ model Account {
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@index([userId])
   @@unique([provider, providerAccountId])
   @@map("accounts")
 }
@@ -64,6 +68,7 @@ model Session {
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@index([userId])
   @@map("sessions")
 }
 
@@ -82,6 +87,9 @@ enum RegistryType {
   BABY_SHOWER
   WEDDING
   BIRTHDAY
+  CHRISTMAS
+  SHOPPING
+  OTHER
 }
 
 enum RegistryStatus {
@@ -118,6 +126,8 @@ model Registry {
 
   @@index([userId])
   @@index([slug])
+  @@index([status, isPublic, createdAt])
+  @@index([userId, status, updatedAt])
   @@map("registries")
 }
 
@@ -146,6 +156,7 @@ model RegistryItem {
   priceUSD     Decimal?   @db.Decimal(12, 2)
   quantity     Int        @default(1)
   fulfilledQty Int        @default(0)
+  reservedQty  Int        @default(0)
   status       ItemStatus @default(AVAILABLE)
   source       ItemSource @default(CUSTOM)
 
@@ -184,6 +195,7 @@ model Business {
   logoUrl     String?
   coverUrl    String?
   category    String
+  patenteNumber String?      @db.VarChar(100)
 
   city        String?
   department  String?
@@ -209,6 +221,7 @@ model Business {
   products Product[]
 
   @@index([slug])
+  @@index([status, name])
   @@map("businesses")
 }
 
@@ -228,6 +241,7 @@ model Product {
   business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
 
   @@index([businessId])
+  @@index([inStock, name, id])
   @@map("products")
 }
 
@@ -283,6 +297,7 @@ model Order {
 
   @@index([buyerId])
   @@index([orderNumber])
+  @@index([status, createdAt])
   @@map("orders")
 }
 
@@ -297,6 +312,8 @@ model OrderItem {
   order        Order        @relation(fields: [orderId], references: [id], onDelete: Cascade)
   registryItem RegistryItem @relation(fields: [registryItemId], references: [id])
 
+  @@index([orderId])
+  @@index([registryItemId])
   @@map("order_items")
 }
 

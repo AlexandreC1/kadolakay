@@ -1,6 +1,6 @@
 "use server";
 
-import { auth } from "@/lib/auth";
+import { requireActor } from "@/services/authorization";
 import { db } from "@/lib/db";
 import {
   extensionForContentType,
@@ -62,10 +62,7 @@ export async function getUploadUrl(
   contentType: string,
   fileSize: number
 ) {
-  const session = await auth();
-  if (!session?.user?.id) {
-    throw new Error("Unauthorized");
-  }
+  const actor = await requireActor("upload");
 
   // Validate every argument at runtime; the TypeScript signature is not
   // enforced for callers of a Server Action.
@@ -83,8 +80,8 @@ export async function getUploadUrl(
   await assertContextOwnership(
     input.context,
     input.contextId,
-    session.user.id,
-    session.user.role === "ADMIN"
+    actor.id,
+    actor.role === "ADMIN"
   );
 
   if (!extensionForContentType(input.contentType)) {

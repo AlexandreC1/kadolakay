@@ -1,0 +1,104 @@
+/* Lakou composition refinement. These roles are local to the public homepage;
+   transactional controls keep their existing semantic colors. */
+.lakou-home {
+  --lakou-ocean: var(--brand-ocean);
+  --lakou-coral: var(--brand-accent);
+  --lakou-paper: var(--brand-canvas);
+  --lakou-ink: var(--brand-ink);
+  --lakou-width: 1360px;
+}
+.lakou-hero {
+  grid-template-columns: minmax(0, 1.08fr) minmax(0, 1fr);
+  gap: 64px;
+  padding: 44px 48px 36px;
+  min-height: 620px;
+}
+.lakou-hero-copy { padding-block: 20px; }
+.lakou-kicker { color: var(--lakou-ocean); font-size: 12px; letter-spacing: .08em; margin-bottom: 26px; }
+.lakou-hero h1 { font-size: clamp(48px, 5.05vw, 72px); line-height: 1.08; letter-spacing: -.035em; font-weight: 750; }
+.lakou-hero h1 span { color: var(--lakou-ocean); margin-top: 4px; }
+.lakou-intro { font-size: 16px; line-height: 1.7; max-width: 39ch; margin-top: 26px; }
+.lakou-actions { margin-top: 28px; gap: 12px; }
+.lakou-primary { background: var(--lakou-coral); color: var(--brand-on-action); font-size: 14px; min-height: 54px; padding-inline: 24px; gap: 8px; }
+.lakou-primary:hover { background: var(--brand-action-hover); }
+.lakou-secondary { font-size: 14px; min-height: 54px; color: var(--lakou-ink); border-color: var(--brand-line); padding-inline: 22px; }
+.lakou-secondary:hover { border-color: var(--lakou-ocean); background: var(--brand-sand); }
+.lakou-note { font-size: 12px; line-height: 1.6; margin-top: 18px; }
+.lakou-scene { background: #075e78; border-radius: 28px; min-width: 0; }
+.lakou-basket { height: 500px; }
+.basket-canvas { border-radius: 28px; }
+.basket-ground { bottom: 13%; background: oklch(17% .04 225 / .5); filter: blur(18px); }
+.basket-fallback { color: #efe7d6; }
+.basket-instruction { bottom: 24px; color: var(--brand-on-action); font-size: 12px; letter-spacing: 0; padding-inline: 20px; }
+.basket-canvas:focus-visible { outline: 3px solid var(--brand-on-action); outline-offset: -7px; }
+.lakou-finder {
+  width: calc(100% - 96px);
+  max-width: calc(var(--lakou-width) - 96px);
+  margin: 0 auto;
+  padding: 28px 0 32px;
+  border-bottom: 1px solid var(--brand-line);
+  background: transparent;
+  color: var(--lakou-ink);
+}
+.lakou-finder p { color: var(--brand-muted); font-size: 12px; margin-bottom: 6px; }
+.lakou-finder h2 { font-size: 24px; font-weight: 700; }
+.lakou-finder form { width: min(100%, 550px); }
+.lakou-finder input { height: 52px; background: var(--lakou-paper); border-color: var(--brand-muted); color: var(--lakou-ink); font-size: 14px; }
+.lakou-finder input::placeholder { color: var(--brand-muted); }
+.lakou-finder button { min-height: 52px; background: var(--brand-action); color: var(--brand-on-action); font-size: 13px; gap: 8px; }
+.lakou-finder button:hover { background: var(--brand-action-hover); }
+.lakou-finder :focus-visible { outline-color: var(--lakou-ocean); }
+.lakou-occasions h2 { font-size: clamp(28px, 2.7vw, 36px); letter-spacing: -.03em; font-weight: 700; }
+.lakou-occasions { margin-top: 0; padding-block: 60px 72px; }
+.lakou-occasions > div { gap: 28px; }
+.lakou-occasions > div > a { border-top: 2px solid var(--lakou-ocean); padding-top: 24px; }
+.lakou-occasions strong { letter-spacing: -.025em; }
+.occasion-create { gap: 8px; font-size: 13px; }
+.lakou-discover { max-width: var(--lakou-width); margin: auto; padding: 30px 48px; display: flex; justify-content: space-between; align-items: center; gap: 32px; }
+.lakou-discover h2 { font-size: 26px; letter-spacing: -.025em; font-weight: 700; }
+.lakou-discover p { font-size: 14px; color: var(--brand-muted); line-height: 1.65; max-width: 56ch; margin-top: 8px; }
+.lakou-discover a { display: inline-flex; gap: 8px; align-items: center; min-height: 44px; font-weight: 700; font-size: 13px; color: var(--brand-ocean); }
+.lakou-discover a:hover { text-decoration: underline; text-underline-offset: 4px; }
+.lakou-merchant-entry { border-left: 1px solid var(--brand-line); padding-left: 32px; flex-shrink: 0; }
+.lakou-occasions { padding-block: 28px 36px; }
+.lakou-occasions > div { margin-top: 22px; }
+.lakou-occasions > div > a { padding-top: 16px; gap: 8px; }
+@media (max-width: 1050px) {
+  .lakou-hero { gap: 32px; padding-inline: 32px; min-height: 560px; }
+  .lakou-hero h1 { font-size: clamp(44px, 5.5vw, 60px); }
+  .lakou-basket { height: 440px; }
+  .lakou-finder { width: calc(100% - 64px); margin-inline: 32px; }
+  .lakou-discover { padding-inline: 32px; }
+}
+@media (max-width: 760px) {
+  .lakou-hero { grid-template-columns: 1fr; padding: 26px 24px 0; gap: 28px; min-height: 0; }
+  .lakou-hero-copy { padding: 10px 0 0; }
+  .lakou-kicker { font-size: 11px; margin-bottom: 20px; }
+  .lakou-hero h1 { font-size: clamp(40px, 9vw, 60px); }
+  .lakou-intro { font-size: 15px; margin-top: 22px; }
+  .lakou-actions { margin-top: 24px; }
+  .lakou-primary,.lakou-secondary { min-height: 50px; font-size: 13px; padding-inline: 20px; }
+  .lakou-note { font-size: 11px; }
+  .lakou-scene { border-radius: 22px; }
+  .lakou-basket { height: 340px; }
+  .basket-instruction { bottom: 16px; font-size: 11px; }
+  .lakou-finder { display: block; width: calc(100% - 48px); margin-inline: 24px; padding-block: 30px; }
+  .lakou-finder form { margin-top: 18px; }
+  .lakou-finder input { font-size: 13px; }
+  .lakou-finder button { font-size: 12px; padding-inline: 16px; }
+  .lakou-occasions { padding: 38px 24px; }
+  .lakou-occasions > div { gap: 26px; }
+  .lakou-discover { padding: 28px 24px; display: block; }
+  .lakou-merchant-entry { border-left: 0; padding: 16px 0 0; margin-top: 16px; border-top: 1px solid var(--brand-line); }
+  .lakou-occasions { padding-block: 24px 32px; }
+}
+/* Registry access replaces the decorative scene. */
+.lakou-hero { min-height: 550px; }
+.lakou-hero-finder { display: block; width: 100%; max-width: none; margin: 0; padding: 32px; border: 1px solid var(--brand-line); border-radius: 24px; background: var(--brand-surface); }
+.lakou-hero-finder h2 { margin-top: 12px; font-size: clamp(26px, 2.5vw, 34px); }
+.lakou-hero-finder form { width: 100%; display: flex; flex-direction: column; align-items: stretch; margin-top: 28px; gap: 12px; }
+.lakou-hero-finder input { flex: none; width: 100%; min-width: 0; min-height: 52px; }
+.lakou-hero-finder button { justify-content: center; }
+.lakou-scan { display: flex; justify-content: center; align-items: center; min-height: 48px; margin-top: 12px; border: 1px solid var(--brand-line-strong); border-radius: 99px; font-size: 14px; font-weight: 650; color: var(--brand-ocean); }
+.lakou-scan:hover { background: var(--brand-surface-muted); }
+@media(max-width:760px) { .lakou-hero { min-height: 0; padding-bottom: 24px; } .lakou-hero-finder { padding: 24px; } }

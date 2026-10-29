@@ -1,32 +1,26 @@
 "use server";
 
-import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { z } from "zod";
+import { revalidateTag } from "next/cache";
+import { requireActor } from "@/services/authorization";
 import { revalidatePath } from "next/cache";
 
 export async function updateBusinessStatus(
   businessId: string,
   status: "APPROVED" | "SUSPENDED"
 ) {
-  const session = await auth();
-  if (!session?.user?.id) {
-    throw new Error("Unauthorized");
-  }
-
-  const user = await db.user.findUnique({
-    where: { id: session.user.id },
-    select: { role: true },
-  });
-
-  if (user?.role !== "ADMIN") {
-    throw new Error("Forbidden");
-  }
+  const actor = await requireActor("admin:business");
+  if (actor.role !== "ADMIN") throw new Error("Forbidden");
+  const parsed = z.strictObject({ id: z.string().min(1).max(100), status: z.enum(["APPROVED", "SUSPENDED"]) }).safeParse({ id: businessId, status });
+  if (!parsed.success) throw new Error("Invalid business update");
 
   await db.business.update({
     where: { id: businessId },
     data: { status },
   });
 
-  revalidatePath("/admin/businesses");
+  revalidateTag("public-catalog", { expire: 0 });
+  revalidatePath("/", "layout");
   revalidatePath("/browse");
 }

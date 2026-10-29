@@ -1,18 +1,17 @@
 "use server";
 
-import { auth } from "@/lib/auth";
+import { requireActor } from "@/services/authorization";
 import { db } from "@/lib/db";
+import { parseFormFields } from "@/lib/validators/shared";
 import { updateProfileSchema } from "@/lib/validators/user";
 import { revalidatePath } from "next/cache";
 
 export async function updateProfile(formData: FormData) {
-  const session = await auth();
-  if (!session?.user?.id) {
-    throw new Error("Unauthorized");
-  }
+  const actor = await requireActor("profile");
 
   // Pick only the fields we accept. Anything else in the FormData is ignored,
   // so a crafted request can't reach other User columns.
+  parseFormFields(formData, ["name", "phone", "preferredLocale"]);
   const parsed = updateProfileSchema.safeParse({
     name: formData.get("name"),
     phone: formData.get("phone"),
@@ -23,7 +22,7 @@ export async function updateProfile(formData: FormData) {
   }
 
   await db.user.update({
-    where: { id: session.user.id },
+    where: { id: actor.id },
     data: parsed.data,
   });
 

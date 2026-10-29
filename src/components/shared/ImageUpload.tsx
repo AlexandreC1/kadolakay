@@ -136,7 +136,7 @@ export function ImageUpload({
         )}
 
         {uploading && (
-          <div className="absolute inset-0 bg-white/80 flex items-center justify-center">
+          <div className="absolute inset-0 bg-[var(--brand-surface)]/80 flex items-center justify-center">
             <div className="h-8 w-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
           </div>
         )}

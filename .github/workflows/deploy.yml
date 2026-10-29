@@ -1,116 +1,41 @@
-# =============================================================================
-# CD Pipeline — Deploy to Vercel
-# =============================================================================
-#
-# DEPLOYMENT STRATEGY:
-#
-# We use THREE environments, each serving a different purpose:
-#
-# 1. PREVIEW (automatic)
-#    - Every pull request gets its own URL (e.g., kadolakay-pr-42.vercel.app)
-#    - You can test your changes live before merging
-#    - Vercel does this automatically — no config needed
-#
-# 2. STAGING (manual trigger)
-#    - A stable "almost production" environment
-#    - Used for final testing before going live
-#    - Deployed manually when you're ready to verify
-#
-# 3. PRODUCTION (after merge to main)
-#    - The real deal — what users see at kadolakay.com
-#    - Only deployed after CI passes on the main branch
-#    - Uses Vercel's built-in GitHub integration
-#
-# WHY THREE ENVIRONMENTS?
-# Think of it like cooking: you taste (preview), plate (staging),
-# then serve (production). Each step catches different problems.
-#
-# =============================================================================
-#
-# IMPORTANT: For Vercel deployment, you have two options:
-#
-# Option A (Recommended): Vercel GitHub Integration
-#   - Connect your repo at vercel.com/new
-#   - Vercel automatically deploys on push — no workflow needed
-#   - Preview deployments happen automatically on PRs
-#   - This file becomes a backup/reference
-#
-# Option B: Manual Vercel CLI deployment (this workflow)
-#   - Requires VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_PROJECT_ID secrets
-#   - More control but more setup
-#
-# =============================================================================
-
-name: Deploy
-
+name: Deploy verified release
 on:
-  # Only deploy when code is pushed to main (after PR merge + CI pass)
-  push:
-    branches: [main]
-
-  # Allow manual deployment (useful for staging or rollbacks)
-  # You can trigger this from GitHub's Actions tab → "Run workflow"
   workflow_dispatch:
     inputs:
       environment:
-        description: "Deploy to which environment?"
+        description: Target environment
         required: true
-        default: "staging"
+        default: staging
         type: choice
-        options:
-          - staging
-          - production
-
-# =============================================================================
-# CONCURRENCY
-# If two deployments are triggered at the same time (e.g., two quick merges),
-# cancel the older one. No point deploying stale code.
-# =============================================================================
+        options: [staging, production]
+permissions:
+  contents: read
 concurrency:
-  group: deploy-${{ github.ref }}
-  cancel-in-progress: true
-
+  group: deploy-${{ inputs.environment }}
+  cancel-in-progress: false
 jobs:
+  verify:
+    uses: ./.github/workflows/ci.yml
   deploy:
-    name: "Deploy to Vercel"
+    needs: verify
     runs-on: ubuntu-latest
-
-    # Only run if CI passed (on push to main, CI runs first via ci.yml)
-    # For manual triggers, we skip this check
-    if: github.event_name == 'workflow_dispatch' || github.event_name == 'push'
-
-    # Environment protection rules can be configured in GitHub Settings
-    # This enables approval workflows for production deploys
-    environment:
-      name: ${{ github.event.inputs.environment || 'production' }}
-      url: ${{ steps.deploy.outputs.url }}
-
+    environment: ${{ inputs.environment }}
     env:
       VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
       VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
       VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: "20"
-          cache: "npm"
-
-      - name: Install Vercel CLI
-        run: npm install -g vercel
-
-      # Deploy using Vercel's remote build system.
-      # We intentionally do NOT run `vercel build` locally in CI because
-      # the Windows-generated lockfile omits Linux native binaries
-      # (@parcel/watcher, rollup, swc). Vercel's remote builder installs
-      # deps correctly on its own Linux infra.
-      - name: Deploy
-        id: deploy
-        run: |
-          URL=$(vercel deploy --token=${{ secrets.VERCEL_TOKEN }} ${{ (github.event.inputs.environment == 'production' || github.event_name == 'push') && '--prod' || '' }})
-          echo "url=$URL" >> $GITHUB_OUTPUT
-          echo "Deployed to: $URL"
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Pull target environment
+        run: npx vercel env pull .env.release.local --environment=${{ inputs.environment == 'production' && 'production' || 'preview' }} --yes --token "$VERCEL_TOKEN"
+      - name: Check required configuration
+        run: node --env-file=.env.release.local scripts/check-release-env.mjs ${{ inputs.environment == 'staging' && '--staging' || '' }}
+      - name: Apply committed migrations
+        run: node --env-file=.env.release.local scripts/run-migrations.mjs
+      - name: Deploy target
+        run: npx vercel deploy --yes --token "$VERCEL_TOKEN" ${{ inputs.environment == 'production' && '--prod' || '' }}

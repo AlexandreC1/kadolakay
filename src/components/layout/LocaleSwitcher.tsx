@@ -1,39 +1,19 @@
 "use client";
 
 import { useLocale } from "next-intl";
+import { useSearchParams } from "next/navigation";
+import { useTransition } from "react";
 import { usePathname, useRouter } from "@/i18n/navigation";
 import { routing, type Locale } from "@/i18n/routing";
 
-const localeLabels: Record<Locale, string> = {
-  ht: "Kreyol",
-  fr: "Fran\u00e7ais",
-  en: "English",
-};
+const localeLabels: Record<Locale, string> = { ht: "Kreyòl", fr: "Français", en: "English" };
+const accessibleLabels: Record<Locale, string> = { ht: "Chwazi lang", fr: "Choisir la langue", en: "Choose language" };
 
 export function LocaleSwitcher() {
   const locale = useLocale() as Locale;
   const pathname = usePathname();
+  const search = useSearchParams();
   const router = useRouter();
-
-  function handleChange(newLocale: Locale) {
-    router.replace(pathname, { locale: newLocale });
-  }
-
-  return (
-    <div className="flex items-center gap-1">
-      {routing.locales.map((loc) => (
-        <button
-          key={loc}
-          onClick={() => handleChange(loc)}
-          className={`px-2 py-1 text-xs rounded-md transition-colors ${
-            loc === locale
-              ? "bg-blue-700 text-white font-medium"
-              : "text-gray-600 hover:bg-gray-100"
-          }`}
-        >
-          {localeLabels[loc]}
-        </button>
-      ))}
-    </div>
-  );
+  const [pending, startTransition] = useTransition();
+  return <select className="locale-select" aria-label={accessibleLabels[locale]} value={locale} disabled={pending} onChange={event => { const next = event.target.value as Locale; const query = search.toString(); startTransition(() => router.replace(query ? `${pathname}?${query}` : pathname, { locale: next })); }}>{routing.locales.map(loc => <option value={loc} key={loc}>{localeLabels[loc]}</option>)}</select>;
 }

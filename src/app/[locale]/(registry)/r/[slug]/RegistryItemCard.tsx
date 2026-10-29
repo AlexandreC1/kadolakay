@@ -1,120 +1,49 @@
 "use client";
-
+import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { Card, CardContent } from "@/components/ui/card";
+import { useRouter } from "next/navigation";
+import { Package, Check, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Link } from "@/i18n/navigation";
 import { CurrencyDisplay } from "@/components/shared/CurrencyDisplay";
+import { nativeGiftCopy } from "@/lib/catalog-copy";
+import { giftQuantities, giftState } from "@/lib/registry-progress";
+import { availabilityCaption, wishlistCopy } from "@/lib/wishlist-copy";
 
-interface RegistryItemCardProps {
-  item: {
-    id: string;
-    title: string;
-    description: string | null;
-    imageUrl: string | null;
-    priceHTG: unknown;
-    priceUSD: unknown;
-    quantity: number;
-    fulfilledQty: number;
-    status: string;
-    source: string;
-    externalUrl: string | null;
-    business: { name: string; slug: string } | null;
-  };
+export interface RegistryItemCardProps {
+  item: { id: string; title: string; description: string | null; imageUrl: string | null; priceHTG: unknown; priceUSD: unknown; quantity: number; availableQty: number; fulfilledQty: number; status: string; source: string; externalUrl: string | null; business: { name: string; slug: string } | null };
   locale: string;
+  paymentAvailable?: boolean;
 }
-
-export function RegistryItemCard({ item, locale }: RegistryItemCardProps) {
-  const t = useTranslations();
-  const remaining = item.quantity - item.fulfilledQty;
-  const isFulfilled = item.status === "FULFILLED";
-  const isExternal = item.source === "AMAZON" || item.source === "EXTERNAL";
-
+export function RegistryItemCard({ item, locale, paymentAvailable = false }: RegistryItemCardProps) {
+  const t = useTranslations(), c = nativeGiftCopy(locale), w = wishlistCopy(locale);
+  const router = useRouter();
+  const [failedImage, setFailedImage] = useState<string | null>(null);
+  const q = giftQuantities(item), state = giftState(item);
+  const external = item.source === "AMAZON" || item.source === "EXTERNAL";
+  const isConfirmed = state === "confirmed";
+  const StatusIcon = isConfirmed ? Check : state === "held" ? Clock : Package;
+  const stateLabel = state === "available" ? t(q.confirmed > 0 ? "registry.partiallyFulfilled" : "registry.available") : state === "confirmed" ? t("registry.fulfilled") : w.held;
   function handleBuy() {
-    if (isExternal && item.externalUrl) {
-      window.open(item.externalUrl, "_blank");
-    } else {
-      // Navigate to checkout with this item selected
-      window.location.href = `${window.location.pathname}/checkout?items=${item.id}`;
-    }
+    if (external && item.externalUrl) window.open(item.externalUrl, "_blank", "noopener,noreferrer");
+    else router.push(`${window.location.pathname}/checkout?items=${item.id}`);
   }
-
-  return (
-    <Card
-      className={`overflow-hidden transition-opacity ${isFulfilled ? "opacity-50" : ""}`}
-    >
-      {item.imageUrl && (
-        <div className="aspect-square bg-gray-100 overflow-hidden">
-          <img
-            src={item.imageUrl}
-            alt={item.title}
-            className="h-full w-full object-cover"
-            loading="lazy"
-          />
-        </div>
-      )}
-      <CardContent className="p-4">
-        <h3 className="font-semibold text-gray-900 truncate">{item.title}</h3>
-
-        {item.description && (
-          <p className="mt-1 text-sm text-gray-500 line-clamp-2">
-            {item.description}
-          </p>
-        )}
-
-        {item.business && (
-          <p className="mt-1 text-xs text-blue-600">{item.business.name}</p>
-        )}
-
-        <div className="mt-2 flex items-center justify-between">
-          <CurrencyDisplay
-            priceHTG={item.priceHTG ? Number(item.priceHTG) : null}
-            priceUSD={item.priceUSD ? Number(item.priceUSD) : null}
-            preferred={locale === "ht" ? "HTG" : "USD"}
-          />
-
-          {item.quantity > 1 && (
-            <span className="text-xs text-gray-400">
-              {remaining}/{item.quantity} {t("registry.available")}
-            </span>
-          )}
-        </div>
-
-        <div className="mt-3">
-          {isFulfilled ? (
-            <span className="inline-block w-full text-center text-sm text-green-600 font-medium py-2">
-              {t("registry.fulfilled")}
-            </span>
-          ) : (
-            <Button
-              variant={isExternal ? "outline" : "default"}
-              size="sm"
-              className="w-full"
-              onClick={handleBuy}
-            >
-              {isExternal ? (
-                <>
-                  {t("checkout.buyGift")}
-                  <svg
-                    className="h-3 w-3"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-                    />
-                  </svg>
-                </>
-              ) : (
-                t("checkout.buyGift")
-              )}
-            </Button>
-          )}
-        </div>
-      </CardContent>
-    </Card>
-  );
+  return <article className="wishlist-gift">
+    <div className="wishlist-gift-art">
+      {item.imageUrl && failedImage !== item.imageUrl ? <img src={item.imageUrl} alt={item.title} loading="lazy" onError={() => setFailedImage(item.imageUrl)} /> : <div className="wishlist-gift-placeholder" aria-hidden="true"><Package size={38} strokeWidth={1.2} /></div>}
+      <span className={`wishlist-gift-status is-${state}`}><StatusIcon size={13} aria-hidden="true" />{stateLabel}</span>
+    </div>
+    <div className="wishlist-gift-body">
+      {item.business && <Link className="wishlist-gift-store" href={`/businesses/${item.business.slug}`}>{item.business.name}</Link>}
+      <h3>{item.title}</h3>
+      {item.description && <p className="wishlist-gift-description">{item.description}</p>}
+      <div className="wishlist-gift-price">{item.priceHTG != null || item.priceUSD != null ? <CurrencyDisplay priceHTG={item.priceHTG == null ? null : Number(item.priceHTG)} priceUSD={item.priceUSD == null ? null : Number(item.priceUSD)} preferred={locale === "ht" ? "HTG" : "USD"} /> : <span>{w.unknownPrice}</span>}</div>
+      <p className="wishlist-gift-quantity">{availabilityCaption(locale, q.available, q.requested)}</p>
+      {q.confirmed > 0 && !isConfirmed && <p className="wishlist-gift-partial">{q.confirmed} {w.confirmed.toLowerCase()}</p>}
+      {q.held > 0 && <p className="wishlist-gift-partial">{q.held} {w.held.toLowerCase()}</p>}
+    </div>
+    <div className="wishlist-gift-action">
+      {isConfirmed ? <p className="wishlist-gift-confirmed"><Check size={16} aria-hidden="true" />{t("registry.fulfilled")}</p> : state === "held" ? <p>{t("registry.reserved")}</p> : item.source === "CUSTOM" ? <p>{c.listOnly}</p> : !external && !paymentAvailable ? <p>{c.disabled}</p> : <Button variant={external ? "outline" : "default"} className="w-full" onClick={handleBuy} disabled={q.available <= 0 || (!external && (item.source !== "LOCAL_BUSINESS" || !item.priceUSD)) || (external && !item.externalUrl)}>{external ? c.externalStore : t("checkout.buyGift")}</Button>}
+    </div>
+  </article>;
 }

@@ -1,109 +1,45 @@
-import { getTranslations } from "next-intl/server";
-import { getApprovedBusinesses } from "@/actions/business";
-import { Card, CardContent } from "@/components/ui/card";
+import { getLocale, getTranslations } from "next-intl/server";
+import { headers } from "next/headers";
+import { Link } from "@/i18n/navigation";
+import { browseBusinessDirectory } from "@/services/catalog-directory";
+import { businessCategories, directorySchema, directoryHref } from "@/lib/directory";
+import { directoryCopy } from "@/lib/directory-copy";
+import { checkRateLimit } from "@/lib/rate-limit";
+import { rateLimitClientKey } from "@/lib/client-ip";
+import styles from "./directory.module.css";
 
-export default async function BrowseBusinessesPage() {
-  const t = await getTranslations("business");
-  const businesses = await getApprovedBusinesses();
-
-  return (
-    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-      <div className="text-center mb-10">
-        <h1 className="text-3xl font-bold text-gray-900 sm:text-4xl">
-          {t("browse")}
-        </h1>
-        <p className="mt-2 text-lg text-gray-600 max-w-2xl mx-auto">
-          {t("browseDesc")}
-        </p>
-      </div>
-
-      {businesses.length === 0 ? (
-        <div className="text-center py-16">
-          <span className="text-5xl block mb-4">🏪</span>
-          <p className="text-lg text-gray-500">
-            Pa gen biznis ankò. Tounen byento!
-          </p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {businesses.map((business) => (
-            <Card
-              key={business.id}
-              className="overflow-hidden hover:shadow-md transition-shadow"
-            >
-              {business.coverUrl && (
-                <div className="h-32 bg-gray-100 overflow-hidden">
-                  <img
-                    src={business.coverUrl}
-                    alt={business.name}
-                    className="h-full w-full object-cover"
-                    loading="lazy"
-                  />
-                </div>
-              )}
-              <CardContent className="p-5">
-                <div className="flex items-start gap-3">
-                  {business.logoUrl ? (
-                    <img
-                      src={business.logoUrl}
-                      alt={`${business.name} logo`}
-                      className="h-12 w-12 rounded-lg object-cover border border-gray-200"
-                    />
-                  ) : (
-                    <div className="h-12 w-12 rounded-lg bg-blue-100 flex items-center justify-center text-lg font-bold text-blue-700">
-                      {business.name[0]}
-                    </div>
-                  )}
-                  <div>
-                    <h3 className="font-semibold text-gray-900">
-                      {business.name}
-                    </h3>
-                    <p className="text-sm text-blue-600">{business.category}</p>
-                    {business.city && (
-                      <p className="text-xs text-gray-400">{business.city}</p>
-                    )}
-                  </div>
-                </div>
-
-                {business.description && (
-                  <p className="mt-3 text-sm text-gray-600 line-clamp-2">
-                    {business.description}
-                  </p>
-                )}
-
-                {business.products.length > 0 && (
-                  <div className="mt-3 pt-3 border-t border-gray-100">
-                    <p className="text-xs text-gray-400 mb-2">
-                      {t("products")} ({business.products.length})
-                    </p>
-                    <div className="flex gap-2 overflow-x-auto">
-                      {business.products.map((product) => (
-                        <div
-                          key={product.id}
-                          className="flex-shrink-0 w-16 h-16 rounded-lg bg-gray-100 overflow-hidden"
-                        >
-                          {product.imageUrl ? (
-                            <img
-                              src={product.imageUrl}
-                              alt={product.name}
-                              className="h-full w-full object-cover"
-                              loading="lazy"
-                            />
-                          ) : (
-                            <div className="h-full w-full flex items-center justify-center text-xs text-gray-400">
-                              {product.name.slice(0, 3)}
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
-    </div>
-  );
+export default async function BrowseBusinessesPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+  const [locale, raw, categories] = await Promise.all([getLocale(), searchParams, getTranslations("business.categories")]);
+  const c = directoryCopy(locale);
+  const parsed = directorySchema.safeParse({ q: raw.q, category: raw.category, after: raw.after });
+  let error: string | undefined;
+  let result: Awaited<ReturnType<typeof browseBusinessDirectory>> | undefined;
+  if (!parsed.success) error = c.invalid;
+  else {
+    try {
+      const limit = await checkRateLimit("general", `directory:${rateLimitClientKey(await headers())}`);
+      if (!limit.ok) error = limit.unavailable ? c.unavailable : c.limited;
+      else {
+        result = await browseBusinessDirectory(parsed.data);
+        if (result.status === "expired") error = c.expired;
+      }
+    } catch { error = c.unavailable; }
+  }
+  const input = parsed.success ? parsed.data : { q: "", category: "" as const };
+  return <div className={styles.page}>
+    <header className={styles.header}><div><h1>{c.title}</h1><p>{c.intro}</p></div><Link href="/business/signup">{c.register}</Link></header>
+    <form action={locale === "ht" ? "/browse" : `/${locale}/browse`} method="get" className={styles.filters}>
+      <div><label htmlFor="business-search">{c.search}</label><input id="business-search" name="q" maxLength={80} defaultValue={typeof raw.q === "string" ? raw.q.slice(0,80) : ""} /></div>
+      <div><label htmlFor="business-category">{c.category}</label><select id="business-category" name="category" defaultValue={input.category}><option value="">{c.all}</option>{businessCategories.map(category => <option key={category} value={category}>{categories(category)}</option>)}</select></div>
+      <button type="submit">{c.submit}</button>{(input.q || input.category || input.after) && <Link href="/browse">{c.clear}</Link>}
+    </form>
+    {process.env.NODE_ENV === "development" && <p className={styles.sample}>{c.sample}</p>}
+    {error ? <section className={styles.feedback} role="alert"><p>{error}</p><a href={`${locale === "ht" ? "" : `/${locale}`}${directoryHref(input)}`}>{result?.status === "expired" || !parsed.success ? c.reset : c.retry}</a></section> : result && !result.items.length ? <section className={styles.feedback} role="status"><h2>{c.empty}</h2><p>{c.emptyHint}</p></section> : <div className={styles.grid}>{result?.items.map(business => <article key={business.id} className={styles.business}>
+      {business.coverUrl && <Link href={`/businesses/${business.slug}`} className={styles.cover}><img src={business.coverUrl} alt="" loading="lazy" /></Link>}
+      <div className={styles.body}><p className={styles.meta}>{[categories.has(business.category) ? categories(business.category) : business.category, business.city].filter(Boolean).join(" · ")}</p><h2><Link href={`/businesses/${business.slug}`}>{business.name}</Link></h2>{business.description && <p className={styles.description}>{business.description}</p>}
+      <p className={styles.count}>{c.products}: {business.productCount}</p>{business.products.length > 0 && <ul>{business.products.map(product => <li key={product.id}><Link href={`/gifts/${product.id}`}>{product.name}</Link></li>)}</ul>}
+      <Link href={`/businesses/${business.slug}`} className={styles.visit}>{c.visit}</Link></div>
+    </article>)}</div>}
+    {!error && result && (input.after || result.next) && <nav className={styles.pagination} aria-label={c.page}>{input.after && <Link href={directoryHref(input)}>{c.first}</Link>}{result.next && <Link href={directoryHref(input,result.next)}>{c.next}</Link>}</nav>}
+  </div>;
 }

@@ -1,179 +1,59 @@
 "use server";
 
 import { headers } from "next/headers";
-import { db } from "@/lib/db";
 import { auth } from "@/lib/auth";
+import { db } from "@/lib/db";
 import { checkoutSchema } from "@/lib/validators/checkout";
-import { getPaymentProvider, type PaymentProviderType } from "@/lib/payments";
-import { generateOrderNumber } from "@/lib/utils";
 import { checkRateLimit } from "@/lib/rate-limit";
+import { beginCheckout, CheckoutError } from "@/services/checkout";
 import { revalidatePath } from "next/cache";
 
 export async function createOrder(formData: FormData) {
   const session = await auth();
-
-  // Rate limit checkout attempts. Identifier is the user ID when signed in,
-  // otherwise the client IP — guests get a per-IP bucket so abuse is bounded
-  // even without an account.
   const h = await headers();
-  const ip = h.get("x-forwarded-for")?.split(",")[0]?.trim() ?? h.get("x-real-ip") ?? "anon";
-  const identifier = session?.user?.id ? `user:${session.user.id}` : `ip:${ip}`;
-  const rl = await checkRateLimit("checkout", identifier);
-  if (!rl.ok) {
-    throw new Error("Too many checkout attempts. Please wait a moment and try again.");
-  }
-
-  // Safely parse JSON fields — malformed input should fail gracefully,
-  // not crash the server with an unhandled JSON.parse exception.
-  let registryItemIds: unknown;
-  let quantities: unknown;
+  const ip = h.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "anon";
+  const rl = await checkRateLimit("checkout", session?.user?.id ? `user:${session.user.id}` : `ip:${ip}`);
+  if (!rl.ok) return { error: "RATE_LIMITED" };
+  const allowed = new Set(["registrySlug", "locale", "registryItemIds", "quantities", "buyerName", "buyerEmail", "buyerPhone", "giftMessage", "isAnonymous", "paymentProvider"]);
+  if ([...formData.keys()].some((key) => !key.startsWith("$ACTION_") && !allowed.has(key))) return { error: "INVALID_INPUT" };
   try {
-    registryItemIds = JSON.parse(formData.get("registryItemIds") as string);
-    quantities = JSON.parse(formData.get("quantities") as string);
-  } catch {
-    throw new Error("Invalid order data");
+    const parsed = checkoutSchema.safeParse({
+      registrySlug: formData.get("registrySlug"), locale: formData.get("locale"),
+      registryItemIds: JSON.parse(String(formData.get("registryItemIds"))),
+      quantities: JSON.parse(String(formData.get("quantities"))),
+      buyerName: formData.get("buyerName"), buyerEmail: formData.get("buyerEmail"),
+      buyerPhone: formData.get("buyerPhone") || undefined,
+      giftMessage: formData.get("giftMessage") || undefined,
+      isAnonymous: formData.get("isAnonymous") === "true",
+      paymentProvider: formData.get("paymentProvider"),
+    });
+    if (!parsed.success) return { error: "INVALID_INPUT" };
+    return await beginCheckout(parsed.data, session?.user?.id);
+  } catch (error) {
+    if (error instanceof SyntaxError) return { error: "INVALID_INPUT" };
+    if (error instanceof CheckoutError) return { error: error.message };
+    console.error("Checkout failed", { code: "CHECKOUT_FAILED" });
+    return { error: "CHECKOUT_FAILED" };
   }
-
-  const raw = {
-    registryItemIds,
-    quantities,
-    buyerName: formData.get("buyerName") as string,
-    buyerEmail: formData.get("buyerEmail") as string,
-    buyerPhone: (formData.get("buyerPhone") as string) || undefined,
-    giftMessage: (formData.get("giftMessage") as string) || undefined,
-    isAnonymous: formData.get("isAnonymous") === "true",
-    paymentProvider: formData.get("paymentProvider") as string,
-  };
-
-  const data = checkoutSchema.parse(raw);
-
-  // Fetch items with prices
-  const items = await db.registryItem.findMany({
-    where: { id: { in: data.registryItemIds } },
-    include: {
-      registry: { select: { slug: true } },
-    },
-  });
-
-  if (items.length === 0) {
-    throw new Error("No items found");
-  }
-
-  // Calculate totals
-  let totalHTG = 0;
-  let totalUSD = 0;
-  const orderItems = items.map((item) => {
-    const qty = data.quantities[item.id] || 1;
-    const htg = item.priceHTG ? Number(item.priceHTG) * qty : 0;
-    const usd = item.priceUSD ? Number(item.priceUSD) * qty : 0;
-    totalHTG += htg;
-    totalUSD += usd;
-    return {
-      registryItemId: item.id,
-      quantity: qty,
-      priceHTG: item.priceHTG ? Number(item.priceHTG) : null,
-      priceUSD: item.priceUSD ? Number(item.priceUSD) : null,
-    };
-  });
-
-  const orderNumber = generateOrderNumber();
-
-  // Determine currency for payment
-  const currency = ["moncash", "natcash"].includes(data.paymentProvider)
-    ? "HTG"
-    : "USD";
-  const amount = currency === "HTG" ? totalHTG : totalUSD;
-
-  if (amount <= 0) {
-    throw new Error("Invalid order amount");
-  }
-
-  // Calculate platform fee (5%)
-  const platformFee = Math.round(amount * 0.05 * 100) / 100;
-
-  // Create order
-  const order = await db.order.create({
-    data: {
-      orderNumber,
-      buyerId: session?.user?.id || null,
-      buyerName: data.buyerName,
-      buyerEmail: data.buyerEmail,
-      buyerPhone: data.buyerPhone,
-      giftMessage: data.giftMessage,
-      isAnonymous: data.isAnonymous,
-      totalHTG: totalHTG > 0 ? totalHTG : null,
-      totalUSD: totalUSD > 0 ? totalUSD : null,
-      platformFee,
-      items: {
-        create: orderItems,
-      },
-    },
-  });
-
-  // Create payment
-  const provider = getPaymentProvider(
-    data.paymentProvider as PaymentProviderType
-  );
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-  const registrySlug = items[0].registry.slug;
-
-  const paymentResult = await provider.createPayment({
-    orderId: order.id,
-    amount,
-    currency: currency as "HTG" | "USD",
-    description: `KadoLakay - ${orderNumber}`,
-    returnUrl: `${baseUrl}/r/${registrySlug}?order=${orderNumber}&status=success`,
-    cancelUrl: `${baseUrl}/r/${registrySlug}?order=${orderNumber}&status=cancelled`,
-  });
-
-  await db.payment.create({
-    data: {
-      orderId: order.id,
-      provider: data.paymentProvider.toUpperCase() as "STRIPE" | "PAYPAL" | "MONCASH" | "NATCASH",
-      currency,
-      amountHTG: totalHTG > 0 ? totalHTG : null,
-      amountUSD: totalUSD > 0 ? totalUSD : null,
-      stripePaymentId:
-        data.paymentProvider === "stripe"
-          ? paymentResult.providerRef
-          : null,
-      paypalOrderId:
-        data.paymentProvider === "paypal"
-          ? paymentResult.providerRef
-          : null,
-      moncashTxId:
-        data.paymentProvider === "moncash"
-          ? paymentResult.providerRef
-          : null,
-    },
-  });
-
-  return {
-    orderId: order.id,
-    orderNumber,
-    redirectUrl: paymentResult.redirectUrl,
-    clientSecret: paymentResult.clientSecret,
-  };
 }
 
+// External purchases are owner-confirmed, never anonymous client assertions.
 export async function confirmExternalPurchase(registryItemId: string) {
-  const item = await db.registryItem.findUnique({
-    where: { id: registryItemId },
-    include: { registry: { select: { slug: true } } },
+  const session = await auth();
+  if (!session?.user?.id) return { error: "UNAUTHORIZED" };
+  if (typeof registryItemId !== "string" || registryItemId.length > 100) return { error: "INVALID_INPUT" };
+  const item = await db.registryItem.findFirst({
+    where: { id: registryItemId, registry: { userId: session.user.id }, source: { in: ["AMAZON", "EXTERNAL"] } },
+    select: { registry: { select: { slug: true } } },
   });
-
-  if (!item) throw new Error("Item not found");
-
-  await db.registryItem.update({
-    where: { id: registryItemId },
-    data: {
-      fulfilledQty: { increment: 1 },
-      status:
-        item.fulfilledQty + 1 >= item.quantity
-          ? "FULFILLED"
-          : "PARTIALLY_FULFILLED",
-    },
-  });
-
-  revalidatePath(`/r/${item.registry.slug}`);
+  if (!item) return { error: "ITEM_UNAVAILABLE" };
+  const count = await db.$executeRaw`
+    UPDATE registry_items SET "fulfilledQty" = "fulfilledQty" + 1,
+      status = CASE WHEN "fulfilledQty" + 1 = quantity THEN 'FULFILLED'::"ItemStatus" ELSE 'PARTIALLY_FULFILLED'::"ItemStatus" END,
+      "updatedAt" = NOW()
+    WHERE id = ${registryItemId} AND "fulfilledQty" + "reservedQty" < quantity
+  `;
+  if (!count) return { error: "ITEM_UNAVAILABLE" };
+  revalidatePath(`/r/${item.registry.slug}`, "page");
+  return { success: true };
 }

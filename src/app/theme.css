@@ -1,0 +1,111 @@
+/* Semantic roles shared by public, account and transaction screens. */
+:root {
+  color-scheme: light;
+  --brand-canvas: hsl(166.2 76.5% 96.7%);
+  --brand-surface: #fcfefd;
+  --brand-surface-muted: #eaf3ef;
+  --brand-secondary: #34564a;
+  --brand-line-strong: #6a8a7c;
+  --brand-action: var(--brand-accent);
+  --brand-action-hover: hsl(170.6 76.9% 56%);
+  --brand-on-action: #102e29;
+  --brand-success: #176b43;
+  --brand-success-surface: #e5f4ea;
+  --brand-warning: #83450c;
+  --brand-warning-surface: #fff2d8;
+  --brand-error: #a52d26;
+  --brand-error-surface: #fcebe8;
+  --brand-info: #086858;
+  --brand-info-surface: #e3f5ef;
+}
+html[data-theme=dark] {
+  color-scheme: dark;
+  --brand-canvas: #0b1d19;
+  --brand-surface: #112b25;
+  --brand-surface-muted: #193b31;
+  --brand-ink: #e8f4ee;
+  --brand-secondary: #ccdfd5;
+  --brand-muted: #a5bfb2;
+  --brand-line: #345b4c;
+  --brand-line-strong: #6e9783;
+  --brand-ocean: var(--brand-accent);
+  --brand-sand: #18372d;
+  --brand-success: #83dca6;
+  --brand-success-surface: #15372d;
+  --brand-warning: #f1c488;
+  --brand-warning-surface: #3b2d19;
+  --brand-error: #ffb4ac;
+  --brand-error-surface: #43231f;
+  --brand-info: var(--brand-accent);
+  --brand-info-surface: #163a30;
+}
+@media(prefers-color-scheme:dark) {
+  html[data-theme=system] {
+    color-scheme: dark;
+    --brand-canvas: #0b1d19;
+    --brand-surface: #112b25;
+    --brand-surface-muted: #193b31;
+    --brand-ink: #e8f4ee;
+    --brand-secondary: #ccdfd5;
+    --brand-muted: #a5bfb2;
+    --brand-line: #345b4c;
+    --brand-line-strong: #6e9783;
+    --brand-ocean: var(--brand-accent);
+    --brand-sand: #18372d;
+    --brand-success: #83dca6;
+    --brand-success-surface: #15372d;
+    --brand-warning: #f1c488;
+    --brand-warning-surface: #3b2d19;
+    --brand-error: #ffb4ac;
+    --brand-error-surface: #43231f;
+    --brand-info: var(--brand-accent);
+    --brand-info-surface: #163a30;
+  }
+}
+/* Legacy utility roles adapt without inverting photos, QR codes or payment logos. */
+:is(.text-gray-900,.text-gray-800,.text-slate-900,.text-slate-800) { color: var(--brand-ink); }
+:is(.text-gray-700,.text-slate-700) { color: var(--brand-secondary); }
+:is(.text-gray-600,.text-gray-500,.text-gray-400,.text-slate-600,.text-slate-500,.text-slate-400) { color: var(--brand-muted); }
+:is(.bg-gray-50,.bg-gray-100,.bg-gray-200,.bg-slate-50,.bg-slate-100) { background-color: var(--brand-surface-muted); }
+:is(.border-gray-100,.border-gray-200,.border-slate-200) { border-color: var(--brand-line); }
+:is(.border-gray-300,.border-gray-400,.border-slate-300,.border-slate-400) { border-color: var(--brand-line-strong); }
+:is(.hover\:bg-gray-50,.hover\:bg-gray-100,.hover\:bg-gray-200):hover { background-color: var(--brand-surface-muted); }
+:is(.bg-green-100,.bg-emerald-50,.bg-emerald-100) { background-color: var(--brand-success-surface); }
+:is(.text-green-600,.text-green-700,.text-green-800,.text-emerald-700,.text-emerald-800,.text-emerald-900,.text-emerald-950) { color: var(--brand-success); }
+:is(.border-emerald-200) { border-color: var(--brand-success); }
+:is(.bg-yellow-50,.bg-yellow-100,.bg-amber-50) { background-color: var(--brand-warning-surface); }
+:is(.text-yellow-700,.text-yellow-800,.text-amber-600,.text-amber-700,.text-amber-800,.text-amber-900,.text-amber-950) { color: var(--brand-warning); }
+:is(.border-yellow-200,.border-amber-100,.border-amber-200) { border-color: var(--brand-warning); }
+:is(.bg-red-50,.bg-red-100) { background-color: var(--brand-error-surface); }
+:is(.text-red-500,.text-red-600,.text-red-700,.text-red-800,.text-red-900) { color: var(--brand-error); }
+.border-red-200 { border-color: var(--brand-error); }
+:is(.bg-blue-50,.bg-blue-100) { background-color: var(--brand-info-surface); }
+:is(.text-blue-500,.text-blue-600,.text-blue-700) { color: var(--brand-info); }
+dialog { background: var(--brand-surface); color: var(--brand-ink); }
+:focus-visible { outline-color: var(--brand-ocean); }
+::selection { background: var(--brand-action); color: var(--brand-on-action); }
+.skip-link { background: var(--brand-action); color: var(--brand-on-action); }
+.theme-switcher { position: relative; }
+.theme-trigger { display: inline-flex; gap: 10px; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; border-radius: 50%; color: var(--brand-ink); background: transparent; cursor: pointer; }
+.theme-trigger:hover,.theme-trigger[aria-checked="true"] { background: var(--brand-surface-muted); }
+.theme-trigger:focus-visible { outline: 2px solid var(--brand-ocean); outline-offset: 2px; }
+.theme-save-status { position: absolute; top: 100%; right: 0; margin-top: 8px; width: 250px; padding: 12px; background: var(--brand-surface); border: 1px solid var(--brand-line); font-size: 12px; line-height: 1.6; }
+.mobile-theme { padding-top: 16px; }
+.mobile-theme .theme-trigger { padding-inline: 12px; border-radius: 12px; }
+@media(max-width:1000px) { .desktop-theme { display: none; } }
+@keyframes theme-wipe { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0); } }
+html[data-theme-transition]::view-transition-old(root) { animation: none; mix-blend-mode: normal; }
+html[data-theme-transition]::view-transition-new(root) { animation: theme-wipe 450ms ease-in-out both; mix-blend-mode: normal; }
+@media(prefers-reduced-motion:reduce) { html[data-theme-transition]::view-transition-new(root) { animation: none; } }
+
+
+/* Viewport-sized decorative canvas; page controls keep their normal hit targets. */
+body { isolation: isolate; }
+.app-gravity-background { position: fixed; inset: 0; width: 100%; height: 100dvh; z-index: -1; pointer-events: none; color: var(--brand-ocean); contain: strict; }
+.background-motion-control { position: fixed; right: 14px; bottom: 14px; z-index: 40; display: grid; place-items: center; width: 44px; height: 44px; border: 1px solid var(--brand-line-strong); border-radius: 50%; background: var(--brand-surface); color: var(--brand-ocean); cursor: pointer; }
+.background-motion-control:hover { background: var(--brand-surface-muted); }
+.site-footer { padding-right: 72px; }
+@media(prefers-reduced-motion:reduce) { .background-motion-control { display: none; } }
+
+/* Owner-selected Fraunces / Figtree pairing; identity and controls retain body type. */
+h1,h2,h3 { font-family: var(--font-display), Georgia, serif; font-optical-sizing: auto; }

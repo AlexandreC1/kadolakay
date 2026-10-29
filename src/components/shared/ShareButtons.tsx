@@ -12,6 +12,7 @@ interface ShareButtonsProps {
 export function ShareButtons({ url, title }: ShareButtonsProps) {
   const t = useTranslations("share");
   const [copied, setCopied] = useState(false);
+  const [copyFailed, setCopyFailed] = useState(false);
 
   const shareText = t("shareText", { url });
 
@@ -59,13 +60,18 @@ export function ShareButtons({ url, title }: ShareButtonsProps) {
   ];
 
   async function handleCopyLink() {
-    await navigator.clipboard.writeText(url);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    setCopyFailed(false);
+    try {
+      if (!navigator.clipboard?.writeText) throw new Error("CLIPBOARD_UNAVAILABLE");
+      await navigator.clipboard.writeText(url);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch { setCopied(false); setCopyFailed(true); }
   }
 
   return (
     <div className="space-y-3">
+      {copyFailed && <div role="alert" className="text-sm"><p>{t("copyFailed")}</p><input className="mt-2 w-full rounded border p-2" aria-label={t("copyLink")} readOnly value={url} onFocus={event => event.currentTarget.select()} /></div>}
       <div className="grid grid-cols-2 gap-2">
         {shareTargets.map((target) => (
           <a

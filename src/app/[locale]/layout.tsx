@@ -2,17 +2,22 @@ import { NextIntlClientProvider, hasLocale } from "next-intl";
 import { getMessages } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { routing } from "@/i18n/routing";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Figtree, Fraunces } from "next/font/google";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
+import { cookies } from "next/headers";
+import { parseTheme, themeCookie } from "@/lib/theme";
+import { ThemeProvider } from "@/components/theme/ThemeProvider";
+import { AppBackground } from "@/components/theme/AppBackground";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const bodyFont = Figtree({
+  variable: "--font-manrope",
   subsets: ["latin"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const displayFont = Fraunces({
+  variable: "--font-display",
+  style: ["normal", "italic"],
   subsets: ["latin"],
 });
 
@@ -30,17 +35,22 @@ export default async function LocaleLayout({
   }
 
   const messages = await getMessages();
+  const initialTheme = parseTheme((await cookies()).get(themeCookie)?.value);
 
   return (
     <html
       lang={locale}
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      data-theme={initialTheme}
+      className={`${bodyFont.variable} ${displayFont.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-white text-gray-900">
+      <body className="min-h-full flex flex-col">
         <NextIntlClientProvider messages={messages}>
-          <Header />
-          <main className="flex-1">{children}</main>
+          <ThemeProvider initialTheme={initialTheme}>
+          <a href="#main-content" className="skip-link">{locale === "ht" ? "Ale nan kontni an" : locale === "fr" ? "Aller au contenu" : "Skip to content"}</a><Header />
+          <main id="main-content" className="flex-1">{children}</main>
           <Footer />
+          <AppBackground />
+          </ThemeProvider>
         </NextIntlClientProvider>
       </body>
     </html>

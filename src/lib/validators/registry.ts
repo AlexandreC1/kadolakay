@@ -1,32 +1,21 @@
 import { z } from "zod";
-
-export const createRegistrySchema = z.object({
-  type: z.enum(["BABY_SHOWER", "WEDDING", "BIRTHDAY"]),
-  title: z.string().min(2).max(100),
-  description: z.string().max(2000).optional(),
-  eventDate: z.string().optional(),
-  locale: z.enum(["ht", "fr", "en"]).default("ht"),
-  isPublic: z.boolean().default(true),
-  amazonWishlistUrl: z.string().url().optional().or(z.literal("")),
+import { moneyPrice, optionalWebUrl } from "./shared";
+import { occasionTypes } from "@/lib/occasions";
+const dateField = z.string().refine(v => !v || /^\d{4}-\d{2}-\d{2}$/.test(v) && !Number.isNaN(Date.parse(v)) && new Date(v).toISOString().slice(0,10) === v, "Choose a valid date").optional();
+export const createRegistrySchema = z.strictObject({
+  type: z.enum(occasionTypes), title: z.string().trim().min(2).max(100),
+  description: z.string().max(2000).optional(), eventDate: dateField,
+  locale: z.enum(["ht", "fr", "en"]).default("ht"), isPublic: z.boolean().default(true),
+  amazonWishlistUrl: optionalWebUrl,
 });
-
 export const updateRegistrySchema = createRegistrySchema.partial();
-
-export const addItemSchema = z.object({
-  title: z.string().min(1).max(200),
-  description: z.string().max(1000).optional(),
-  priceHTG: z.number().positive().optional(),
-  priceUSD: z.number().positive().optional(),
-  quantity: z.number().int().positive().default(1),
-  source: z.enum(["CUSTOM", "LOCAL_BUSINESS", "AMAZON", "EXTERNAL"]),
-  externalUrl: z.string().url().optional().or(z.literal("")),
-  businessId: z.string().optional(),
-  productId: z.string().optional(),
-  imageUrl: z.string().optional(),
+export const addItemSchema = z.strictObject({
+  title: z.string().trim().min(1).max(200), description: z.string().max(1000).optional(),
+  priceHTG: moneyPrice.optional(), priceUSD: moneyPrice.optional(), quantity: z.number().int().min(1).max(1000).default(1),
+  source: z.enum(["CUSTOM", "LOCAL_BUSINESS", "AMAZON", "EXTERNAL"]), externalUrl: optionalWebUrl,
+  businessId: z.string().min(1).max(100).optional(), productId: z.string().min(1).max(100).optional(), imageUrl: optionalWebUrl,
 });
-
-export const updateItemSchema = addItemSchema.partial();
-
+export const updateItemSchema = addItemSchema.omit({ source: true, businessId: true, productId: true }).partial();
 export type CreateRegistryInput = z.infer<typeof createRegistrySchema>;
 export type UpdateRegistryInput = z.infer<typeof updateRegistrySchema>;
 export type AddItemInput = z.infer<typeof addItemSchema>;

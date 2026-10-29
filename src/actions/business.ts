@@ -1,107 +1,42 @@
 "use server";
-
-import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
-import { generateUniqueSlug } from "@/lib/slug";
-import { registerBusinessSchema, addProductSchema } from "@/lib/validators/business";
-import { revalidatePath } from "next/cache";
+import { requireActor } from "@/services/authorization";
+import { addProductSchema, editProductSchema, registerBusinessSchema } from "@/lib/validators/business";
+import { parseFormFields } from "@/lib/validators/shared";
+import { addOwnedProduct, editOwnedProduct, registerOwnedBusiness } from "@/services/business";
+import { listApprovedBusinesses } from "@/services/catalog";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { redirect } from "next/navigation";
 
+function refreshCatalog() {
+  revalidateTag("public-catalog", { expire: 0 });
+  revalidatePath("/", "layout");
+}
 export async function registerBusiness(formData: FormData) {
-  const session = await auth();
-  if (!session?.user?.id) {
-    throw new Error("Unauthorized");
-  }
-
-  // Check if user already has a business
-  const existing = await db.business.findUnique({
-    where: { ownerId: session.user.id },
-  });
-
-  if (existing) {
-    throw new Error("You already have a registered business");
-  }
-
-  const raw = {
-    name: formData.get("name") as string,
-    description: (formData.get("description") as string) || undefined,
-    category: formData.get("category") as string,
-    city: (formData.get("city") as string) || undefined,
-    department: (formData.get("department") as string) || undefined,
-    address: (formData.get("address") as string) || undefined,
-    phone: (formData.get("phone") as string) || undefined,
-    whatsapp: (formData.get("whatsapp") as string) || undefined,
-    email: (formData.get("email") as string) || undefined,
-    website: (formData.get("website") as string) || undefined,
-    moncashNumber: (formData.get("moncashNumber") as string) || undefined,
-    natcashNumber: (formData.get("natcashNumber") as string) || undefined,
-  };
-
-  const data = registerBusinessSchema.parse(raw);
-  const slug = await generateUniqueSlug(data.name, "business");
-
-  await db.business.create({
-    data: {
-      ...data,
-      slug,
-      ownerId: session.user.id,
-    },
-  });
-
-  // Update user role
-  await db.user.update({
-    where: { id: session.user.id },
-    data: { role: "BUSINESS_OWNER" },
-  });
-
-  revalidatePath("/business/dashboard");
+  const actor = await requireActor("business:register");
+  const raw = parseFormFields(formData, ["name", "description", "category", "patenteNumber", "city", "department", "address", "phone", "whatsapp", "email", "website", "moncashNumber", "natcashNumber"]);
+  const parsed = registerBusinessSchema.safeParse(raw);
+  if (!parsed.success) throw new Error("Check your business details and try again");
+  await registerOwnedBusiness(actor.id, parsed.data);
+  revalidatePath("/", "layout");
   redirect("/business/dashboard");
 }
-
+function productValues(formData: FormData, edit = false) {
+  const raw = parseFormFields(formData, ["name", "description", "priceHTG", "priceUSD", "category", "imageUrl", ...(edit ? ["inStock"] : [])]);
+  if (edit && raw.inStock !== "true" && raw.inStock !== "false") throw new Error("Choose product availability");
+  return { ...raw, priceHTG: raw.priceHTG ? Number(raw.priceHTG) : undefined, priceUSD: raw.priceUSD ? Number(raw.priceUSD) : undefined, ...(edit ? { inStock: raw.inStock === "true" } : {}) };
+}
 export async function addProduct(formData: FormData) {
-  const session = await auth();
-  if (!session?.user?.id) {
-    throw new Error("Unauthorized");
-  }
-
-  const business = await db.business.findUnique({
-    where: { ownerId: session.user.id },
-  });
-
-  if (!business) {
-    throw new Error("No business found");
-  }
-
-  const raw = {
-    name: formData.get("name") as string,
-    description: (formData.get("description") as string) || undefined,
-    priceHTG: formData.get("priceHTG") ? Number(formData.get("priceHTG")) : undefined,
-    priceUSD: formData.get("priceUSD") ? Number(formData.get("priceUSD")) : undefined,
-    category: (formData.get("category") as string) || undefined,
-    imageUrl: (formData.get("imageUrl") as string) || undefined,
-  };
-
-  const data = addProductSchema.parse(raw);
-
-  await db.product.create({
-    data: {
-      ...data,
-      businessId: business.id,
-    },
-  });
-
-  revalidatePath("/business/products");
+  const actor = await requireActor("product:add");
+  const parsed = addProductSchema.safeParse(productValues(formData));
+  if (!parsed.success) throw new Error("Check the product details and add a price");
+  await addOwnedProduct(actor.id, parsed.data);
+  refreshCatalog();
 }
-
-export async function getApprovedBusinesses() {
-  return db.business.findMany({
-    where: { status: "APPROVED" },
-    include: {
-      products: {
-        where: { inStock: true },
-        take: 4,
-      },
-    },
-    orderBy: { name: "asc" },
-  });
+export async function editProduct(productId: string, formData: FormData) {
+  const actor = await requireActor("product:edit");
+  const parsed = editProductSchema.safeParse(productValues(formData, true));
+  if (!parsed.success) throw new Error("Check the product details and add a price");
+  await editOwnedProduct(actor.id, productId, parsed.data);
+  refreshCatalog();
 }
+export async function getApprovedBusinesses() { return listApprovedBusinesses(); }

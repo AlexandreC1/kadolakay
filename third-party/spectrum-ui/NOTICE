@@ -1,0 +1,5 @@
+Spectrum UI Login Card by arihantcodes
+Source: https://github.com/arihantcodes/spectrum-ui/blob/5b1355bb03e7e2c136204549bef083b0a6f76cc6/app/registry/login-card/logincard.tsx
+License: Apache-2.0 (full LICENSE in this directory).
+Modified for KadoLakay October28,2026: semantic colors, localized accessible forms, actual Auth.js providers, pending/error controls, reduced-motion CSS instead of Framer Motion, responsive integration. Twitter/Apple placeholders replaced with configured Google/Microsoft/GitHub. No source access gate bypassed; source is in public upstream repository.
+Files: src/app/[locale]/(auth)/login/LoginForm.tsx and login.css.

@@ -1,0 +1,20 @@
+.carousel-demo { background: #082e4d; color: #fff4df; padding: clamp(28px, 3vw, 40px) 0 28px; overflow: hidden; }
+.carousel-demo-heading, .carousel-demo-controls, .carousel-demo-credit, .carousel-demo-keys { width: min(1160px, calc(100% - 48px)); margin-inline: auto; }
+.carousel-demo-heading { display: flex; align-items: end; justify-content: space-between; gap: 32px; }
+.carousel-demo-label { color: #ffab92; font-size: 12px; letter-spacing: .14em; text-transform: uppercase; margin-bottom: 14px; }
+.carousel-demo h1 { font-family: var(--font-manrope), sans-serif; font-size: clamp(38px, 5.6vw, 76px); font-weight: 600; letter-spacing: -.055em; line-height: 1.07; }
+.carousel-demo-description { max-width: 290px; font-size: 15px; line-height: 1.65; color: #d0dfe7; }
+.carousel-demo-gallery { height: clamp(350px, 31vw, 400px); margin-top: 12px; }
+.carousel-demo-loading { height: 100%; display: grid; place-items: center; color: #d0dfe7; }
+.carousel-demo-controls { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+.carousel-demo-modes { display: flex; padding: 5px; border: 1px solid #668398; border-radius: 99px; gap: 4px; }
+.carousel-demo button { min-height: 44px; padding: 10px 22px; border-radius: 99px; font-size: 14px; cursor: pointer; transition: background .18s, color .18s; }
+.carousel-demo button[aria-pressed=true] { background: #fff4df; color: #082e4d; }
+.carousel-demo button:hover { background: #264c66; color: #fff4df; }
+.carousel-demo button:focus-visible, .carousel-demo a:focus-visible { outline: 3px solid #ffab92; outline-offset: 4px; }
+.carousel-demo-pause { border: 1px solid #668398; }
+.carousel-demo-keys { color: #b7ccd9; font-size: 12px; margin-top: 18px; }
+.carousel-demo-credit { border-top: 1px solid #41637c; margin-top: 30px; padding-top: 18px; display: flex; justify-content: space-between; gap: 24px; font-size: 12px; line-height: 1.7; color: #b7ccd9; }
+.carousel-demo-credit a { white-space: nowrap; text-decoration: underline; text-underline-offset: 4px; }
+@media (max-width: 640px) { .carousel-demo-heading { display: block; } .carousel-demo-description { margin-top: 16px; max-width: 320px; } .carousel-demo-gallery { height: 390px; } .carousel-demo-credit { flex-direction: column; gap: 10px; } .carousel-demo button { padding-inline: 16px; } }
+@media (prefers-reduced-motion: reduce) { .carousel-demo button { transition: none; } }

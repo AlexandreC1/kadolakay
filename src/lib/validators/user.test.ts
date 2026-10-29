@@ -23,8 +23,7 @@ describe("updateProfileSchema", () => {
     expect(updateProfileSchema.safeParse({ name: "a".repeat(101) }).success).toBe(false);
   });
 
-  it("drops fields it does not know", () => {
-    const result = updateProfileSchema.parse({ name: "Marie", role: "ADMIN" });
-    expect(result).not.toHaveProperty("role");
+  it("rejects fields it does not know", () => {
+    expect(updateProfileSchema.safeParse({ name: "Marie", role: "ADMIN" }).success).toBe(false);
   });
 });

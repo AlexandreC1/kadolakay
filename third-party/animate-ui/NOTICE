@@ -1,0 +1,7 @@
+Animate UI Gravity Stars Background
+Copyright (c) 2025 Elliot Sutton
+Source: https://github.com/imskyleen/animate-ui/blob/20fcddbdc0a53c9d174ed0c1dc9c298e8cdce8b9/apps/v2/registry/backgrounds/gravity-stars/index.tsx
+Initial Framer concept credited upstream to Brett Jackson.
+License: MIT + Commons Clause, retained in LICENSE.md.
+Adapted for use inside KadoLakay, not redistributed as a component library.
+Modifications: native React visibility/reduced-motion hooks instead of Motion imports, passive viewport pointer events, pause control, fixed 60Hz simulation, 32/70 particle caps and 2.5M-pixel backing-store target. Original gravity, glow and drawing equations retained. No pointer interception or touch scroll prevention.

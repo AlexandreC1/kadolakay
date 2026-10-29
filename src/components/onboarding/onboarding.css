@@ -1,0 +1,51 @@
+.onboarding-page { width: min(1100px, calc(100% - 40px)); margin: 0 auto; padding: 52px 0 72px; min-height: 70svh; }
+.onboarding-steps { display: flex; align-items: center; justify-content: center; gap: 12px; color: var(--brand-muted); font-size: .8rem; margin: 0 0 38px; }
+.onboarding-step-line { width: 54px; height: 3px; background: var(--brand-line); border-radius: 9px; }
+.onboarding-step-line.is-current { background: var(--brand-ocean); }
+.onboarding-profile { max-width: 460px; margin: 0 auto; padding: 32px 36px; border: 1px solid var(--brand-line); border-radius: 26px; background: var(--brand-surface); box-shadow: 0 12px 40px #102e2907; }
+.onboarding-profile h1 { font-size: clamp(2rem, 4vw, 2.8rem); line-height: 1.15; letter-spacing: -.035em; margin: 0 0 12px; color: var(--brand-ink); }
+.onboarding-profile > p { color: var(--brand-secondary); line-height: 1.6; margin-bottom: 30px; }
+.onboarding-profile label { display: block; font-weight: 600; font-size: .9rem; margin-bottom: 8px; color: var(--brand-ink); }
+.onboarding-profile input, .onboarding-profile select { width: 100%; padding: 12px 16px; min-height: 48px; border: 1px solid var(--brand-line-strong); border-radius: 14px; background: var(--brand-surface); color: var(--brand-ink); font: inherit; }
+.onboarding-field { margin-bottom: 24px; }
+.onboarding-hint { font-size: .78rem; line-height: 1.6; margin-top: 8px; color: var(--brand-muted); }
+.onboarding-continue { width: 100%; min-height: 50px; background: var(--brand-action); color: var(--brand-on-action); font-weight: 600; border: 0; border-radius: 30px; padding: 12px 20px; cursor: pointer; }
+.onboarding-continue:hover { background: var(--brand-action-hover); }
+.onboarding-skip, .onboarding-back { border: 0; background: transparent; color: var(--brand-secondary); cursor: pointer; font: inherit; min-height: 44px; padding: 10px 16px; border-radius: 28px; }
+.onboarding-skip:hover, .onboarding-back:hover { background: var(--brand-surface-muted); color: var(--brand-ink); }
+.onboarding-profile .onboarding-skip { display: block; margin: 12px auto 0; }
+.onboarding-back { display: block; margin-bottom: 12px; font-size: .85rem; }
+.occasion-picker { max-width: 1060px; margin: 0 auto; text-align: center; padding: 34px 0 20px; }
+.occasion-picker h1 { font-size: clamp(2.35rem, 5vw, 3.65rem); color: var(--brand-ink); line-height: 1.12; letter-spacing: -.035em; text-wrap: balance; margin: 0; }
+.occasion-intro { margin: 18px auto 0; color: var(--brand-secondary); font-size: 1.05rem; line-height: 1.6; max-width: 42ch; text-wrap: balance; }
+.occasion-options { display: flex; flex-wrap: wrap; justify-content: center; gap: 14px; max-width: 1020px; margin: 52px auto 0; }
+.occasion-chip { display: inline-flex; align-items: center; justify-content: center; gap: 12px; min-height: 56px; padding: 13px 28px; border: 1px solid var(--brand-line-strong); border-radius: 999px; background: var(--brand-surface); color: var(--brand-ink); font: inherit; font-size: 1.03rem; font-weight: 500; cursor: pointer; transition: background 160ms ease, border-color 160ms ease, transform 160ms ease; }
+.occasion-chip svg { color: var(--brand-ocean); flex-shrink: 0; }
+.occasion-chip:hover { background: var(--brand-info-surface); border-color: var(--brand-ocean); transform: translateY(-2px); }
+.occasion-chip[aria-pressed=true] { background: var(--brand-action); border-color: var(--brand-ocean); color: var(--brand-on-action); }
+.occasion-chip[aria-pressed=true] svg { color: currentColor; }
+.occasion-picker > .onboarding-skip { margin-top: 38px; }
+.onboarding-error { max-width: 580px; padding: 14px 18px; border-radius: 12px; margin: 20px auto; color: var(--brand-error); background: var(--brand-error-surface); line-height: 1.6; }
+.onboarding-error a { text-decoration: underline; display: inline-block; margin-left: 8px; }
+.onboarding-announcement { min-height: 24px; margin-top: 10px; font-size: .85rem; color: var(--brand-muted); }
+.onboarding-page button:disabled { opacity: .65; cursor: wait; transform: none; }
+.onboarding-page :is(button, input, select, a):focus-visible, .occasion-chip:focus-visible { outline: 2px solid var(--brand-ocean); outline-offset: 4px; }
+.create-wishlist-shell { width: min(1060px, calc(100% - 40px)); margin: 0 auto; padding: 46px 0 72px; min-height: 70svh; }
+.create-wishlist-details { max-width: 590px; margin: 0 auto; }
+.create-wishlist-details h1 { color: var(--brand-ink); font-size: clamp(2rem, 4vw, 2.7rem); line-height: 1.2; margin: 12px 0; }
+.create-wishlist-details > p { color: var(--brand-secondary); line-height: 1.6; }
+.create-occasion-summary { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; font-size: .85rem; color: var(--brand-ocean); }
+.create-occasion-summary button { background: none; border: none; text-decoration: underline; min-height: 44px; padding: 8px; cursor: pointer; color: var(--brand-secondary); }
+.create-wishlist-privacy { padding: 14px 18px; background: var(--brand-surface-muted); border-radius: 12px; font-size: .85rem; color: var(--brand-secondary); line-height: 1.6; }
+@keyframes onboarding-spin { to { transform: rotate(360deg); } }
+.onboarding-spinner { animation: onboarding-spin 1s linear infinite; }
+@media(max-width:600px) {
+  .onboarding-page { padding-top: 30px; width: calc(100% - 32px); }
+  .onboarding-profile { padding: 24px 22px; border-radius: 22px; }
+  .occasion-picker { padding-top: 20px; }
+  .occasion-options { gap: 10px; margin-top: 32px; }
+  .occasion-chip { font-size: .9rem; gap: 9px; padding: 12px 18px; min-height: 50px; }
+  .occasion-picker > .onboarding-skip { margin-top: 24px; }
+  .create-wishlist-shell { width: calc(100% - 32px); padding-top: 24px; }
+}
+@media(prefers-reduced-motion:reduce) { .occasion-chip { transition: none; } .occasion-chip:hover { transform: none; } .onboarding-spinner { animation: none; } }

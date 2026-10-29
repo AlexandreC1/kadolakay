@@ -39,6 +39,7 @@ export default async function AdminBusinessesPage() {
           name: b.name,
           slug: b.slug,
           category: b.category,
+          patenteNumber: b.patenteNumber,
           city: b.city,
           status: b.status,
           ownerName: b.owner.name,

@@ -1,6 +1,9 @@
 "use client";
 
+import { useSafeMutation, MutationFeedback } from "@/components/shared/useSafeMutation";
+
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { updateBusinessStatus } from "./actions";
@@ -10,6 +13,7 @@ interface Business {
   name: string;
   slug: string;
   category: string;
+  patenteNumber: string | null;
   city: string | null;
   status: string;
   ownerName: string | null;
@@ -30,20 +34,15 @@ export function AdminBusinessList({
   businesses: Business[];
 }) {
   const [items, setItems] = useState(businesses);
-  const [loading, setLoading] = useState<string | null>(null);
+  const { pending: loading, status, run } = useSafeMutation();
 
   async function handleAction(
     businessId: string,
     newStatus: "APPROVED" | "SUSPENDED"
   ) {
-    setLoading(businessId);
-    await updateBusinessStatus(businessId, newStatus);
-    setItems((prev) =>
-      prev.map((b) =>
-        b.id === businessId ? { ...b, status: newStatus } : b
-      )
-    );
-    setLoading(null);
+    if (await run(() => updateBusinessStatus(businessId, newStatus))) {
+      setItems((prev) => prev.map((b) => b.id === businessId ? { ...b, status: newStatus } : b));
+    }
   }
 
   const pending = items.filter((b) => b.status === "PENDING_REVIEW");
@@ -52,6 +51,7 @@ export function AdminBusinessList({
 
   return (
     <div className="space-y-8">
+      <MutationFeedback status={status} />
       {/* Pending */}
       {pending.length > 0 && (
         <div>
@@ -63,7 +63,7 @@ export function AdminBusinessList({
               <BusinessCard
                 key={biz.id}
                 business={biz}
-                loading={loading === biz.id}
+                loading={loading}
                 onApprove={() => handleAction(biz.id, "APPROVED")}
                 onSuspend={() => handleAction(biz.id, "SUSPENDED")}
               />
@@ -83,7 +83,7 @@ export function AdminBusinessList({
               <BusinessCard
                 key={biz.id}
                 business={biz}
-                loading={loading === biz.id}
+                loading={loading}
                 onSuspend={() => handleAction(biz.id, "SUSPENDED")}
               />
             ))}
@@ -102,7 +102,7 @@ export function AdminBusinessList({
               <BusinessCard
                 key={biz.id}
                 business={biz}
-                loading={loading === biz.id}
+                loading={loading}
                 onApprove={() => handleAction(biz.id, "APPROVED")}
               />
             ))}
@@ -130,6 +130,7 @@ function BusinessCard({
   onApprove?: () => void;
   onSuspend?: () => void;
 }) {
+  const t = useTranslations("business");
   return (
     <Card>
       <CardContent className="p-4">
@@ -153,6 +154,7 @@ function BusinessCard({
               Owner: {business.ownerName || business.ownerEmail} |{" "}
               {new Date(business.createdAt).toLocaleDateString()}
             </p>
+            <p className="text-sm text-[var(--brand-secondary)] mt-2 break-words">{t("patenteNumber")}: {business.patenteNumber || t("notProvided")}</p>
           </div>
 
           <div className="flex gap-2 shrink-0">

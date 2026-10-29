@@ -1,0 +1,1 @@
+.footer { border-top: 1px solid var(--brand-line); padding: 22px max(24px, calc((100vw - 1264px) / 2)); color: var(--brand-muted); font-size: 12px; }

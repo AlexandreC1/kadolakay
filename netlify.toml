@@ -1,0 +1,16 @@
+[build]
+  command = "npm run build"
+  publish = ".next"
+
+[build.environment]
+  NODE_VERSION = "24"
+
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+
+[functions."reconcile-payments"]
+  schedule = "17 * * * *"
+
+# Runtime secrets belong in the host environment, never in this file.
+# Free-tier pilot: no auto-recharge, no demo seeds, no automatic production migrations.

@@ -2,10 +2,12 @@ import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { db } from "@/lib/db";
 import { CheckoutForm } from "./CheckoutForm";
+import { stripeCheckoutAvailable } from "@/services/checkout";
+import { supportsNativeCheckout } from "@/services/checkout-policy";
 
 interface PageProps {
   params: Promise<{ slug: string; locale: string }>;
-  searchParams: Promise<{ items?: string }>;
+  searchParams: Promise<{ items?: string; cancelled?: string }>;
 }
 
 export default async function CheckoutPage({
@@ -13,7 +15,7 @@ export default async function CheckoutPage({
   searchParams,
 }: PageProps) {
   const { slug, locale } = await params;
-  const { items: itemIds } = await searchParams;
+  const { items: itemIds, cancelled } = await searchParams;
 
   const registry = await db.registry.findUnique({
     where: { slug },
@@ -32,7 +34,7 @@ export default async function CheckoutPage({
     },
   });
 
-  if (!registry || registry.status !== "PUBLISHED") {
+  if (!registry || registry.status !== "PUBLISHED" || !registry.isPublic || registry.password) {
     notFound();
   }
 
@@ -47,18 +49,20 @@ export default async function CheckoutPage({
 
       <CheckoutForm
         registrySlug={registry.slug}
-        items={registry.items.map((item) => ({
+        items={registry.items.filter(supportsNativeCheckout).map((item) => ({
           id: item.id,
           title: item.title,
           priceHTG: item.priceHTG ? Number(item.priceHTG) : null,
           priceUSD: item.priceUSD ? Number(item.priceUSD) : null,
-          quantity: item.quantity - item.fulfilledQty,
+          quantity: item.quantity - item.fulfilledQty - item.reservedQty,
           source: item.source,
           externalUrl: item.externalUrl,
           imageUrl: item.imageUrl,
           businessName: item.business?.name || null,
         }))}
         locale={locale}
+        paymentAvailable={stripeCheckoutAvailable()}
+        cancelled={cancelled === 'true'}
       />
     </div>
   );

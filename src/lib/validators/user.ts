@@ -10,7 +10,7 @@ const optionalText = (max: number) =>
     .nullable()
     .default(null);
 
-export const updateProfileSchema = z.object({
+export const updateProfileSchema = z.strictObject({
   name: optionalText(100),
   // Digits, spaces, dashes, parentheses and a leading +: covers +509 local
   // numbers and diaspora numbers without guessing at one country's format.

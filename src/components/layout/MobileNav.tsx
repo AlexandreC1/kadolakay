@@ -1,118 +1,44 @@
 "use client";
 
-import { useState } from "react";
-import { useTranslations } from "next-intl";
+import { useEffect, useRef, useState } from "react";
+import { useLocale, useTranslations } from "next-intl";
+import { signOut } from "next-auth/react";
+import { useSafeMutation, MutationFeedback } from "@/components/shared/useSafeMutation";
 import { Link } from "@/i18n/navigation";
+import { catalogCopy } from "@/lib/catalog-copy";
+import { ThemeSwitcher } from "@/components/theme/ThemeSwitcher";
+import { onboardingCopy } from "@/lib/onboarding-copy";
 
-interface MobileNavProps {
-  user?: {
-    name?: string | null;
-    image?: string | null;
-    email?: string | null;
-  };
-}
+interface MobileNavProps { user?: { name?: string | null; image?: string | null; email?: string | null } }
 
 export function MobileNav({ user }: MobileNavProps) {
   const [open, setOpen] = useState(false);
   const t = useTranslations();
-
+  const locale = useLocale();
+  const { pending, status, run } = useSafeMutation();
+  const root = useRef<HTMLDivElement>(null);
+  const trigger = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    function close(event: KeyboardEvent) { if (event.key === "Escape") { setOpen(false); trigger.current?.focus(); } }
+    function outside(event: PointerEvent) { if (!root.current?.contains(event.target as Node)) setOpen(false); }
+    document.addEventListener("keydown", close);
+    document.addEventListener("pointerdown", outside);
+    return () => { document.removeEventListener("keydown", close); document.removeEventListener("pointerdown", outside); };
+  }, [open]);
   return (
-    <div className="md:hidden">
-      <button
-        onClick={() => setOpen(!open)}
-        className="p-2 text-gray-600 hover:text-gray-900"
-        aria-label="Menu"
-      >
-        <svg
-          className="h-6 w-6"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          {open ? (
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M6 18L18 6M6 6l12 12"
-            />
-          ) : (
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M4 6h16M4 12h16M4 18h16"
-            />
-          )}
-        </svg>
+    <div className="mobile-menu" ref={root}>
+      <button ref={trigger} type="button" onClick={() => setOpen(value => !value)} className="mobile-menu-trigger" aria-label={locale === "ht" ? (open ? "Fèmen meni" : "Louvri meni") : locale === "fr" ? (open ? "Fermer le menu" : "Ouvrir le menu") : (open ? "Close menu" : "Open menu")} aria-expanded={open} aria-controls="mobile-navigation">
+        <svg width="23" height="23" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeWidth="1.5" d={open ? "M6 6l12 12M6 18 18 6" : "M4 8h16M4 16h16"} /></svg>
       </button>
-
-      {open && (
-        <div className="absolute top-16 left-0 right-0 bg-white border-b border-gray-200 shadow-lg z-50">
-          <nav className="flex flex-col p-4 space-y-3">
-            <Link
-              href="/create"
-              className="text-sm font-medium text-gray-700 hover:text-blue-700 py-2"
-              onClick={() => setOpen(false)}
-            >
-              {t("nav.createRegistry")}
-            </Link>
-            <Link
-              href="/browse"
-              className="text-sm font-medium text-gray-700 hover:text-blue-700 py-2"
-              onClick={() => setOpen(false)}
-            >
-              {t("nav.businesses")}
-            </Link>
-
-            {user ? (
-              <>
-                <div className="border-t border-gray-100 pt-3" />
-                <Link
-                  href="/dashboard"
-                  className="text-sm font-medium text-gray-700 hover:text-blue-700 py-2"
-                  onClick={() => setOpen(false)}
-                >
-                  {t("nav.dashboard")}
-                </Link>
-                <Link
-                  href="/my-registries"
-                  className="text-sm font-medium text-gray-700 hover:text-blue-700 py-2"
-                  onClick={() => setOpen(false)}
-                >
-                  {t("nav.myRegistries")}
-                </Link>
-                <form action="/api/auth/signout" method="POST">
-                  <button
-                    type="submit"
-                    className="text-sm font-medium text-red-600 hover:text-red-700 py-2"
-                  >
-                    {t("common.signOut")}
-                  </button>
-                </form>
-              </>
-            ) : (
-              <>
-                <div className="border-t border-gray-100 pt-3" />
-                <Link
-                  href="/login"
-                  className="text-sm font-medium text-gray-700 hover:text-blue-700 py-2"
-                  onClick={() => setOpen(false)}
-                >
-                  {t("common.signIn")}
-                </Link>
-                <Link
-                  href="/register"
-                  className="text-sm font-medium bg-blue-700 text-white px-4 py-2 rounded-lg text-center hover:bg-blue-800"
-                  onClick={() => setOpen(false)}
-                >
-                  {t("common.signUp")}
-                </Link>
-              </>
-            )}
-          </nav>
-        </div>
-      )}
+      {open && <nav id="mobile-navigation" className="mobile-navigation" aria-label={t("landing.mainNavigation")}>
+        <Link href="/find" onClick={() => setOpen(false)}>{catalogCopy(locale).find}</Link>
+        <Link href="/create" onClick={() => setOpen(false)}>{t("nav.createRegistry")}</Link>
+        <Link href="/browse" onClick={() => setOpen(false)}>{t("nav.businesses")}</Link>
+        {user && <Link href="/onboarding?review=1" onClick={() => setOpen(false)}>{onboardingCopy(locale).getStarted}</Link>}
+        {user ? <><Link href="/dashboard" onClick={() => setOpen(false)}>{t("nav.dashboard")}</Link><Link href="/my-registries" onClick={() => setOpen(false)}>{t("nav.myRegistries")}</Link><button type="button" disabled={pending} onClick={() => run(() => signOut({ callbackUrl: `/${locale}` }))}>{t("common.signOut")}</button></> : <><Link href="/login" onClick={() => setOpen(false)}>{t("common.signIn")}</Link><Link href="/register" onClick={() => setOpen(false)}>{t("common.signUp")}</Link></>}
+      <div className="mobile-theme"><ThemeSwitcher showLabel /></div>
+      <MutationFeedback status={status} /></nav>}
     </div>
   );
 }

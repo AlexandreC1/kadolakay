@@ -9,8 +9,8 @@ export async function GET(
 ) {
   const { slug } = await params;
 
-  const registry = await db.registry.findUnique({
-    where: { slug },
+  const registry = await db.registry.findFirst({
+    where: { slug, status: "PUBLISHED", isPublic: true, password: null },
     select: {
       title: true,
       type: true,
@@ -139,7 +139,7 @@ export async function GET(
             marginTop: "36px",
           }}
         >
-          Wè rejis la →
+          Wè rejis la
         </div>
       </div>
     ),

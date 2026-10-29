@@ -1,8 +1,11 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
+import { signOut } from "next-auth/react";
+import { useSafeMutation, MutationFeedback } from "@/components/shared/useSafeMutation";
 import { Link } from "@/i18n/navigation";
+import { onboardingCopy } from "@/lib/onboarding-copy";
 
 interface UserMenuProps {
   user: {
@@ -14,7 +17,10 @@ interface UserMenuProps {
 
 export function UserMenu({ user }: UserMenuProps) {
   const t = useTranslations();
+  const locale = useLocale();
+  const mutation = useSafeMutation();
   const [open, setOpen] = useState(false);
+  const [failedImage, setFailedImage] = useState<string | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -31,18 +37,22 @@ export function UserMenu({ user }: UserMenuProps) {
     <div className="relative" ref={menuRef}>
       <button
         onClick={() => setOpen(!open)}
-        aria-label="Menu itilizatè"
+        aria-label={t("auth.accountMenu")}
         aria-expanded={open}
         className="flex items-center gap-2 rounded-full border border-gray-200 p-1 pr-3 hover:bg-gray-50 transition-colors"
       >
-        {user.image ? (
+        {user.image && failedImage !== user.image ? (
           <img
             src={user.image}
-            alt={user.name ? `${user.name}` : "Foto pwofil"}
+            alt=""
+            width={32}
+            height={32}
+            referrerPolicy="no-referrer"
+            onError={() => setFailedImage(user.image || null)}
             className="h-8 w-8 rounded-full object-cover"
           />
         ) : (
-          <div className="h-8 w-8 rounded-full bg-blue-700 flex items-center justify-center text-white text-sm font-medium">
+          <div aria-hidden="true" className="h-8 w-8 rounded-full bg-[var(--brand-action)] flex items-center justify-center text-[var(--brand-on-action)] text-sm font-medium">
             {(user.name || user.email || "U")[0].toUpperCase()}
           </div>
         )}
@@ -52,7 +62,8 @@ export function UserMenu({ user }: UserMenuProps) {
       </button>
 
       {open && (
-        <div className="absolute right-0 mt-2 w-56 rounded-lg border border-gray-200 bg-white shadow-lg py-1 z-50">
+        <div className="absolute right-0 mt-2 w-56 rounded-lg border border-gray-200 bg-[var(--brand-surface)] shadow-lg py-1 z-50">
+          <Link href="/onboarding?review=1" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50" onClick={() => setOpen(false)}>{onboardingCopy(locale).getStarted}</Link>
           <Link
             href="/dashboard"
             className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
@@ -75,14 +86,16 @@ export function UserMenu({ user }: UserMenuProps) {
             {t("nav.orders")}
           </Link>
           <div className="border-t border-gray-100 my-1" />
-          <form action="/api/auth/signout" method="POST">
+          <form action={async () => { await mutation.run(() => signOut({ callbackUrl: `/${locale}` })); }}>
             <button
               type="submit"
+              disabled={mutation.pending}
               className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-50"
             >
               {t("common.signOut")}
             </button>
           </form>
+          <MutationFeedback status={mutation.status} />
         </div>
       )}
     </div>

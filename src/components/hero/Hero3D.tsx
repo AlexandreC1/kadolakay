@@ -1,158 +1,40 @@
 "use client";
 
-/**
- * Hero3D — visual centerpiece for the landing page.
- *
- * Implements a real 3D parallax scene using CSS `perspective` +
- * `transform-style: preserve-3d` and framer-motion springs. We deliberately
- * avoid three.js / @react-three/fiber here: those add ~500 KB of JS and a
- * WebGL context just to render four floating cards, which would tank LCP
- * and battery on the low-end Android phones common in Haiti. CSS 3D ships
- * ~50 KB (framer-motion only), is GPU-accelerated by every browser since
- * 2014, degrades gracefully, and has zero SSR mismatch risk.
- *
- * Mouse position drives a tilt of the entire stage; each layer translates
- * along Z to create real parallax depth. Reduced-motion users get a static
- * arrangement.
- */
+import { useRef, useState, type PointerEvent } from "react";
+import { useTranslations } from "next-intl";
 
-import { useEffect, useRef } from "react";
-import {
-  motion,
-  useMotionValue,
-  useSpring,
-  useTransform,
-  useReducedMotion,
-} from "framer-motion";
-
-const SPRING = { stiffness: 120, damping: 18, mass: 0.6 };
-
-type FloatingCard = {
-  emoji: string;
-  label: string;
-  z: number; // depth in px
-  x: number; // % of stage width
-  y: number; // % of stage height
-  rotate: number;
-  delay: number;
-  hue: string;
-};
-
-const CARDS: FloatingCard[] = [
-  { emoji: "🎁", label: "Kado",        z:  80, x: 50, y: 50, rotate: -6, delay: 0.0, hue: "from-amber-300 to-amber-500" },
-  { emoji: "👶", label: "Baby Shower", z:  40, x: 18, y: 28, rotate: -10, delay: 0.1, hue: "from-pink-300 to-rose-400" },
-  { emoji: "💍", label: "Maryaj",      z:  20, x: 82, y: 30, rotate:  9, delay: 0.2, hue: "from-violet-300 to-purple-400" },
-  { emoji: "🎂", label: "Anivèsè",     z:  60, x: 78, y: 75, rotate:  4, delay: 0.3, hue: "from-sky-300 to-cyan-400" },
-  { emoji: "🇭🇹", label: "MonCash",     z:   0, x: 22, y: 78, rotate: -3, delay: 0.4, hue: "from-emerald-300 to-teal-400" },
-];
-
-export function Hero3D() {
-  const stageRef = useRef<HTMLDivElement>(null);
-  const reduce = useReducedMotion();
-
-  // Raw mouse position normalized to [-0.5, 0.5]
-  const mx = useMotionValue(0);
-  const my = useMotionValue(0);
-
-  // Smooth springs so the tilt eases instead of snapping
-  const sx = useSpring(mx, SPRING);
-  const sy = useSpring(my, SPRING);
-
-  // Stage tilts up to ±12deg
-  const rotateY = useTransform(sx, [-0.5, 0.5], [12, -12]);
-  const rotateX = useTransform(sy, [-0.5, 0.5], [-8, 8]);
-
-  useEffect(() => {
-    if (reduce) return;
-    const el = stageRef.current;
-    if (!el) return;
-
-    const onMove = (e: PointerEvent) => {
-      const r = el.getBoundingClientRect();
-      mx.set((e.clientX - r.left) / r.width - 0.5);
-      my.set((e.clientY - r.top) / r.height - 0.5);
-    };
-    const onLeave = () => {
-      mx.set(0);
-      my.set(0);
-    };
-
-    el.addEventListener("pointermove", onMove);
-    el.addEventListener("pointerleave", onLeave);
-    return () => {
-      el.removeEventListener("pointermove", onMove);
-      el.removeEventListener("pointerleave", onLeave);
-    };
-  }, [mx, my, reduce]);
-
-  return (
-    <div
-      ref={stageRef}
-      className="relative mx-auto aspect-square w-full max-w-md sm:max-w-lg lg:max-w-xl"
-      style={{ perspective: 1200 }}
-      aria-hidden="true"
-    >
-      <motion.div
-        className="absolute inset-0"
-        style={{
-          transformStyle: "preserve-3d",
-          rotateX: reduce ? 0 : rotateX,
-          rotateY: reduce ? 0 : rotateY,
-        }}
-      >
-        {CARDS.map((c) => (
-          <motion.div
-            key={c.label}
-            initial={{ opacity: 0, y: 24, scale: 0.9 }}
-            animate={{
-              opacity: 1,
-              y: [0, -8, 0],
-              scale: 1,
-            }}
-            transition={{
-              opacity: { duration: 0.6, delay: c.delay },
-              scale: { duration: 0.6, delay: c.delay, type: "spring" },
-              y: {
-                duration: 4 + c.delay * 2,
-                repeat: Infinity,
-                ease: "easeInOut",
-                delay: c.delay,
-              },
-            }}
-            className="absolute"
-            style={{
-              left: `${c.x}%`,
-              top: `${c.y}%`,
-              translateX: "-50%",
-              translateY: "-50%",
-              translateZ: c.z,
-              rotate: c.rotate,
-              transformStyle: "preserve-3d",
-            }}
-          >
-            <div
-              className={`relative rounded-2xl bg-gradient-to-br ${c.hue} px-5 py-4 shadow-2xl ring-1 ring-white/30 backdrop-blur-sm`}
-              style={{
-                boxShadow:
-                  "0 25px 50px -12px rgba(0,0,0,0.45), 0 0 0 1px rgba(255,255,255,0.15) inset",
-              }}
-            >
-              <div className="text-4xl sm:text-5xl drop-shadow-md">{c.emoji}</div>
-              <div className="mt-1 text-xs font-semibold tracking-wide text-white/90 uppercase">
-                {c.label}
-              </div>
-            </div>
-          </motion.div>
-        ))}
-
-        {/* Soft floor reflection — anchored deepest in Z so the stack feels grounded. */}
-        <div
-          className="absolute inset-x-10 bottom-2 h-8 rounded-full bg-amber-300/30 blur-2xl"
-          style={{ transform: "translateZ(-100px)" }}
-        />
-      </motion.div>
+export default function Hero3D() {
+  const t = useTranslations("landing");
+  const [open, setOpen] = useState(false);
+  const stage = useRef<HTMLDivElement>(null);
+  function tilt(event: PointerEvent<HTMLDivElement>) {
+    if (event.pointerType !== "mouse" || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const rect = event.currentTarget.getBoundingClientRect();
+    event.currentTarget.style.setProperty("--tilt-x", `${-((event.clientY - rect.top) / rect.height - .5) * 7}deg`);
+    event.currentTarget.style.setProperty("--tilt-y", `${((event.clientX - rect.left) / rect.width - .5) * 10}deg`);
+  }
+  function reset() {
+    stage.current?.style.setProperty("--tilt-x", "0deg");
+    stage.current?.style.setProperty("--tilt-y", "0deg");
+  }
+  return <div className="gift-display">
+    <div className="gift-scene" ref={stage} onPointerMove={tilt} onPointerLeave={reset} data-open={open}>
+      <div className="gift-stage-label" aria-hidden="true">{t("giftStageLabel")}</div>
+      <svg className="gift-waves" viewBox="0 0 600 300" fill="none" aria-hidden="true"><path d="M-30 170C100 40 170 300 330 150S530 80 650 140M-30 200C100 70 170 330 330 180S530 110 650 170M-30 230C100 100 170 360 330 210S530 140 650 200" /></svg>
+      <div className="gift-shadow" aria-hidden="true" />
+      <button className="gift-object" type="button" aria-label={open ? t("giftClose") : t("giftOpen")} aria-pressed={open} aria-describedby="gift-instructions" onClick={() => setOpen(value => !value)}>
+        <span className="gift-cube" aria-hidden="true">
+          <span className="gift-inside" />
+          <span className="gift-surprise"><svg width="64" height="58" viewBox="0 0 64 58" fill="none"><path d="M32 51 7 27C-9 10 16-8 32 11 48-8 73 10 57 27L32 51Z" fill="currentColor" /></svg></span>
+          <span className="gift-face gift-front"><span className="gift-ribbon" /><span className="gift-brand-seal">KL</span></span>
+          <span className="gift-face gift-right"><span className="gift-ribbon" /></span>
+          <span className="gift-face gift-left" /><span className="gift-face gift-back" />
+          <span className="gift-lid"><span className="gift-lid-top"><span className="gift-bow bow-left" /><span className="gift-bow bow-right" /></span><span className="gift-lid-front" /><span className="gift-lid-right" /></span>
+        </span>
+      </button>
+      <div className="gift-paper-tag" aria-hidden="true"><span>{t("giftTag")}</span><strong>{t("giftTagName")}</strong></div>
     </div>
-  );
+    <div className="gift-caption" id="gift-instructions"><button className="gift-caption-control" type="button" aria-pressed={open} onClick={() => setOpen(value => !value)}>{open ? t("giftClose") : t("giftOpen")}</button><span className="gift-caption-detail">{t("giftDetail")}</span></div>
+    <span className="sr-only" role="status">{open ? t("giftOpened") : ""}</span>
+  </div>;
 }
-
-export default Hero3D;

@@ -4,7 +4,6 @@ import { db } from "@/lib/db";
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 
 const statusBadge: Record<string, string> = {
   PENDING_REVIEW: "bg-yellow-100 text-yellow-700",
@@ -44,6 +43,7 @@ export default async function BusinessDashboardPage() {
       <div className="flex items-start justify-between mb-8">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">{business.name}</h1>
+          <p className="mt-2 text-sm text-[var(--brand-secondary)] break-words">{t("business.patenteNumber")}: {business.patenteNumber || t("business.notProvided")}</p>
           <div className="flex items-center gap-2 mt-2">
             <span
               className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${statusBadge[business.status]}`}

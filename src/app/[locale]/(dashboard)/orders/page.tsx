@@ -1,6 +1,7 @@
+import { RegistryIcon } from "@/components/shared/RegistryIcon";
 /**
  * =============================================================================
- * Order Tracking Page — Registry Owner View
+ * Order Tracking Page - Registry Owner View
  * =============================================================================
  *
  * This page answers: "Who bought gifts from my registries?"
@@ -10,7 +11,7 @@
  * - The dashboard "orders" count shows orders you PLACED (gifts you bought)
  *
  * For MVP, we show orders received since that's the more exciting view
- * for registry owners — seeing their gift list fill up.
+ * for registry owners - seeing their gift list fill up.
  *
  * DATA FLOW:
  *   1. Auth check → get current user
@@ -26,6 +27,7 @@ import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { Link } from "@/i18n/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { buttonVariants } from "@/components/ui/button";
 
 export default async function OrdersPage() {
   const session = await auth();
@@ -49,26 +51,24 @@ export default async function OrdersPage() {
         },
       },
     },
-    include: {
-      payment: true,
+    select: {
+      id: true, orderNumber: true, buyerName: true, isAnonymous: true,
+      giftMessage: true, status: true, createdAt: true,
+      payment: { select: { currency: true, provider: true } },
       items: {
-        include: {
+        where: { registryItem: { registry: { userId: session.user.id } } },
+        select: {
+          id: true, quantity: true, priceUSD: true, priceHTG: true,
           registryItem: {
-            include: {
-              registry: { select: { title: true, slug: true, type: true } },
-            },
+            select: { title: true, registry: { select: { title: true, slug: true, type: true } } },
           },
         },
       },
     },
+    take: 100,
     orderBy: { createdAt: "desc" },
   });
 
-  const registryTypeEmoji: Record<string, string> = {
-    BABY_SHOWER: "👶",
-    WEDDING: "💍",
-    BIRTHDAY: "🎂",
-  };
 
   const paymentStatusColors: Record<string, string> = {
     PAID: "bg-green-100 text-green-800",
@@ -89,7 +89,7 @@ export default async function OrdersPage() {
         </div>
         <Link
           href="/dashboard"
-          className="text-sm text-amber-700 hover:text-amber-800"
+          className="text-sm text-[var(--brand-ocean)] hover:underline"
         >
           {t("common.back")} {t("nav.dashboard")}
         </Link>
@@ -98,7 +98,7 @@ export default async function OrdersPage() {
       {orders.length === 0 ? (
         <Card>
           <CardContent className="p-12 text-center">
-            <span className="text-5xl block mb-4">🎁</span>
+            <RegistryIcon className="mx-auto mb-4 h-12 w-12 text-[var(--brand-green)]" />
             <h2 className="text-xl font-semibold text-gray-700 mb-2">
               {t("orders.noOrdersYet")}
             </h2>
@@ -107,7 +107,7 @@ export default async function OrdersPage() {
             </p>
             <Link
               href="/my-registries"
-              className="inline-block bg-amber-600 text-white px-6 py-2 rounded-lg hover:bg-amber-700 transition-colors"
+              className={buttonVariants({ size: "lg" })}
             >
               {t("nav.myRegistries")}
             </Link>
@@ -117,9 +117,9 @@ export default async function OrdersPage() {
         <div className="space-y-4">
           {orders.map((order) => {
             const registry = order.items[0]?.registryItem.registry;
-            const amount = order.payment?.currency === "HTG"
-              ? `G${Number(order.totalHTG || 0).toFixed(2)}`
-              : `$${Number(order.totalUSD || 0).toFixed(2)}`;
+            const localCurrency = order.payment?.currency === "HTG";
+            const ownTotal = order.items.reduce((sum, item) => sum + Math.round(Number(localCurrency ? item.priceHTG ?? 0 : item.priceUSD ?? 0) * 100) * item.quantity, 0);
+            const amount = (localCurrency ? "G" : "$") + (ownTotal / 100).toFixed(2);
 
             return (
               <Card key={order.id} className="overflow-hidden">
@@ -127,7 +127,7 @@ export default async function OrdersPage() {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <span className="text-2xl">
-                        {registryTypeEmoji[registry?.type || ""] || "🎁"}
+                        <RegistryIcon type={registry?.type} />
                       </span>
                       <div>
                         <CardTitle className="text-lg">
@@ -137,7 +137,7 @@ export default async function OrdersPage() {
                           {registry?.title && (
                             <Link
                               href={`/r/${registry.slug}`}
-                              className="text-amber-700 hover:underline"
+                              className="text-[var(--brand-ocean)] hover:underline"
                             >
                               {registry.title}
                             </Link>
@@ -183,7 +183,7 @@ export default async function OrdersPage() {
                               ? `$${Number(oi.priceUSD).toFixed(2)}`
                               : oi.priceHTG
                                 ? `G${Number(oi.priceHTG).toFixed(2)}`
-                                : "—"}
+                                : "-"}
                           </span>
                         </li>
                       ))}
@@ -192,12 +192,12 @@ export default async function OrdersPage() {
 
                   {/* Gift message */}
                   {order.giftMessage && (
-                    <div className="border-l-4 border-amber-400 bg-amber-50 p-3 rounded-r-lg">
+                    <div className="border border-amber-200 bg-amber-50 p-3 rounded-lg">
                       <p className="text-sm text-amber-900 italic">
                         &ldquo;{order.giftMessage}&rdquo;
                       </p>
                       <p className="text-xs text-amber-700 mt-1">
-                        — {order.isAnonymous ? t("orders.anonymous") : order.buyerName}
+                        - {order.isAnonymous ? t("orders.anonymous") : order.buyerName}
                       </p>
                     </div>
                   )}
