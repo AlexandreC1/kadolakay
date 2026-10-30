@@ -89,3 +89,8 @@ October28 login correction: actual public Spectrum login-card source adapted wit
 Googlelocalactivation October28: realGoogleOAuthlogin,sessionreload,signout,protectedpage redirectandrepeatlogin nowbrowserverified againstPostgreSQL. AppisExternal/Test with1testuser andlocalhostcallback. HostedpublicGooglelogin,Microsoft/GitHubandemail stillunconfigured/unverified. Credentialsstoredlocallyignored,notindeliverables. Setuprejectsmaskedandrepeatedsecretpastes.
 
 Confirmed local Google login: browser account selection, consent, callback, persisted session, sign-out, protected-dashboard redirect and repeat login all passed. The Google application remains in testing mode with one test user. Hosted production login and additional providers remain separate open gates.
+
+
+## October 30 product checkpoint
+
+Merchant payment foundations, Premium pilot entitlements/palettes/quantity insights, dedicated business entry and locale-safe registration, budget/occasion discovery and fixed-date Haiti seasonal presentation are implemented locally.318unit/40PG/24HTTP checks pass; build/typecheck/schema drift pass,audit0,lint0errors13warnings. Live payments,subscription billing,provider verification,full account management and hosted acceptance remain open. Netlify explicitly paused by owner. See PRODUCT-FOUNDATIONS.md and latest HANDOFF.

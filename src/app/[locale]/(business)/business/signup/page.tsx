@@ -1,13 +1,16 @@
-import { getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { BusinessSignupForm } from "./BusinessSignupForm";
+import { db } from "@/lib/db";
 
 export default async function BusinessSignupPage() {
   const session = await auth();
+  const locale = await getLocale();
   if (!session?.user) {
-    redirect("/login?callbackUrl=/business/signup");
+    redirect(`/${locale}/login?callbackUrl=${encodeURIComponent(`/${locale}/business/signup`)}`);
   }
+  if (await db.business.findUnique({where:{ownerId:session.user.id},select:{id:true}})) redirect(`/${locale}/business/dashboard`);
 
   const t = await getTranslations("business");
 

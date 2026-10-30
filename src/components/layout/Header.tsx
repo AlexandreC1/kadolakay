@@ -8,6 +8,8 @@ import { UserMenu } from "./UserMenu";
 import { Brand } from "./Brand";
 import { ThemeSwitcher } from "@/components/theme/ThemeSwitcher";
 import type { Role } from "@prisma/client";
+import { featureNavCopy } from "@/lib/feature-nav-copy";
+import { ExploreMenu } from "./ExploreMenu";
 
 export async function Header() {
   const session = await auth();
@@ -17,14 +19,17 @@ export async function Header() {
 function HeaderContent({ user }: { user?: { name?: string | null; image?: string | null; email?: string | null; role?: Role } }) {
   const t = useTranslations();
   const copy = catalogCopy(useLocale());
+  const navigation = featureNavCopy(useLocale());
   return (
     <header className="site-header">
       <div className="header-inner">
-        <Link href="/" className="brand-link"><Brand /></Link>
+        <Link href="/" className="brand-link" aria-label={`Bayou · ${navigation.home}`}><Brand /></Link>
         <nav className="desktop-nav" aria-label={t("landing.mainNavigation")}>
+          <Link href="/">{navigation.home}</Link>
           <Link href="/find">{copy.find}</Link>
           <Link href="/create">{t("nav.createRegistry")}</Link>
-          <Link href="/browse">{t("nav.businesses")}</Link>
+          <Link href="/discover">{navigation.discover}</Link>
+          <ExploreMenu />
         </nav>
         <div className="header-actions">
           <LocaleSwitcher />

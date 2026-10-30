@@ -102,10 +102,21 @@ html[data-theme-transition]::view-transition-new(root) { animation: theme-wipe 4
 /* Viewport-sized decorative canvas; page controls keep their normal hit targets. */
 body { isolation: isolate; }
 .app-gravity-background { position: fixed; inset: 0; width: 100%; height: 100dvh; z-index: -1; pointer-events: none; color: var(--brand-ocean); contain: strict; }
-.background-motion-control { position: fixed; right: 14px; bottom: 14px; z-index: 40; display: grid; place-items: center; width: 44px; height: 44px; border: 1px solid var(--brand-line-strong); border-radius: 50%; background: var(--brand-surface); color: var(--brand-ocean); cursor: pointer; }
-.background-motion-control:hover { background: var(--brand-surface-muted); }
-.site-footer { padding-right: 72px; }
-@media(prefers-reduced-motion:reduce) { .background-motion-control { display: none; } }
 
 /* Owner-selected Fraunces / Figtree pairing; identity and controls retain body type. */
 h1,h2,h3 { font-family: var(--font-display), Georgia, serif; font-optical-sizing: auto; }
+
+/* Global navigation disclosure, available on direct visits to every page. */
+.explore-navigation { position: relative; }
+.explore-navigation>button { min-height: 44px; color: var(--brand-ink); font-weight: inherit; }
+.explore-navigation>button:hover { color: var(--brand-ocean); }
+.explore-links { position: absolute; right: 0; top: calc(100% + 8px); display: grid; width: 240px; padding: 8px; border: 1px solid var(--brand-line); border-radius: 16px; background: var(--brand-surface); box-shadow: 0 12px 28px #102e2914; z-index: 60; }
+.explore-links a { padding: 12px; border-radius: 8px; white-space: normal; }
+.explore-links a:hover { background: var(--brand-surface-muted); }
+
+/* Keep every destination reachable on short mobile screens. */
+.mobile-navigation { max-height: calc(100dvh - 90px); overflow-y: auto; overscroll-behavior: contain; }
+@media (max-width: 1150px) {
+  .mobile-menu { display: block; }
+  .desktop-nav, .desktop-account, .desktop-theme { display: none; }
+}

@@ -5,6 +5,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { signOut } from "next-auth/react";
 import { useSafeMutation, MutationFeedback } from "@/components/shared/useSafeMutation";
 import { Link } from "@/i18n/navigation";
+import { featureNavCopy } from "@/lib/feature-nav-copy";
 import { onboardingCopy } from "@/lib/onboarding-copy";
 import type { Role } from "@prisma/client";
 import { isAdministrator } from "@/services/permissions";
@@ -68,6 +69,7 @@ export function UserMenu({ user }: UserMenuProps) {
         <div className="absolute right-0 mt-2 w-56 rounded-lg border border-gray-200 bg-[var(--brand-surface)] shadow-lg py-1 z-50">
           {user.role === "SUPERADMIN" && <p className="px-4 py-2 text-xs font-semibold text-[var(--brand-muted)]">{t("auth.superadmin")}</p>}
           {isAdministrator(user.role) && <Link href="/admin/businesses" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50" onClick={() => setOpen(false)}>{t("nav.administration")}</Link>}
+          {user.role === "SUPERADMIN" && <Link href="/admin/premium" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50" onClick={() => setOpen(false)}>{featureNavCopy(locale).manage}</Link>}
           <Link href="/onboarding?review=1" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50" onClick={() => setOpen(false)}>{onboardingCopy(locale).getStarted}</Link>
           <Link
             href="/dashboard"

@@ -1,0 +1,357 @@
+.foundation-page {
+  max-width: 1160px;
+  margin: auto;
+  padding: clamp(32px, 6vw, 80px) 24px;
+}
+.foundation-narrow {
+  max-width: 800px;
+}
+.foundation-intro {
+  max-width: 760px;
+  margin-bottom: 36px;
+}
+.foundation-intro h1 {
+  font-family: var(--font-display), serif;
+  font-size: clamp(2.2rem, 4.5vw, 3.8rem);
+  line-height: 1.12;
+  margin: 12px 0 20px;
+  text-wrap: balance;
+}
+.foundation-intro p,
+.foundation-panel p,
+.merchant-requirements p,
+.foundation-steps p {
+  line-height: 1.75;
+  color: var(--brand-secondary);
+  max-width: 65ch;
+}
+.foundation-eyebrow {
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--brand-muted);
+}
+.foundation-page h2 {
+  font-size: 1.35rem;
+  font-weight: 600;
+  line-height: 1.35;
+  margin-bottom: 12px;
+}
+.foundation-page a:not(.foundation-primary) {
+  color: var(--brand-ocean);
+  text-underline-offset: 4px;
+}
+.foundation-page a:not(.foundation-primary):hover {
+  text-decoration: underline;
+}
+.foundation-primary,
+.foundation-form button,
+.discovery-filters button {
+  display: inline-flex;
+  min-height: 48px;
+  padding: 12px 24px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: var(--brand-action);
+  color: var(--brand-on-action);
+  font-weight: 600;
+  border: 1px solid transparent;
+}
+.foundation-primary {
+  margin-top: 24px;
+}
+.foundation-primary:hover,
+.foundation-form button:hover,
+.discovery-filters button:hover {
+  background: var(--brand-action-hover);
+}
+.foundation-form button:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+.foundation-form {
+  display: grid;
+  gap: 12px;
+  max-width: 580px;
+  margin-top: 24px;
+}
+.foundation-form label,
+.discovery-filters label {
+  display: block;
+  font-weight: 600;
+  font-size: 0.9rem;
+  margin-bottom: 4px;
+}
+.foundation-form input,
+.foundation-form select,
+.discovery-filters input,
+.discovery-filters select {
+  width: 100%;
+  min-width: 0;
+  min-height: 48px;
+  padding: 10px 14px;
+  color: var(--brand-ink);
+  background: var(--brand-surface);
+  border: 1px solid var(--brand-line-strong);
+  border-radius: 12px;
+}
+.foundation-note {
+  color: var(--brand-muted);
+  font-size: 0.85rem;
+  line-height: 1.7;
+  margin-block: 20px 32px;
+  max-width: 80ch;
+}
+.foundation-panel {
+  padding: 28px;
+  background: var(--brand-surface);
+  border: 1px solid var(--brand-line);
+  border-radius: 20px;
+}
+.foundation-success,
+.foundation-error {
+  padding: 16px;
+  border-radius: 12px;
+  line-height: 1.6;
+}
+.foundation-success {
+  background: var(--brand-success-surface);
+  color: var(--brand-success);
+}
+.foundation-error {
+  background: var(--brand-error-surface);
+  color: var(--brand-error);
+}
+.merchant-requirements {
+  border-left: 3px solid var(--brand-action);
+  padding: 8px 24px;
+  margin: 40px 0;
+}
+.foundation-steps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 32px;
+  padding: 32px 0;
+  border-block: 1px solid var(--brand-line);
+  list-style: none;
+}
+.foundation-step-number {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--brand-muted);
+  margin-bottom: 24px;
+}
+.discovery-filters {
+  display: grid;
+  grid-template-columns: 1fr 0.65fr 1.2fr auto;
+  align-items: end;
+  gap: 16px;
+  padding-block: 24px;
+  border-block: 1px solid var(--brand-line);
+}
+.discovery-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+}
+.discovery-gift {
+  border: 1px solid var(--brand-line);
+  border-radius: 20px;
+  overflow: hidden;
+  background: var(--brand-surface);
+}
+.discovery-gift img {
+  width: 100%;
+  aspect-ratio: 4/3;
+  object-fit: contain;
+  background: var(--brand-surface-muted);
+}
+.discovery-gift-body {
+  padding: 24px;
+  display: grid;
+  gap: 12px;
+}
+.discovery-gift-body h2 {
+  margin: 0;
+}
+.discovery-gift-body > p:not(.discovery-price):not(.foundation-eyebrow) {
+  font-size: 0.8rem;
+  color: var(--brand-muted);
+}
+.discovery-price {
+  font-size: 1.2rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.premium-benefits {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+  border-block: 1px solid var(--brand-line);
+  padding: 32px 0;
+  margin-bottom: 32px;
+}
+.premium-benefits p {
+  color: var(--brand-secondary);
+  line-height: 1.7;
+}
+.premium-registry-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+}
+.premium-insights {
+  margin-top: 48px;
+}
+.premium-insights > p {
+  color: var(--brand-secondary);
+  line-height: 1.7;
+  max-width: 70ch;
+  margin-bottom: 24px;
+}
+.insights-scroll {
+  overflow-x: auto;
+}
+.premium-insights table {
+  width: 100%;
+  text-align: left;
+  border-collapse: collapse;
+}
+.premium-insights th,
+.premium-insights td {
+  padding: 16px;
+  border-bottom: 1px solid var(--brand-line);
+  font-variant-numeric: tabular-nums;
+}
+.palette-preview {
+  display: flex;
+  gap: 12px;
+  margin-block: 24px;
+}
+.palette-preview span {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid var(--brand-line-strong);
+  background: #5eead4;
+}
+.palette-preview span:nth-child(2) {
+  background: #f4b8cd;
+}
+.palette-preview span:nth-child(3) {
+  background: #8dcced;
+}
+.palette-preview span:nth-child(4) {
+  background: #ecd382;
+}
+/* Wishlist palettes stay local; payment and global appearance colors are unchanged. */
+.wishlist-page[data-palette="rose"] { --wishlist-tone: #b4436b; }
+.wishlist-page[data-palette="ocean"] { --wishlist-tone: #237ca6; }
+.wishlist-page[data-palette="gold"] { --wishlist-tone: #92701d; }
+.wishlist-page[data-palette]:not([data-palette="mint"]) .wishlist-hero {
+  background-color: color-mix(in srgb, var(--wishlist-tone) 8%, var(--brand-surface));
+}
+.wishlist-page[data-palette="rose"] .wishlist-hero {
+  border-top: 4px solid #b4436b;
+}
+.wishlist-page[data-palette="ocean"] .wishlist-hero {
+  border-top: 4px solid #237ca6;
+}
+.wishlist-page[data-palette="gold"] .wishlist-hero {
+  border-top: 4px solid #92701d;
+}
+.wishlist-page[data-palette="rose"] .wishlist-eyebrow {
+  color: #9b3157;
+}
+.wishlist-page[data-palette="ocean"] .wishlist-eyebrow {
+  color: #216180;
+}
+.wishlist-page[data-palette="gold"] .wishlist-eyebrow {
+  color: #725617;
+}
+html[data-theme="dark"] .wishlist-page[data-palette] .wishlist-eyebrow {
+  color: var(--brand-secondary);
+}
+@media (prefers-color-scheme: dark) {
+  html[data-theme="system"] .wishlist-page[data-palette] .wishlist-eyebrow {
+    color: var(--brand-secondary);
+  }
+}
+.seasonal-banner {
+  --season-tint: var(--brand-ocean);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px max(24px, calc((100vw - 1112px) / 2));
+  border-bottom: 1px solid var(--brand-line);
+  background: color-mix(in srgb, var(--season-tint) 9%, var(--brand-canvas));
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+.seasonal-banner > div {
+  display: grid;
+  gap: 4px;
+}
+.seasonal-banner span {
+  color: var(--brand-secondary);
+}
+.seasonal-banner a {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  white-space: nowrap;
+}
+.seasonal-banner[data-season-banner="valentine"] {
+  --season-tint: #c44875;
+}
+.seasonal-banner[data-season-banner="christmas"] {
+  --season-tint: #388358;
+}
+.seasonal-banner[data-season-banner="flag"],
+.seasonal-banner[data-season-banner="independence"],
+.seasonal-banner[data-season-banner="vertieres"] {
+  --season-tint: #477da5;
+}
+@media (max-width: 760px) {
+  .foundation-steps,
+  .premium-benefits {
+    grid-template-columns: 1fr;
+  }
+  .discovery-filters {
+    grid-template-columns: 1fr 1fr;
+  }
+  .discovery-grid,
+  .premium-registry-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .seasonal-banner {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+@media (max-width: 480px) {
+  .foundation-page {
+    padding: 32px 20px;
+  }
+  .discovery-grid,
+  .premium-registry-list {
+    grid-template-columns: 1fr;
+  }
+  .foundation-panel {
+    padding: 20px;
+  }
+  .discovery-filters {
+    gap: 12px;
+  }
+  .discovery-filters > div:nth-child(3),
+  .discovery-filters button {
+    grid-column: 1/-1;
+  }
+  .foundation-steps {
+    gap: 24px;
+  }
+  .foundation-step-number {
+    margin-bottom: 12px;
+  }
+}

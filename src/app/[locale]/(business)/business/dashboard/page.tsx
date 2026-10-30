@@ -1,3 +1,5 @@
+import { foundationsCopy } from "@/lib/foundations-copy";
+import { getLocale } from "next-intl/server";
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
@@ -29,6 +31,7 @@ export default async function BusinessDashboardPage() {
   }
 
   const t = await getTranslations();
+  const c = foundationsCopy(await getLocale());
 
   // Count orders for this business's products
   const orderCount = await db.orderItem.count({
@@ -109,12 +112,13 @@ export default async function BusinessDashboardPage() {
         </Card>
       </div>
 
+      <section className="foundation-panel mb-8"><h2>{c.payments}</h2><p>{c.paymentUnavailable}</p><Link className="foundation-primary" href="/business/payments">{c.paymentTitle}</Link></section>
       {/* Quick links */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Link href="/business/products">
           <Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
             <CardContent className="p-6 flex items-center gap-4">
-              <span className="text-3xl">📦</span>
+
               <div>
                 <h3 className="font-semibold text-gray-900">
                   {t("business.products")}
@@ -129,7 +133,7 @@ export default async function BusinessDashboardPage() {
         <Link href="/business/orders">
           <Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
             <CardContent className="p-6 flex items-center gap-4">
-              <span className="text-3xl">🧾</span>
+
               <div>
                 <h3 className="font-semibold text-gray-900">
                   {t("nav.orders")}
