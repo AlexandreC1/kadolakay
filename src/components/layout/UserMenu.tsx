@@ -69,8 +69,6 @@ export function UserMenu({ user }: UserMenuProps) {
         <div className="absolute right-0 mt-2 w-56 rounded-lg border border-gray-200 bg-[var(--brand-surface)] shadow-lg py-1 z-50">
           {user.role === "SUPERADMIN" && <p className="px-4 py-2 text-xs font-semibold text-[var(--brand-muted)]">{t("auth.superadmin")}</p>}
           {isAdministrator(user.role) && <Link href="/admin/businesses" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50" onClick={() => setOpen(false)}>{t("nav.administration")}</Link>}
-          <Link href="/premium" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50" onClick={() => setOpen(false)}>{featureNavCopy(locale).premium}</Link>
-          <Link href="/appearance" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50" onClick={() => setOpen(false)}>{featureNavCopy(locale).season}</Link>
           {user.role === "SUPERADMIN" && <Link href="/admin/premium" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50" onClick={() => setOpen(false)}>{featureNavCopy(locale).manage}</Link>}
           <Link href="/onboarding?review=1" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50" onClick={() => setOpen(false)}>{onboardingCopy(locale).getStarted}</Link>
           <Link

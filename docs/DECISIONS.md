@@ -148,3 +148,7 @@ Added database-versioned account-wide session revocation through Settings. Every
 ## October 30: four product workstreams
 
 Owner paused Netlify and chose payment foundations without endpoints/credentials, Premium, dedicated business registration, and budget/occasion recommendations with seasonal themes. Premium benefits explicitly selected: wishlist personalization and advanced registry insights. No pricing, paid auto-trial or subscription activation authorized. Pilot grants/expiry/revocation remain separate from RBAC. Existing mint identity, light/dark preference, merchant-owned sales and free-first resource constraints remain authoritative. See PRODUCT-FOUNDATIONS.md for implementation, ranking limitations, calendar sources and payment boundaries.
+
+## October 30: focused homepage and explicit navigation
+
+Owner rejected the floating play/pause control and scattering full features across Home. Remove the control, bound the decorative background introduction to four seconds with existing reduced-motion/hidden-tab protection, and leave it static afterward. Home now has only the registry introduction plus Create and Find routes. Business registration/directory, gift discovery, Premium and appearance stay on dedicated pages. Explicit Home links exist on desktop/mobile and the brand has a localized Home label. Desktop Explore groups secondary destinations; mobile navigation scrolls within short viewports. No database or payment behavior changes.

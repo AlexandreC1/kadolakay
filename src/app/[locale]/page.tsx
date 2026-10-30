@@ -1,18 +1,28 @@
 import { getLocale, getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
-import { foundationsCopy } from "@/lib/foundations-copy";
 import { homeCopy } from "@/lib/home-copy";
-import { directoryCopy } from "@/lib/directory-copy";
-import HomeMotion from "@/components/hero/HomeMotion";
-import "./lakou.css";
-import "./lakou-refinement.css";
+import "../home-entry.css";
 
-export default async function HomePage(){
-  const locale=await getLocale(),c=homeCopy(locale),d=directoryCopy(locale),t=await getTranslations();
-  return <HomeMotion>
-    <section className="lakou-hero" aria-labelledby="lakou-title"><div className="lakou-hero-copy"><p className="lakou-kicker">{t("landing.eyebrow")}</p><h1 id="lakou-title">{c.title}<span>{c.title2}</span></h1><p className="lakou-intro">{c.intro}</p><div className="lakou-actions"><Link href="/create" className="lakou-primary">{t("nav.createRegistry")}</Link></div><p className="lakou-note">{c.note}</p></div>
-    <section className="lakou-finder lakou-hero-finder" aria-label={c.find}><div><p>{c.findHint}</p><h2>{c.find}</h2></div><form action={locale==="ht"?"/find":`/${locale}/find`} method="get"><label className="sr-only" htmlFor="home-registry-link">{c.address}</label><input id="home-registry-link" name="q" placeholder={c.address} maxLength={500} required/><button type="submit">{c.open}</button></form><Link href="/find" className="lakou-scan">{({en:"Scan a QR code",fr:"Scanner un code QR",ht:"Eskane yon kòd QR"} as Record<string,string>)[locale] || "Scan a QR code"}</Link></section></section>
-    <section className="lakou-discover" aria-labelledby="discover-heading"><div><h2 id="discover-heading">{d.title}</h2><p>{d.intro}</p><Link href="/discover">{foundationsCopy(locale).discover}</Link><Link href="/browse">{c.browse}</Link></div><div className="lakou-merchant-entry"><p>{d.join}</p><Link href="/business">{d.register}</Link></div></section>
-    <section className="lakou-occasions" aria-labelledby="occasion-heading"><h2 id="occasion-heading">{c.occasions}</h2><div>{(["WEDDING","BABY_SHOWER","BIRTHDAY"] as const).map((type)=><Link key={type} href={`/create?type=${type}`}><strong>{t(`registry.${type==="WEDDING"?"wedding":type==="BABY_SHOWER"?"babyShower":"birthday"}`)}</strong><span>{type==="WEDDING"?c.wedding:type==="BABY_SHOWER"?c.baby:c.birthday}</span><span className="occasion-create">{c.start}</span></Link>)}</div></section>
-  </HomeMotion>;
+export default async function HomePage() {
+  const [locale, t] = await Promise.all([getLocale(), getTranslations()]);
+  const c = homeCopy(locale);
+  return (
+    <section className="home-entry" aria-labelledby="home-heading">
+      <p className="home-entry-eyebrow">{t("landing.eyebrow")}</p>
+      <h1 id="home-heading">
+        {c.title}
+        <span>{c.title2}</span>
+      </h1>
+      <p className="home-entry-intro">{c.intro}</p>
+      <div className="home-entry-actions">
+        <Link href="/create" className="home-entry-primary">
+          {t("nav.createRegistry")}
+        </Link>
+        <Link href="/find" className="home-entry-secondary">
+          {c.find}
+        </Link>
+      </div>
+      <p className="home-entry-note">{c.note}</p>
+    </section>
+  );
 }
