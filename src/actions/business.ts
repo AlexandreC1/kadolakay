@@ -6,6 +6,7 @@ import { addOwnedProduct, editOwnedProduct, registerOwnedBusiness } from "@/serv
 import { listApprovedBusinesses } from "@/services/catalog";
 import { revalidatePath, revalidateTag } from "next/cache";
 import { redirect } from "next/navigation";
+import { getLocale } from "next-intl/server";
 
 function refreshCatalog() {
   revalidateTag("public-catalog", { expire: 0 });
@@ -18,7 +19,7 @@ export async function registerBusiness(formData: FormData) {
   if (!parsed.success) throw new Error("Check your business details and try again");
   await registerOwnedBusiness(actor.id, parsed.data);
   revalidatePath("/", "layout");
-  redirect("/business/dashboard");
+  redirect(`/${await getLocale()}/business/dashboard`);
 }
 function productValues(formData: FormData, edit = false) {
   const raw = parseFormFields(formData, ["name", "description", "priceHTG", "priceUSD", "category", "imageUrl", "stockQuantity", ...(edit ? ["inStock"] : [])]);

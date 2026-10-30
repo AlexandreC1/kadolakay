@@ -30,25 +30,10 @@ export interface PaymentProviderInterface {
   }): Promise<VerifyPaymentResult>;
 }
 
-// Static imports — Next.js tree-shaking removes any provider not actually
-// referenced from a route, so we don't need (and can't use) CommonJS require
-// here. Lint forbids it and ESM doesn't have a sync equivalent.
-import { stripeProvider } from "./stripe";
-import { paypalProvider } from "./paypal";
-import { moncashProvider } from "./moncash";
-import { natcashProvider } from "./natcash";
-
-const PROVIDERS: Record<PaymentProviderType, PaymentProviderInterface> = {
-  stripe: stripeProvider,
-  paypal: paypalProvider,
-  moncash: moncashProvider,
-  natcash: natcashProvider,
-};
-
-export function getPaymentProvider(
-  provider: PaymentProviderType
-): PaymentProviderInterface {
-  const p = PROVIDERS[provider];
-  if (!p) throw new Error(`Unknown payment provider: ${provider}`);
-  return p;
+/** Retired platform-owned adapters are not a merchant-direct payment service.
+ * Keep type compatibility for historical modules, but fail closed if reused.
+ * New integrations must implement services/payment-foundation.ts. */
+export function getPaymentProvider(provider: PaymentProviderType): never {
+  void provider;
+  throw new Error("LEGACY_PAYMENT_ADAPTER_DISABLED");
 }

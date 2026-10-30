@@ -51,7 +51,7 @@ export default async function RegistryPage({ params }: PageProps) {
   const c = wishlistCopy(locale);
   const t = await getTranslations("registry");
   const registryUrl = registryShareUrl(registry.slug, locale, process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000");
-  return <div className="wishlist-page">
+  return <div className="wishlist-page" data-palette={registry.palette}>
     <section className="wishlist-hero" aria-labelledby="wishlist-title">
       <div className="wishlist-introduction">
         <p className="wishlist-eyebrow">{c.eyebrow}</p>

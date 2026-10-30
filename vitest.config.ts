@@ -3,7 +3,9 @@ import { fileURLToPath } from "node:url";
 
 export default defineConfig({
   test: {
-    maxWorkers: 2,
+    // The native Windows QR/font renderer crashes under concurrent worker load.
+    // Preserve every assertion while bounding local native-memory/thread pressure.
+    maxWorkers: process.platform === "win32" ? 1 : 2,
     environment: "node",
     include: ["src/**/*.test.ts", "src/**/*.test.tsx"],
     coverage: {

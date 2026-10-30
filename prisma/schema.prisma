@@ -44,6 +44,7 @@ model User {
   registries Registry[]
   orders     Order[]
   business   Business?
+  premiumGrant PremiumGrant?
 
   @@map("users")
 }
@@ -148,6 +149,7 @@ model Registry {
   eventDate   DateTime?
   coverImage  String?
   locale      String         @default("ht")
+  palette     String         @default("mint") @db.VarChar(20)
 
   ogImageUrl  String?
 
@@ -258,6 +260,7 @@ model Business {
   owner    User           @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   items    RegistryItem[]
   products Product[]
+  paymentProfile MerchantPaymentProfile?
 
   @@index([slug])
   @@index([status, name])
@@ -285,7 +288,36 @@ model Product {
 
   @@index([businessId])
   @@index([inStock, name, id])
+  @@index([inStock, priceUSD, id], map: "products_available_usd")
+  @@index([inStock, priceHTG, id], map: "products_available_htg")
   @@map("products")
+}
+
+// Private setup intent only. No secrets, bank numbers or provider verification claims.
+model MerchantPaymentProfile {
+  businessId String @id
+  provider String @db.VarChar(20)
+  requestedAt DateTime @default(now())
+  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  @@map("merchant_payment_profiles")
+}
+
+model PremiumGrant {
+  userId String @id
+  expiresAt DateTime
+  updatedAt DateTime @updatedAt
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@map("premium_grants")
+}
+
+model PremiumAuditEvent {
+  id String @id @default(cuid())
+  actorId String
+  targetId String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  @@index([targetId, createdAt], map: "premium_audit_target_created")
+  @@map("premium_audit_events")
 }
 
 // ─── ORDERS & PAYMENTS ────────────────────────────────────

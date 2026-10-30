@@ -27,7 +27,7 @@ export default async function BrowseBusinessesPage({ searchParams }: { searchPar
   }
   const input = parsed.success ? parsed.data : { q: "", category: "" as const };
   return <div className={styles.page}>
-    <header className={styles.header}><div><h1>{c.title}</h1><p>{c.intro}</p></div><Link href="/business/signup">{c.register}</Link></header>
+    <header className={styles.header}><div><h1>{c.title}</h1><p>{c.intro}</p></div><Link href="/business">{c.register}</Link></header>
     <form action={locale === "ht" ? "/browse" : `/${locale}/browse`} method="get" className={styles.filters}>
       <div><label htmlFor="business-search">{c.search}</label><input id="business-search" name="q" maxLength={80} defaultValue={typeof raw.q === "string" ? raw.q.slice(0,80) : ""} /></div>
       <div><label htmlFor="business-category">{c.category}</label><select id="business-category" name="category" defaultValue={input.category}><option value="">{c.all}</option>{businessCategories.map(category => <option key={category} value={category}>{categories(category)}</option>)}</select></div>

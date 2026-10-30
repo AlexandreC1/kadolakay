@@ -7,6 +7,7 @@ import { useSafeMutation, MutationFeedback } from "@/components/shared/useSafeMu
 import { Link } from "@/i18n/navigation";
 import { catalogCopy } from "@/lib/catalog-copy";
 import { ThemeSwitcher } from "@/components/theme/ThemeSwitcher";
+import { featureNavCopy } from "@/lib/feature-nav-copy";
 import { onboardingCopy } from "@/lib/onboarding-copy";
 import type { Role } from "@prisma/client";
 import { isAdministrator } from "@/services/permissions";
@@ -38,6 +39,11 @@ export function MobileNav({ user }: MobileNavProps) {
         {isAdministrator(user?.role) && <Link href="/admin/businesses" onClick={() => setOpen(false)}>{t("nav.administration")}</Link>}
         <Link href="/find" onClick={() => setOpen(false)}>{catalogCopy(locale).find}</Link>
         <Link href="/create" onClick={() => setOpen(false)}>{t("nav.createRegistry")}</Link>
+        <Link href="/discover" onClick={() => setOpen(false)}>{featureNavCopy(locale).discover}</Link>
+        <Link href="/business" onClick={() => setOpen(false)}>{featureNavCopy(locale).businessLink}</Link>
+        <Link href="/premium" onClick={() => setOpen(false)}>{featureNavCopy(locale).premium}</Link>
+        <Link href="/appearance" onClick={() => setOpen(false)}>{featureNavCopy(locale).season}</Link>
+        {user?.role === "SUPERADMIN" && <Link href="/admin/premium" onClick={() => setOpen(false)}>{featureNavCopy(locale).manage}</Link>}
         <Link href="/browse" onClick={() => setOpen(false)}>{t("nav.businesses")}</Link>
         {user && <Link href="/onboarding?review=1" onClick={() => setOpen(false)}>{onboardingCopy(locale).getStarted}</Link>}
         {user ? <><Link href="/dashboard" onClick={() => setOpen(false)}>{t("nav.dashboard")}</Link><Link href="/my-registries" onClick={() => setOpen(false)}>{t("nav.myRegistries")}</Link><button type="button" disabled={pending} onClick={() => run(() => signOut({ callbackUrl: `/${locale}` }))}>{t("common.signOut")}</button></> : <><Link href="/login" onClick={() => setOpen(false)}>{t("common.signIn")}</Link><Link href="/register" onClick={() => setOpen(false)}>{t("common.signUp")}</Link></>}

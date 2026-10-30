@@ -1,5 +1,6 @@
 import { optionalWebUrl } from "@/lib/validators/shared";
 const safeUrl = (value: string | null) => value && optionalWebUrl.safeParse(value).success ? value : null;
+import { premiumActive } from "@/lib/seasons";
 import { db } from "@/lib/db";
 import { createWithUniqueSlug } from "@/lib/slug";
 import { entitySlugSchema, parseEntityId } from "@/lib/validators/entity-id";
@@ -38,14 +39,14 @@ export async function findPublicRegistry(slug: string) {
   if (!parsedSlug.success) return null;
   slug = parsedSlug.data;
   const registry = await db.registry.findFirst({ where: { slug, status: "PUBLISHED", isPublic: true, password: null }, select: {
-    id: true, slug: true, title: true, description: true, type: true, status: true, eventDate: true, coverImage: true, amazonWishlistUrl: true,
-    user: { select: { name: true, image: true } },
+    id: true, slug: true, title: true, description: true, type: true, status: true, eventDate: true, coverImage: true, amazonWishlistUrl: true, palette: true,
+    user: { select: { name: true, image: true, premiumGrant: { select: { expiresAt: true } } } },
     items: { orderBy: { priority: "asc" }, select: {
       id: true, title: true, description: true, imageUrl: true, priceHTG: true, priceUSD: true, quantity: true, fulfilledQty: true, reservedQty: true,
       status: true, source: true, externalUrl: true, business: { select: { name: true, slug: true } },
     } },
   } });
-  return registry ? { ...registry, coverImage: safeUrl(registry.coverImage), amazonWishlistUrl: safeUrl(registry.amazonWishlistUrl), items: registry.items.map(({ reservedQty, ...item }) => ({ ...item, availableQty: item.quantity - item.fulfilledQty - reservedQty, imageUrl: safeUrl(item.imageUrl), externalUrl: safeUrl(item.externalUrl), priceHTG: item.priceHTG === null ? null : Number(item.priceHTG), priceUSD: item.priceUSD === null ? null : Number(item.priceUSD) })) } : null;
+  return registry ? { ...registry, palette: premiumActive(registry.user.premiumGrant) ? registry.palette : "mint", user: { name: registry.user.name, image: registry.user.image }, coverImage: safeUrl(registry.coverImage), amazonWishlistUrl: safeUrl(registry.amazonWishlistUrl), items: registry.items.map(({ reservedQty, ...item }) => ({ ...item, availableQty: item.quantity - item.fulfilledQty - reservedQty, imageUrl: safeUrl(item.imageUrl), externalUrl: safeUrl(item.externalUrl), priceHTG: item.priceHTG === null ? null : Number(item.priceHTG), priceUSD: item.priceUSD === null ? null : Number(item.priceUSD) })) } : null;
 }
 
 export async function listOwnedRegistries(userId: string) {
