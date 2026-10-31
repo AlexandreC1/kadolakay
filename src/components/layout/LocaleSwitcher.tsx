@@ -25,9 +25,9 @@ export function LocaleSwitcher() {
         <button
           key={loc}
           onClick={() => handleChange(loc)}
-          className={`px-2 py-1 text-xs rounded-md transition-colors ${
+          className={`px-2 py-1 text-xs rounded-full transition-colors ${
             loc === locale
-              ? "bg-brand-700 text-white font-medium"
+              ? "bg-gray-200 text-gray-900 font-medium"
               : "text-gray-600 hover:bg-gray-100"
           }`}
         >

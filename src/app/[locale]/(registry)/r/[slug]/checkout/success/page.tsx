@@ -56,8 +56,8 @@ export default async function CheckoutSuccessPage({ params, searchParams }: Prop
 
   return (
     <div className="mx-auto max-w-lg px-4 py-16 sm:px-6 text-center">
-      <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-brand-50">
-        <RegistryTypeIcon type={registry?.type} className="h-8 w-8 text-brand-700" />
+      <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-brand-500/15">
+        <RegistryTypeIcon type={registry?.type} className="h-8 w-8 text-brand-300" />
       </div>
 
       <h1 className="text-3xl font-bold text-gray-900 mb-2">
@@ -65,7 +65,7 @@ export default async function CheckoutSuccessPage({ params, searchParams }: Prop
       </h1>
 
       {order?.status === "NEEDS_REFUND" && (
-        <Card className="mt-8 text-left border-gold-200">
+        <Card className="mt-8 text-left border-gold-400/25">
           <CardContent className="p-6 text-sm text-gray-700">
             <p>{t("checkout.needsRefund")}</p>
           </CardContent>
@@ -73,7 +73,7 @@ export default async function CheckoutSuccessPage({ params, searchParams }: Prop
       )}
 
       {awaitingNatcash && (
-        <Card className="mt-8 text-left border-gold-200">
+        <Card className="mt-8 text-left border-gold-400/25">
           <CardContent className="p-6 text-sm text-gray-700 space-y-2">
             <p className="font-medium">Natcash</p>
             <p>
@@ -130,8 +130,8 @@ export default async function CheckoutSuccessPage({ params, searchParams }: Prop
             </div>
 
             {order.giftMessage && (
-              <div className="mt-4 p-3 bg-gold-50 rounded-lg border border-gold-100">
-                <p className="text-xs text-gold-600 font-medium mb-1">
+              <div className="mt-4 p-3 bg-gold-400/10 rounded-lg border border-gold-400/25">
+                <p className="text-xs text-gold-300 font-medium mb-1">
                   {t("checkout.giftMessage")}
                 </p>
                 <p className="text-sm text-gray-700 italic">

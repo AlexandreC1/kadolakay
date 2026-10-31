@@ -66,7 +66,7 @@ export function ProductPicker({ registryId, onAdd, onClose }: ProductPickerProps
 
   return (
     <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[80vh] flex flex-col">
+      <div className="bg-surface rounded-xl shadow-xl w-full max-w-2xl max-h-[80vh] flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b">
           <h2 className="text-lg font-semibold text-gray-900">
@@ -118,7 +118,7 @@ export function ProductPicker({ registryId, onAdd, onClose }: ProductPickerProps
                       <p className="font-medium text-gray-900 text-sm truncate">
                         {product.name}
                       </p>
-                      <p className="text-xs text-brand-600">{product.businessName}</p>
+                      <p className="text-xs text-brand-300">{product.businessName}</p>
                       <CurrencyDisplay
                         priceHTG={product.priceHTG}
                         priceUSD={product.priceUSD}

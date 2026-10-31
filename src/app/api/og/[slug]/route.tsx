@@ -36,8 +36,8 @@ export async function GET(
     (
       <div
         style={{
-          // Brand palette (globals.css): brand-950 background, gold-500 accent.
-          background: "#172554",
+          // Brand palette (globals.css): night background, gold-400 accent.
+          background: "#070b18",
           width: "100%",
           height: "100%",
           display: "flex",
@@ -60,7 +60,7 @@ export async function GET(
           <span style={{ fontSize: 32, fontWeight: 700, color: "#ffffff" }}>
             Kado
           </span>
-          <span style={{ fontSize: 32, fontWeight: 700, color: "#f59e0b" }}>
+          <span style={{ fontSize: 32, fontWeight: 700, color: "#f5b83d" }}>
             Lakay
           </span>
         </div>
@@ -105,7 +105,7 @@ export async function GET(
               gap: "16px",
               marginTop: "20px",
               fontSize: 20,
-              color: "#93c5fd",
+              color: "#94a6ff",
             }}
           >
             {registry.user?.name && <span>{registry.user.name}</span>}
@@ -125,8 +125,8 @@ export async function GET(
         <div
           style={{
             display: "flex",
-            backgroundColor: "#f59e0b",
-            color: "#172554",
+            backgroundColor: "#f5b83d",
+            color: "#070b18",
             padding: "14px 36px",
             borderRadius: "12px",
             fontSize: 22,

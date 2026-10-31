@@ -141,8 +141,8 @@ export default async function BusinessOrdersPage() {
                 </div>
 
                 {order.giftMessage && (
-                  <div className="mt-3 p-3 bg-gold-50 rounded-lg border border-gold-100">
-                    <p className="text-xs text-gold-600 font-medium mb-1">
+                  <div className="mt-3 p-3 bg-gold-400/10 rounded-lg border border-gold-400/25">
+                    <p className="text-xs text-gold-300 font-medium mb-1">
                       {t("checkout.giftMessage")}:
                     </p>
                     <p className="text-sm text-gray-700 italic">

@@ -66,7 +66,7 @@ export function ProductList({ businessId, products }: ProductListProps) {
                 <textarea
                   name="description"
                   rows={2}
-                  className="flex w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                  className="flex w-full rounded-lg border border-gray-300 bg-surface px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
@@ -138,7 +138,7 @@ export function ProductList({ businessId, products }: ProductListProps) {
                   <span
                     className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${
                       product.inStock
-                        ? "bg-green-100 text-green-700"
+                        ? "bg-green-500/15 text-green-300"
                         : "bg-gray-100 text-gray-500"
                     }`}
                   >

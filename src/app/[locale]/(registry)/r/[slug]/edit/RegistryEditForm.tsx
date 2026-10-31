@@ -111,7 +111,7 @@ export function RegistryEditForm({ registry }: RegistryEditFormProps) {
                 name="description"
                 defaultValue={registry.description || ""}
                 rows={3}
-                className="flex w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                className="flex w-full rounded-lg border border-gray-300 bg-surface px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
               />
             </div>
             <div>
@@ -174,7 +174,7 @@ export function RegistryEditForm({ registry }: RegistryEditFormProps) {
                   <textarea
                     name="description"
                     rows={2}
-                    className="flex w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                    className="flex w-full rounded-lg border border-gray-300 bg-surface px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
                   />
                 </div>
                 <div className="grid grid-cols-3 gap-4">
@@ -203,7 +203,7 @@ export function RegistryEditForm({ registry }: RegistryEditFormProps) {
                   </label>
                   <select
                     name="source"
-                    className="flex h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                    className="flex h-10 w-full rounded-lg border border-gray-300 bg-surface px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
                   >
                     <option value="CUSTOM">{t("item.custom")}</option>
                     <option value="AMAZON">{t("item.fromAmazon")}</option>
@@ -255,7 +255,7 @@ export function RegistryEditForm({ registry }: RegistryEditFormProps) {
                         x{item.quantity}
                       </span>
                       {item.externalUrl && (
-                        <span className="text-xs text-brand-500">
+                        <span className="text-xs text-brand-400">
                           {item.source}
                         </span>
                       )}
@@ -265,7 +265,7 @@ export function RegistryEditForm({ registry }: RegistryEditFormProps) {
                     variant="ghost"
                     size="sm"
                     onClick={() => handleRemoveItem(item.id)}
-                    className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                    className="text-red-500 hover:text-red-300 hover:bg-red-500/15"
                   >
                     {t("common.delete")}
                   </Button>

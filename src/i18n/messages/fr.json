@@ -52,7 +52,13 @@
     "step2Title": "Partagez avec tout le monde",
     "step2Desc": "Envoyez le lien de votre registre sur WhatsApp, Facebook ou par SMS.",
     "step3Title": "Recevez vos cadeaux",
-    "step3Desc": "Les gens peuvent acheter les cadeaux directement ou dans les commerces locaux."
+    "step3Desc": "Les gens peuvent acheter les cadeaux directement ou dans les commerces locaux.",
+    "eyebrow": "Haïti + Diaspora",
+    "giftReceived": "a offert un cadeau",
+    "statLanguages": "langues",
+    "statPayments": "moyens de paiement",
+    "statFree": "pour créer un registre",
+    "finalTitle": "Votre registre, prêt en deux minutes"
   },
   "registry": {
     "create": "Créer un registre",
@@ -252,5 +258,11 @@
     "sent": "Merci ! Nous vous répondrons bientôt.",
     "invalid": "Merci de remplir tous les champs (message de 10 caractères minimum).",
     "rateLimited": "Trop de messages. Réessayez plus tard."
+  },
+  "theme": {
+    "label": "Thème",
+    "dark": "Sombre",
+    "light": "Clair",
+    "system": "Système"
   }
 }

@@ -51,11 +51,11 @@ export function CreateRegistryForm() {
               onClick={() => setSelectedType(type.value)}
               className={`flex flex-col items-center gap-2 rounded-xl border-2 p-4 transition-all ${
                 selectedType === type.value
-                  ? "border-brand-500 bg-brand-50 ring-2 ring-brand-200"
-                  : "border-gray-200 bg-white hover:border-gray-300"
+                  ? "border-brand-500 bg-brand-500/15 ring-2 ring-brand-500/30"
+                  : "border-gray-200 bg-surface hover:border-gray-300"
               }`}
             >
-              <RegistryTypeIcon type={type.value} className="h-8 w-8 text-brand-700" />
+              <RegistryTypeIcon type={type.value} className="h-8 w-8 text-brand-300" />
               <span className="text-sm font-medium text-gray-700">
                 {typeLabels[type.value]}
               </span>
@@ -100,7 +100,7 @@ export function CreateRegistryForm() {
               id="description"
               name="description"
               rows={3}
-              className="flex w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+              className="flex w-full rounded-lg border border-gray-300 bg-surface px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
             />
           </div>
 

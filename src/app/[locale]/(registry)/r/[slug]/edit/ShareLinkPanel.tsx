@@ -45,7 +45,7 @@ export function ShareLinkPanel({ registryId, baseUrl, isPublic, initialToken }: 
   }
 
   return (
-    <section className="mb-8 rounded-xl border border-gray-200 bg-white p-4">
+    <section className="mb-8 rounded-xl border border-gray-200 bg-surface p-4">
       <h2 className="flex items-center gap-1.5 text-sm font-semibold text-gray-900">
         {!isPublic && <Lock className="h-4 w-4" aria-hidden="true" />}
         {isPublic ? "Lyen rejis ou / Your registry link" : "Lyen prive / Private share link"}
@@ -78,7 +78,7 @@ export function ShareLinkPanel({ registryId, baseUrl, isPublic, initialToken }: 
           </Button>
         )}
       </div>
-      {error && <p className="mt-2 text-xs text-red-600">{error}</p>}
+      {error && <p className="mt-2 text-xs text-red-300">{error}</p>}
     </section>
   );
 }

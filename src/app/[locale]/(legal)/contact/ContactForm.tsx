@@ -18,7 +18,7 @@ export function ContactForm() {
     });
   }
 
-  if (status === "sent") return <p className="rounded-lg bg-green-50 p-4 text-green-800" role="status">{t("sent")}</p>;
+  if (status === "sent") return <p className="rounded-lg bg-green-500/15 p-4 text-green-300" role="status">{t("sent")}</p>;
 
   return (
     <form action={onSubmit} className="space-y-4">
@@ -44,8 +44,8 @@ export function ContactForm() {
       </div>
       {/* Honeypot: hidden from people, filled by bots. */}
       <input type="text" name="website" tabIndex={-1} autoComplete="off" className="hidden" aria-hidden="true" />
-      {status === "INVALID" && <p className="text-sm text-red-600" role="alert">{t("invalid")}</p>}
-      {status === "RATE_LIMITED" && <p className="text-sm text-red-600" role="alert">{t("rateLimited")}</p>}
+      {status === "INVALID" && <p className="text-sm text-red-300" role="alert">{t("invalid")}</p>}
+      {status === "RATE_LIMITED" && <p className="text-sm text-red-300" role="alert">{t("rateLimited")}</p>}
       <Button type="submit" variant="gold" disabled={pending}>{pending ? "…" : t("send")}</Button>
     </form>
   );

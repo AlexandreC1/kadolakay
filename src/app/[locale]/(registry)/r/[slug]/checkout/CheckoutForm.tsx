@@ -149,7 +149,7 @@ export function CheckoutForm({ registrySlug, items, locale, enabledProviders, sh
                     type="checkbox"
                     checked={isSelected}
                     onChange={() => toggleItem(item.id)}
-                    className="h-4 w-4 rounded border-gray-300 text-brand-600"
+                    className="h-4 w-4 rounded border-gray-300 text-brand-300"
                   />
                   {item.imageUrl && (
                     <img
@@ -163,7 +163,7 @@ export function CheckoutForm({ registrySlug, items, locale, enabledProviders, sh
                       {item.title}
                     </p>
                     {item.businessName && (
-                      <p className="text-xs text-brand-600">
+                      <p className="text-xs text-brand-300">
                         {item.businessName}
                       </p>
                     )}
@@ -212,7 +212,7 @@ export function CheckoutForm({ registrySlug, items, locale, enabledProviders, sh
           name="giftMessage"
           rows={3}
           placeholder={t("checkout.giftMessagePlaceholder")}
-          className="flex w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+          className="flex w-full rounded-lg border border-gray-300 bg-surface px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
         />
       </div>
 
@@ -222,7 +222,7 @@ export function CheckoutForm({ registrySlug, items, locale, enabledProviders, sh
           type="checkbox"
           name="isAnonymous"
           value="true"
-          className="h-4 w-4 rounded border-gray-300 text-brand-600"
+          className="h-4 w-4 rounded border-gray-300 text-brand-300"
         />
         <span className="text-sm text-gray-700">{t("checkout.anonymous")}</span>
       </label>
@@ -243,7 +243,7 @@ export function CheckoutForm({ registrySlug, items, locale, enabledProviders, sh
               onClick={() => setPaymentMethod(method.id)}
               className={`flex items-center gap-2 rounded-lg border-2 p-3 text-sm font-medium transition-all ${
                 paymentMethod === method.id
-                  ? "border-brand-500 bg-brand-50 text-brand-700"
+                  ? "border-brand-500 bg-brand-500/15 text-brand-300"
                   : "border-gray-200 text-gray-700 hover:border-gray-300"
               }`}
             >
@@ -270,7 +270,7 @@ export function CheckoutForm({ registrySlug, items, locale, enabledProviders, sh
       </div>
 
       {error && (
-        <div className="rounded-lg bg-red-50 border border-red-200 p-3 text-sm text-red-700">
+        <div className="rounded-lg bg-red-500/15 border border-red-500/30 p-3 text-sm text-red-300">
           {error}
         </div>
       )}

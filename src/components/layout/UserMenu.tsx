@@ -43,7 +43,7 @@ export function UserMenu({ user }: UserMenuProps) {
             className="h-8 w-8 rounded-full object-cover"
           />
         ) : (
-          <div className="h-8 w-8 rounded-full bg-brand-700 flex items-center justify-center text-white text-sm font-medium">
+          <div className="h-8 w-8 rounded-full bg-brand-500 flex items-center justify-center text-white text-sm font-medium">
             {(user.name || user.email || "U")[0].toUpperCase()}
           </div>
         )}
@@ -53,7 +53,7 @@ export function UserMenu({ user }: UserMenuProps) {
       </button>
 
       {open && (
-        <div className="absolute right-0 mt-2 w-56 rounded-lg border border-gray-200 bg-white shadow-lg py-1 z-50">
+        <div className="absolute right-0 mt-2 w-56 rounded-lg border border-gray-200 bg-surface shadow-lg py-1 z-50">
           <Link
             href="/dashboard"
             className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
@@ -106,7 +106,7 @@ export function UserMenu({ user }: UserMenuProps) {
           <form action="/api/auth/signout" method="POST">
             <button
               type="submit"
-              className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-50"
+              className="w-full text-left px-4 py-2 text-sm text-red-300 hover:bg-gray-50"
             >
               {t("common.signOut")}
             </button>

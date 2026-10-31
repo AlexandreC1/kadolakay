@@ -6,10 +6,10 @@
  */
 
 const NEUTRAL = "bg-gray-100 text-gray-700";
-const PENDING = "bg-gold-100 text-gold-800";
-const IN_PROGRESS = "bg-brand-100 text-brand-800";
-const SUCCESS = "bg-green-100 text-green-800";
-const DANGER = "bg-red-100 text-red-800";
+const PENDING = "bg-gold-400/10 text-gold-300";
+const IN_PROGRESS = "bg-brand-500/15 text-brand-300";
+const SUCCESS = "bg-green-500/15 text-green-300";
+const DANGER = "bg-red-500/15 text-red-300";
 
 /** Fallback for a status missing from the maps below. */
 export const DEFAULT_BADGE_COLOR = NEUTRAL;

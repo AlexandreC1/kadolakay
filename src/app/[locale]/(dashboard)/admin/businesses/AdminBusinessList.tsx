@@ -50,7 +50,7 @@ export function AdminBusinessList({
       {/* Pending */}
       {pending.length > 0 && (
         <div>
-          <h2 className="text-lg font-semibold text-gold-700 mb-3">
+          <h2 className="text-lg font-semibold text-gold-300 mb-3">
             Pending Review ({pending.length})
           </h2>
           <div className="space-y-3">
@@ -70,7 +70,7 @@ export function AdminBusinessList({
       {/* Approved */}
       {approved.length > 0 && (
         <div>
-          <h2 className="text-lg font-semibold text-green-700 mb-3">
+          <h2 className="text-lg font-semibold text-green-300 mb-3">
             Approved ({approved.length})
           </h2>
           <div className="space-y-3">
@@ -89,7 +89,7 @@ export function AdminBusinessList({
       {/* Suspended */}
       {suspended.length > 0 && (
         <div>
-          <h2 className="text-lg font-semibold text-red-700 mb-3">
+          <h2 className="text-lg font-semibold text-red-300 mb-3">
             Suspended ({suspended.length})
           </h2>
           <div className="space-y-3">

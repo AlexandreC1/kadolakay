@@ -10,7 +10,7 @@ import { RegistryTypeIcon } from "@/components/shared/RegistryTypeIcon";
 
 const statusColors: Record<string, string> = {
   DRAFT: "bg-gray-100 text-gray-600",
-  PUBLISHED: "bg-green-100 text-green-700",
+  PUBLISHED: "bg-green-500/15 text-green-300",
   ARCHIVED: "bg-gray-100 text-gray-500",
 };
 
@@ -62,7 +62,7 @@ export default async function MyRegistriesPage({ searchParams }: { searchParams:
                       <div className="flex items-start gap-3">
                         <RegistryTypeIcon
                           type={registry.type}
-                          className="mt-0.5 h-6 w-6 shrink-0 text-brand-700"
+                          className="mt-0.5 h-6 w-6 shrink-0 text-brand-300"
                         />
                         <div>
                           <h3 className="font-semibold text-gray-900">
@@ -96,7 +96,7 @@ export default async function MyRegistriesPage({ searchParams }: { searchParams:
           })}
           {nextHref && (
             <div className="pt-2 text-center">
-              <Link href={nextHref} className="text-sm font-medium text-gold-700 hover:underline">
+              <Link href={nextHref} className="text-sm font-medium text-gold-300 hover:underline">
                 {t("common.next")} →
               </Link>
             </div>

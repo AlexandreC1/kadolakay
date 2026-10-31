@@ -52,7 +52,13 @@
     "step2Title": "Pataje ak tout moun",
     "step2Desc": "Voye lyen rejis ou sou WhatsApp, Facebook, oswa pa SMS.",
     "step3Title": "Resevwa kado",
-    "step3Desc": "Moun ka achte kado yo dirèkteman oswa nan magazen lokal."
+    "step3Desc": "Moun ka achte kado yo dirèkteman oswa nan magazen lokal.",
+    "eyebrow": "Haiti + Dyaspora",
+    "giftReceived": "voye yon kado",
+    "statLanguages": "lang",
+    "statPayments": "fason pou peye",
+    "statFree": "pou kreye yon rejis",
+    "finalTitle": "Rejis ou pare nan de minit"
   },
   "registry": {
     "create": "Kreye yon rejis",
@@ -252,5 +258,11 @@
     "sent": "Mèsi! N ap reponn ou byento.",
     "invalid": "Tanpri ranpli tout chan yo (mesaj la dwe gen omwen 10 karaktè).",
     "rateLimited": "Twòp mesaj. Eseye ankò pita."
+  },
+  "theme": {
+    "label": "Tèm",
+    "dark": "Fènwa",
+    "light": "Klè",
+    "system": "Sistèm"
   }
 }

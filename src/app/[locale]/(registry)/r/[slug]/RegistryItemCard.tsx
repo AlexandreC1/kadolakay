@@ -5,6 +5,7 @@ import { safeHref } from "@/lib/url";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CurrencyDisplay } from "@/components/shared/CurrencyDisplay";
+import { Gift } from "lucide-react";
 
 interface RegistryItemCardProps {
   item: {
@@ -43,18 +44,22 @@ export function RegistryItemCard({ item, locale }: RegistryItemCardProps) {
 
   return (
     <Card
-      className={`overflow-hidden transition-opacity ${isFulfilled ? "opacity-50" : ""}`}
+      className={`group overflow-hidden transition duration-300 hover:-translate-y-1 hover:border-brand-500/40 ${isFulfilled ? "opacity-50" : ""}`}
     >
-      {item.imageUrl && (
-        <div className="aspect-square bg-gray-100 overflow-hidden">
+      <div className="aspect-square bg-gray-100 overflow-hidden">
+        {item.imageUrl ? (
           <img
             src={item.imageUrl}
             alt={item.title}
-            className="h-full w-full object-cover"
+            className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
             loading="lazy"
           />
-        </div>
-      )}
+        ) : (
+          <div className="grid h-full w-full place-items-center">
+            <Gift className="h-12 w-12 text-gray-300" strokeWidth={1.25} aria-hidden="true" />
+          </div>
+        )}
+      </div>
       <CardContent className="p-4">
         <h3 className="font-semibold text-gray-900 truncate">{item.title}</h3>
 
@@ -65,7 +70,7 @@ export function RegistryItemCard({ item, locale }: RegistryItemCardProps) {
         )}
 
         {item.business && (
-          <p className="mt-1 text-xs text-brand-600">{item.business.name}</p>
+          <p className="mt-1 text-xs text-brand-300">{item.business.name}</p>
         )}
 
         <div className="mt-2 flex items-center justify-between">
@@ -84,7 +89,7 @@ export function RegistryItemCard({ item, locale }: RegistryItemCardProps) {
 
         <div className="mt-3">
           {isFulfilled ? (
-            <span className="inline-block w-full text-center text-sm text-green-600 font-medium py-2">
+            <span className="inline-block w-full text-center text-sm text-green-300 font-medium py-2">
               {t("registry.fulfilled")}
             </span>
           ) : (

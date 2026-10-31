@@ -52,7 +52,13 @@
     "step2Title": "Share with everyone",
     "step2Desc": "Send your registry link on WhatsApp, Facebook, or via SMS.",
     "step3Title": "Receive your gifts",
-    "step3Desc": "People can buy gifts directly or from local stores."
+    "step3Desc": "People can buy gifts directly or from local stores.",
+    "eyebrow": "Haiti + Diaspora",
+    "giftReceived": "sent a gift",
+    "statLanguages": "languages",
+    "statPayments": "ways to pay",
+    "statFree": "to create a registry",
+    "finalTitle": "Your registry, ready in two minutes"
   },
   "registry": {
     "create": "Create a registry",
@@ -252,5 +258,11 @@
     "sent": "Thanks! We'll get back to you soon.",
     "invalid": "Please fill in every field (message at least 10 characters).",
     "rateLimited": "Too many messages. Please try again later."
+  },
+  "theme": {
+    "label": "Theme",
+    "dark": "Dark",
+    "light": "Light",
+    "system": "System"
   }
 }

@@ -3,17 +3,17 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:ring-offset-2 focus-visible:ring-offset-night active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50",
   {
     variants: {
       variant: {
-        default: "bg-brand-700 text-white hover:bg-brand-800 shadow-sm",
+        default: "bg-brand-500 text-white hover:bg-brand-400 shadow-[0_8px_30px_-8px_rgba(59,91,255,0.6)]",
         secondary: "bg-gray-100 text-gray-900 hover:bg-gray-200",
         outline:
-          "border border-gray-300 bg-white text-gray-700 hover:bg-gray-50",
-        ghost: "text-gray-700 hover:bg-gray-100",
-        destructive: "bg-red-600 text-white hover:bg-red-700",
-        gold: "bg-gold-500 text-brand-900 hover:bg-gold-400 font-semibold shadow-sm",
+          "border border-gray-300 bg-transparent text-gray-900 hover:bg-gray-100",
+        ghost: "text-gray-700 hover:bg-gray-100 hover:text-gray-900",
+        destructive: "bg-red-500 text-white hover:bg-red-400",
+        gold: "bg-gold-400 text-brand-950 hover:bg-[#ffc95c] font-semibold shadow-[0_8px_30px_-8px_rgba(245,184,61,0.55)]",
       },
       size: {
         default: "h-10 px-4 py-2",

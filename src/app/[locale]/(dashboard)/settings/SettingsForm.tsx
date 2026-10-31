@@ -41,8 +41,8 @@ export function SettingsForm({ user }: SettingsFormProps) {
         <div
           className={`rounded-lg p-3 text-sm ${
             message.type === "success"
-              ? "bg-green-50 text-green-800 border border-green-200"
-              : "bg-red-50 text-red-800 border border-red-200"
+              ? "bg-green-500/15 text-green-300 border border-green-500/30"
+              : "bg-red-500/15 text-red-300 border border-red-500/30"
           }`}
         >
           {message.text}
@@ -102,7 +102,7 @@ export function SettingsForm({ user }: SettingsFormProps) {
                 key={locale.code}
                 className={`flex items-center gap-2 rounded-lg border-2 p-3 cursor-pointer transition-colors ${
                   user.preferredLocale === locale.code
-                    ? "border-gold-500 bg-gold-50"
+                    ? "border-gold-500 bg-gold-400/10"
                     : "border-gray-200 hover:border-gray-300"
                 }`}
               >

@@ -30,9 +30,9 @@ export function LoginForm() {
     return (
       <Card>
         <CardContent className="p-8 text-center">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-brand-100 mb-4">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-brand-500/15 mb-4">
             <svg
-              className="h-8 w-8 text-brand-700"
+              className="h-8 w-8 text-brand-300"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -92,7 +92,7 @@ export function LoginForm() {
             <div className="w-full border-t border-gray-200" />
           </div>
           <div className="relative flex justify-center text-sm">
-            <span className="bg-white px-3 text-gray-400">{t("continueWithEmail")}</span>
+            <span className="bg-surface px-3 text-gray-400">{t("continueWithEmail")}</span>
           </div>
         </div>
 

@@ -63,7 +63,7 @@ export default async function OrdersPage({ searchParams }: PageProps) {
         </div>
         <Link
           href="/dashboard"
-          className="text-sm text-gold-700 hover:text-gold-800"
+          className="text-sm text-gold-300 hover:text-gold-300"
         >
           {t("common.back")} {t("nav.dashboard")}
         </Link>
@@ -76,7 +76,7 @@ export default async function OrdersPage({ searchParams }: PageProps) {
             href={`/orders?tab=${key}`}
             aria-current={tab === key ? "page" : undefined}
             className={`-mb-px border-b-2 px-4 py-2 text-sm font-medium ${
-              tab === key ? "border-gold-600 text-gold-700" : "border-transparent text-gray-500 hover:text-gray-700"
+              tab === key ? "border-gold-600 text-gold-300" : "border-transparent text-gray-500 hover:text-gray-700"
             }`}
           >
             {key === "received" ? t("orders.tabReceived") : t("orders.tabPlaced")}
@@ -96,7 +96,7 @@ export default async function OrdersPage({ searchParams }: PageProps) {
             </p>
             <Link
               href="/my-registries"
-              className="inline-block bg-gold-600 text-white px-6 py-2 rounded-lg hover:bg-gold-700 transition-colors"
+              className="inline-block bg-gold-400 text-brand-950 px-6 py-2 rounded-full font-semibold hover:bg-gold-300 transition-colors"
             >
               {t("nav.myRegistries")}
             </Link>
@@ -117,7 +117,7 @@ export default async function OrdersPage({ searchParams }: PageProps) {
                     <div className="flex items-center gap-3">
                       <RegistryTypeIcon
                         type={registry?.type}
-                        className="h-6 w-6 shrink-0 text-brand-700"
+                        className="h-6 w-6 shrink-0 text-brand-300"
                       />
                       <div>
                         <CardTitle className="text-lg">
@@ -127,7 +127,7 @@ export default async function OrdersPage({ searchParams }: PageProps) {
                           {registry?.title && (
                             <Link
                               href={`/r/${registry.slug}`}
-                              className="text-gold-700 hover:underline"
+                              className="text-gold-300 hover:underline"
                             >
                               {registry.title}
                             </Link>
@@ -182,11 +182,11 @@ export default async function OrdersPage({ searchParams }: PageProps) {
 
                   {/* Gift message */}
                   {order.giftMessage && (
-                    <div className="border-l-4 border-gold-400 bg-gold-50 p-3 rounded-r-lg">
-                      <p className="text-sm text-gold-900 italic">
+                    <div className="border-l-4 border-gold-400 bg-gold-400/10 p-3 rounded-r-lg">
+                      <p className="text-sm text-gold-300 italic">
                         &ldquo;{order.giftMessage}&rdquo;
                       </p>
-                      <p className="text-xs text-gold-700 mt-1">
+                      <p className="text-xs text-gold-300 mt-1">
                         — {order.isAnonymous ? t("orders.anonymous") : order.buyerName}
                       </p>
                     </div>
@@ -205,7 +205,7 @@ export default async function OrdersPage({ searchParams }: PageProps) {
           })}
           {nextHref && (
             <div className="pt-2 text-center">
-              <Link href={nextHref} className="text-sm font-medium text-gold-700 hover:underline">
+              <Link href={nextHref} className="text-sm font-medium text-gold-300 hover:underline">
                 {t("common.next")} →
               </Link>
             </div>

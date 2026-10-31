@@ -57,8 +57,8 @@ export default async function BusinessDashboardPage() {
       </div>
 
       {business.status === "PENDING_REVIEW" && (
-        <div className="mb-8 rounded-xl border border-gold-200 bg-gold-50 p-4">
-          <p className="text-sm text-gold-800">
+        <div className="mb-8 rounded-xl border border-gold-400/25 bg-gold-400/10 p-4">
+          <p className="text-sm text-gold-300">
             {t("business.pendingMessage")}{" "}
             {t("business.pendingHint")}
           </p>
@@ -110,7 +110,7 @@ export default async function BusinessDashboardPage() {
         <Link href="/business/products">
           <Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
             <CardContent className="p-6 flex items-center gap-4">
-              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-brand-50"><Package className="h-6 w-6 text-brand-700" aria-hidden="true" /></span>
+              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-brand-500/15"><Package className="h-6 w-6 text-brand-300" aria-hidden="true" /></span>
               <div>
                 <h3 className="font-semibold text-gray-900">
                   {t("business.products")}
@@ -125,7 +125,7 @@ export default async function BusinessDashboardPage() {
         <Link href="/business/orders">
           <Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
             <CardContent className="p-6 flex items-center gap-4">
-              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-brand-50"><Receipt className="h-6 w-6 text-brand-700" aria-hidden="true" /></span>
+              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-brand-500/15"><Receipt className="h-6 w-6 text-brand-300" aria-hidden="true" /></span>
               <div>
                 <h3 className="font-semibold text-gray-900">
                   {t("nav.orders")}

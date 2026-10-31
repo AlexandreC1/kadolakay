@@ -97,6 +97,8 @@
       "src/components/ui/**",
       "src/components/shared/CurrencyDisplay.tsx",
       "src/components/shared/RegistryTypeIcon.tsx",
+      "src/lib/theme.ts",
+      "src/lib/theme.test.ts",
       "src/components/shared/ShareButtons.tsx",
       "src/components/shared/ShareModal.tsx",
       "src/i18n/*.ts",
