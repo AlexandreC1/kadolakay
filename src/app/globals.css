@@ -1,19 +1,149 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/*
+ * KadoLakay design tokens ("Nuit": dark, premium).
+ *
+ * The single source of truth for colors and fonts. Components use these
+ * names (bg-surface, text-brand-300, bg-gold-400, ...) instead of raw hex,
+ * so the look changes here only.
+ *
+ *   night / surface: page and card backgrounds (deep navy)
+ *   brand: electric blue. Primary actions, links, focus rings.
+ *   gold:  warm gold. The headline CTA, highlights, pending states.
+ *   gray:  INVERTED for the dark theme: gray-50 is darkest, gray-950 is
+ *          near-white. So `text-gray-900` (headings) renders light and
+ *          `border-gray-200` renders as a subtle dark line, everywhere.
+ */
+@theme {
+  --color-night: #070b18;
+  --color-surface: #0e1428;
+  --color-surface-2: #141c36;
+
+  --color-brand-50: #eef1ff;
+  --color-brand-100: #dde3ff;
+  --color-brand-200: #bcc8ff;
+  --color-brand-300: #94a6ff;
+  --color-brand-400: #6a82ff;
+  --color-brand-500: #3b5bff;
+  --color-brand-600: #2a45e8;
+  --color-brand-700: #2236c2;
+  --color-brand-800: #1e2f99;
+  --color-brand-900: #1c2b78;
+  --color-brand-950: #0a1030;
+
+  --color-gold-50: #fff8e8;
+  --color-gold-100: #fdedc6;
+  --color-gold-200: #fada8e;
+  --color-gold-300: #f8c960;
+  --color-gold-400: #f5b83d;
+  --color-gold-500: #e39e1c;
+  --color-gold-600: #c47f12;
+  --color-gold-700: #9c6012;
+  --color-gold-800: #7e4c15;
+  --color-gold-900: #683f16;
+  --color-gold-950: #3c2008;
+
+  --color-gray-50: #0b1124;
+  --color-gray-100: #121a33;
+  --color-gray-200: #1c2542;
+  --color-gray-300: #2a3454;
+  --color-gray-400: #7a84a0;
+  --color-gray-500: #8f98b2;
+  --color-gray-600: #a9b0c6;
+  --color-gray-700: #c5cadb;
+  --color-gray-800: #dde1ec;
+  --color-gray-900: #eef0f7;
+  --color-gray-950: #f7f8fc;
+}
+
+/*
+ * Light theme. Same token names, light values: the user picks the theme in
+ * the header (ThemeSwitcher), stored in the "theme" cookie and applied as
+ * <html data-theme="...">. "system" follows the OS setting. Text-on-dark
+ * shades (brand-300, gold-300, red-300, green-300) become their dark
+ * equivalents so links and statuses stay readable on white.
+ */
+:root[data-theme="light"] {
+  --color-night: #f6f7fb;
+  --color-surface: #ffffff;
+  --color-surface-2: #f1f3f9;
+  --color-gray-50: #f8f9fc;
+  --color-gray-100: #f1f3f8;
+  --color-gray-200: #e4e7ef;
+  --color-gray-300: #d0d5e1;
+  --color-gray-400: #6b7387;
+  --color-gray-500: #5c6478;
+  --color-gray-600: #464d5f;
+  --color-gray-700: #343a4a;
+  --color-gray-800: #232836;
+  --color-gray-900: #131722;
+  --color-gray-950: #0a0d14;
+  --color-brand-300: #2236c2;
+  --color-brand-400: #2a45e8;
+  --color-gold-300: #8a5a0e;
+  --color-red-300: #b42318;
+  --color-green-300: #0f7a52;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: light) {
+  :root[data-theme="system"] {
+    --color-night: #f6f7fb;
+    --color-surface: #ffffff;
+    --color-surface-2: #f1f3f9;
+    --color-gray-50: #f8f9fc;
+    --color-gray-100: #f1f3f8;
+    --color-gray-200: #e4e7ef;
+    --color-gray-300: #d0d5e1;
+    --color-gray-400: #6b7387;
+    --color-gray-500: #5c6478;
+    --color-gray-600: #464d5f;
+    --color-gray-700: #343a4a;
+    --color-gray-800: #232836;
+    --color-gray-900: #131722;
+    --color-gray-950: #0a0d14;
+    --color-brand-300: #2236c2;
+    --color-brand-400: #2a45e8;
+    --color-gold-300: #8a5a0e;
+    --color-red-300: #b42318;
+    --color-green-300: #0f7a52;
+    color-scheme: light;
+  }
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-fraunces), ui-serif, Georgia, serif;
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+@layer base {
+  html {
+    color-scheme: dark;
+  }
+
+  body {
+    background: var(--color-night);
+    color: var(--color-gray-900);
+    font-family: var(--font-sans);
+  }
+
+  h1,
+  h2 {
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
+  }
+
+  ::selection {
+    background: var(--color-gold-400);
+    color: var(--color-brand-950);
+  }
+}
+
+/* Faint grid used behind dark hero sections. */
+@utility bg-grid {
+  background-image:
+    linear-gradient(rgb(255 255 255 / 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(255 255 255 / 0.06) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: radial-gradient(ellipse at center, black, transparent 75%);
 }

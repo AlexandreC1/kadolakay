@@ -47,11 +47,11 @@ export function AccountPanel({ email }: { email: string }) {
           </form>
         </section>
 
-        <section className="rounded-lg border border-red-200 bg-red-50 p-4">
-          <h3 className="font-medium text-red-800">{t("deleteTitle")}</h3>
-          <p className="text-sm text-red-700 mb-3">{t("deleteDesc")}</p>
+        <section className="rounded-lg border border-red-500/30 bg-red-500/15 p-4">
+          <h3 className="font-medium text-red-300">{t("deleteTitle")}</h3>
+          <p className="text-sm text-red-300 mb-3">{t("deleteDesc")}</p>
           <form action={onDelete} className="space-y-2">
-            <label className="block text-sm text-red-800" htmlFor="confirmEmail">
+            <label className="block text-sm text-red-300" htmlFor="confirmEmail">
               {t("deleteConfirmLabel", { email })}
             </label>
             <Input
@@ -62,7 +62,7 @@ export function AccountPanel({ email }: { email: string }) {
               value={confirmEmail}
               onChange={(e) => setConfirmEmail(e.target.value)}
             />
-            {error && <p className="text-sm text-red-700" role="alert">{error}</p>}
+            {error && <p className="text-sm text-red-300" role="alert">{error}</p>}
             <Button
               type="submit"
               variant="destructive"

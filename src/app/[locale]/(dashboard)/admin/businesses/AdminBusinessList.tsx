@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { BUSINESS_STATUS_COLORS } from "@/lib/constants";
 import { updateBusinessStatus } from "./actions";
 
 interface Business {
@@ -17,12 +18,6 @@ interface Business {
   productCount: number;
   createdAt: string;
 }
-
-const statusBadge: Record<string, string> = {
-  PENDING_REVIEW: "bg-yellow-100 text-yellow-700",
-  APPROVED: "bg-green-100 text-green-700",
-  SUSPENDED: "bg-red-100 text-red-700",
-};
 
 export function AdminBusinessList({
   businesses,
@@ -55,7 +50,7 @@ export function AdminBusinessList({
       {/* Pending */}
       {pending.length > 0 && (
         <div>
-          <h2 className="text-lg font-semibold text-yellow-700 mb-3">
+          <h2 className="text-lg font-semibold text-gold-300 mb-3">
             Pending Review ({pending.length})
           </h2>
           <div className="space-y-3">
@@ -75,7 +70,7 @@ export function AdminBusinessList({
       {/* Approved */}
       {approved.length > 0 && (
         <div>
-          <h2 className="text-lg font-semibold text-green-700 mb-3">
+          <h2 className="text-lg font-semibold text-green-300 mb-3">
             Approved ({approved.length})
           </h2>
           <div className="space-y-3">
@@ -94,7 +89,7 @@ export function AdminBusinessList({
       {/* Suspended */}
       {suspended.length > 0 && (
         <div>
-          <h2 className="text-lg font-semibold text-red-700 mb-3">
+          <h2 className="text-lg font-semibold text-red-300 mb-3">
             Suspended ({suspended.length})
           </h2>
           <div className="space-y-3">
@@ -138,7 +133,7 @@ function BusinessCard({
             <div className="flex items-center gap-2">
               <h3 className="font-semibold text-gray-900">{business.name}</h3>
               <span
-                className={`rounded-full px-2 py-0.5 text-xs font-medium ${statusBadge[business.status]}`}
+                className={`rounded-full px-2 py-0.5 text-xs font-medium ${BUSINESS_STATUS_COLORS[business.status]}`}
               >
                 {business.status.replace("_", " ")}
               </span>

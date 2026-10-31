@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { CurrencyDisplay } from "@/components/shared/CurrencyDisplay";
+import { CreditCard, Smartphone, Wallet } from "lucide-react";
 
 interface CheckoutItem {
   id: string;
@@ -34,25 +35,25 @@ const paymentMethods = [
   {
     id: "stripe",
     name: "Credit / Debit Card",
-    icon: "💳",
+    icon: CreditCard,
     currency: "USD",
   },
   {
     id: "paypal",
     name: "PayPal",
-    icon: "🅿️",
+    icon: Wallet,
     currency: "USD",
   },
   {
     id: "moncash",
     name: "MonCash",
-    icon: "📱",
+    icon: Smartphone,
     currency: "HTG",
   },
   {
     id: "natcash",
     name: "Natcash",
-    icon: "📲",
+    icon: Smartphone,
     currency: "HTG",
   },
 ];
@@ -139,7 +140,7 @@ export function CheckoutForm({ registrySlug, items, locale, enabledProviders, sh
               <Card
                 key={item.id}
                 className={`cursor-pointer transition-all ${
-                  isSelected ? "ring-2 ring-blue-500" : ""
+                  isSelected ? "ring-2 ring-brand-500" : ""
                 }`}
                 onClick={() => toggleItem(item.id)}
               >
@@ -148,7 +149,7 @@ export function CheckoutForm({ registrySlug, items, locale, enabledProviders, sh
                     type="checkbox"
                     checked={isSelected}
                     onChange={() => toggleItem(item.id)}
-                    className="h-4 w-4 rounded border-gray-300 text-blue-600"
+                    className="h-4 w-4 rounded border-gray-300 text-brand-300"
                   />
                   {item.imageUrl && (
                     <img
@@ -162,7 +163,7 @@ export function CheckoutForm({ registrySlug, items, locale, enabledProviders, sh
                       {item.title}
                     </p>
                     {item.businessName && (
-                      <p className="text-xs text-blue-600">
+                      <p className="text-xs text-brand-300">
                         {item.businessName}
                       </p>
                     )}
@@ -211,7 +212,7 @@ export function CheckoutForm({ registrySlug, items, locale, enabledProviders, sh
           name="giftMessage"
           rows={3}
           placeholder={t("checkout.giftMessagePlaceholder")}
-          className="flex w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="flex w-full rounded-lg border border-gray-300 bg-surface px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
         />
       </div>
 
@@ -221,7 +222,7 @@ export function CheckoutForm({ registrySlug, items, locale, enabledProviders, sh
           type="checkbox"
           name="isAnonymous"
           value="true"
-          className="h-4 w-4 rounded border-gray-300 text-blue-600"
+          className="h-4 w-4 rounded border-gray-300 text-brand-300"
         />
         <span className="text-sm text-gray-700">{t("checkout.anonymous")}</span>
       </label>
@@ -242,11 +243,11 @@ export function CheckoutForm({ registrySlug, items, locale, enabledProviders, sh
               onClick={() => setPaymentMethod(method.id)}
               className={`flex items-center gap-2 rounded-lg border-2 p-3 text-sm font-medium transition-all ${
                 paymentMethod === method.id
-                  ? "border-blue-500 bg-blue-50 text-blue-700"
+                  ? "border-brand-500 bg-brand-500/15 text-brand-300"
                   : "border-gray-200 text-gray-700 hover:border-gray-300"
               }`}
             >
-              <span className="text-lg">{method.icon}</span>
+              <method.icon className="h-5 w-5 shrink-0" aria-hidden="true" />
               <div className="text-left">
                 <p>{method.name}</p>
                 <p className="text-xs text-gray-400">{method.currency}</p>
@@ -269,7 +270,7 @@ export function CheckoutForm({ registrySlug, items, locale, enabledProviders, sh
       </div>
 
       {error && (
-        <div className="rounded-lg bg-red-50 border border-red-200 p-3 text-sm text-red-700">
+        <div className="rounded-lg bg-red-500/15 border border-red-500/30 p-3 text-sm text-red-300">
           {error}
         </div>
       )}

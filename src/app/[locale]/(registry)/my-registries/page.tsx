@@ -6,16 +6,11 @@ import { getMyRegistriesPage } from "@/lib/queries/registries";
 import { Link } from "@/i18n/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-
-const typeEmoji: Record<string, string> = {
-  BABY_SHOWER: "👶",
-  WEDDING: "💍",
-  BIRTHDAY: "🎂",
-};
+import { RegistryTypeIcon } from "@/components/shared/RegistryTypeIcon";
 
 const statusColors: Record<string, string> = {
   DRAFT: "bg-gray-100 text-gray-600",
-  PUBLISHED: "bg-green-100 text-green-700",
+  PUBLISHED: "bg-green-500/15 text-green-300",
   ARCHIVED: "bg-gray-100 text-gray-500",
 };
 
@@ -65,9 +60,10 @@ export default async function MyRegistriesPage({ searchParams }: { searchParams:
                   <CardContent className="p-5">
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex items-start gap-3">
-                        <span className="text-2xl mt-0.5">
-                          {typeEmoji[registry.type] || "🎁"}
-                        </span>
+                        <RegistryTypeIcon
+                          type={registry.type}
+                          className="mt-0.5 h-6 w-6 shrink-0 text-brand-300"
+                        />
                         <div>
                           <h3 className="font-semibold text-gray-900">
                             {registry.title}
@@ -100,7 +96,7 @@ export default async function MyRegistriesPage({ searchParams }: { searchParams:
           })}
           {nextHref && (
             <div className="pt-2 text-center">
-              <Link href={nextHref} className="text-sm font-medium text-amber-700 hover:underline">
+              <Link href={nextHref} className="text-sm font-medium text-gold-300 hover:underline">
                 {t("common.next")} →
               </Link>
             </div>

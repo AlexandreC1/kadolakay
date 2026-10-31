@@ -63,7 +63,7 @@ export function BusinessSignupForm() {
           id="category"
           name="category"
           required
-          className="flex h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="flex h-10 w-full rounded-lg border border-gray-300 bg-surface px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
         >
           <option value="">--</option>
           {categories.map((cat) => (
@@ -83,7 +83,7 @@ export function BusinessSignupForm() {
           id="description"
           name="description"
           rows={3}
-          className="flex w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="flex w-full rounded-lg border border-gray-300 bg-surface px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
         />
       </div>
 
@@ -102,7 +102,7 @@ export function BusinessSignupForm() {
           <select
             id="department"
             name="department"
-            className="flex h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="flex h-10 w-full rounded-lg border border-gray-300 bg-surface px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
           >
             <option value="">--</option>
             {departments.map((dep) => (

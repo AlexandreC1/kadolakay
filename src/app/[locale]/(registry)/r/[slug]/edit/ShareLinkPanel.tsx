@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { rotateShareToken } from "@/actions/registry";
 import { buildShareUrl } from "@/lib/url";
+import { Check, Lock } from "lucide-react";
 
 interface ShareLinkPanelProps {
   registryId: string;
@@ -27,7 +28,7 @@ export function ShareLinkPanel({ registryId, baseUrl, isPublic, initialToken }: 
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      setError("Kopi pa mache — chwazi lyen an epi kopye l. / Copy failed — select the link and copy it.");
+      setError("Kopi pa mache. Chwazi lyen an epi kopye l. / Copy failed. Select the link and copy it.");
     }
   }
 
@@ -44,9 +45,10 @@ export function ShareLinkPanel({ registryId, baseUrl, isPublic, initialToken }: 
   }
 
   return (
-    <section className="mb-8 rounded-xl border border-gray-200 bg-white p-4">
-      <h2 className="text-sm font-semibold text-gray-900">
-        {isPublic ? "Lyen rejis ou / Your registry link" : "🔒 Lyen prive / Private share link"}
+    <section className="mb-8 rounded-xl border border-gray-200 bg-surface p-4">
+      <h2 className="flex items-center gap-1.5 text-sm font-semibold text-gray-900">
+        {!isPublic && <Lock className="h-4 w-4" aria-hidden="true" />}
+        {isPublic ? "Lyen rejis ou / Your registry link" : "Lyen prive / Private share link"}
       </h2>
       {!isPublic && (
         <p className="mt-1 text-xs text-gray-500">
@@ -62,7 +64,13 @@ export function ShareLinkPanel({ registryId, baseUrl, isPublic, initialToken }: 
           className="flex-1 rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-700"
         />
         <Button type="button" variant="gold" onClick={copy}>
-          {copied ? "✓ Kopye / Copied" : "Kopye / Copy"}
+          {copied ? (
+            <>
+              <Check className="h-4 w-4" aria-hidden="true" /> Kopye / Copied
+            </>
+          ) : (
+            "Kopye / Copy"
+          )}
         </Button>
         {!isPublic && (
           <Button type="button" variant="outline" onClick={rotate} disabled={pending}>
@@ -70,7 +78,7 @@ export function ShareLinkPanel({ registryId, baseUrl, isPublic, initialToken }: 
           </Button>
         )}
       </div>
-      {error && <p className="mt-2 text-xs text-red-600">{error}</p>}
+      {error && <p className="mt-2 text-xs text-red-300">{error}</p>}
     </section>
   );
 }

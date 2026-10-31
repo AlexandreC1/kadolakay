@@ -4,15 +4,8 @@ import { db } from "@/lib/db";
 import { getTranslations } from "next-intl/server";
 import { Card, CardContent } from "@/components/ui/card";
 import { CurrencyDisplay } from "@/components/shared/CurrencyDisplay";
-
-const orderStatusColors: Record<string, string> = {
-  PENDING: "bg-gray-100 text-gray-600",
-  PAID: "bg-green-100 text-green-700",
-  CONFIRMED: "bg-blue-100 text-blue-700",
-  SHIPPED: "bg-purple-100 text-purple-700",
-  DELIVERED: "bg-emerald-100 text-emerald-700",
-  CANCELLED: "bg-red-100 text-red-600",
-};
+import { DEFAULT_BADGE_COLOR, ORDER_STATUS_COLORS } from "@/lib/constants";
+import { Receipt } from "lucide-react";
 
 export default async function BusinessOrdersPage() {
   const session = await auth();
@@ -96,7 +89,7 @@ export default async function BusinessOrdersPage() {
 
       {orders.length === 0 ? (
         <div className="text-center py-12 text-gray-500">
-          <span className="text-4xl block mb-2">🧾</span>
+          <Receipt className="mx-auto mb-2 h-12 w-12 text-gray-400" aria-hidden="true" />
           <p>{t("business.noOrders")}</p>
         </div>
       ) : (
@@ -111,7 +104,7 @@ export default async function BusinessOrdersPage() {
                         {order.orderNumber}
                       </span>
                       <span
-                        className={`rounded-full px-2 py-0.5 text-xs font-medium ${orderStatusColors[order.status] || "bg-gray-100"}`}
+                        className={`rounded-full px-2 py-0.5 text-xs font-medium ${ORDER_STATUS_COLORS[order.status] ?? DEFAULT_BADGE_COLOR}`}
                       >
                         {order.status}
                       </span>
@@ -148,8 +141,8 @@ export default async function BusinessOrdersPage() {
                 </div>
 
                 {order.giftMessage && (
-                  <div className="mt-3 p-3 bg-amber-50 rounded-lg border border-amber-100">
-                    <p className="text-xs text-amber-600 font-medium mb-1">
+                  <div className="mt-3 p-3 bg-gold-400/10 rounded-lg border border-gold-400/25">
+                    <p className="text-xs text-gold-300 font-medium mb-1">
                       {t("checkout.giftMessage")}:
                     </p>
                     <p className="text-sm text-gray-700 italic">

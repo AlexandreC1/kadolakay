@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { Link } from "@/i18n/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { RegistryTypeIcon } from "@/components/shared/RegistryTypeIcon";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -53,16 +54,10 @@ export default async function CheckoutSuccessPage({ params, searchParams }: Prop
       : null;
   const awaitingNatcash = order?.payment?.provider === "NATCASH" && order.payment.status !== "COMPLETED";
 
-  const registryTypeEmoji: Record<string, string> = {
-    BABY_SHOWER: "👶",
-    WEDDING: "💍",
-    BIRTHDAY: "🎂",
-  };
-
   return (
     <div className="mx-auto max-w-lg px-4 py-16 sm:px-6 text-center">
-      <div className="text-6xl mb-6">
-        {registryTypeEmoji[registry?.type || ""] || "🎁"}
+      <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-brand-500/15">
+        <RegistryTypeIcon type={registry?.type} className="h-8 w-8 text-brand-300" />
       </div>
 
       <h1 className="text-3xl font-bold text-gray-900 mb-2">
@@ -70,7 +65,7 @@ export default async function CheckoutSuccessPage({ params, searchParams }: Prop
       </h1>
 
       {order?.status === "NEEDS_REFUND" && (
-        <Card className="mt-8 text-left border-amber-200">
+        <Card className="mt-8 text-left border-gold-400/25">
           <CardContent className="p-6 text-sm text-gray-700">
             <p>{t("checkout.needsRefund")}</p>
           </CardContent>
@@ -78,7 +73,7 @@ export default async function CheckoutSuccessPage({ params, searchParams }: Prop
       )}
 
       {awaitingNatcash && (
-        <Card className="mt-8 text-left border-amber-200">
+        <Card className="mt-8 text-left border-gold-400/25">
           <CardContent className="p-6 text-sm text-gray-700 space-y-2">
             <p className="font-medium">Natcash</p>
             <p>
@@ -135,8 +130,8 @@ export default async function CheckoutSuccessPage({ params, searchParams }: Prop
             </div>
 
             {order.giftMessage && (
-              <div className="mt-4 p-3 bg-amber-50 rounded-lg border border-amber-100">
-                <p className="text-xs text-amber-600 font-medium mb-1">
+              <div className="mt-4 p-3 bg-gold-400/10 rounded-lg border border-gold-400/25">
+                <p className="text-xs text-gold-300 font-medium mb-1">
                   {t("checkout.giftMessage")}
                 </p>
                 <p className="text-sm text-gray-700 italic">

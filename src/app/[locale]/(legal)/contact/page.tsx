@@ -14,7 +14,7 @@ export default async function ContactPage() {
       <h1 className="text-3xl font-bold text-gray-900">{t("title")}</h1>
       <p className="mt-2 mb-8 text-gray-600">
         {t("intro")}{" "}
-        <a href="mailto:support@kadolakay.com" className="text-amber-700 underline">support@kadolakay.com</a>
+        <a href="mailto:support@kadolakay.com" className="text-gold-300 underline">support@kadolakay.com</a>
       </p>
       <ContactForm />
     </div>

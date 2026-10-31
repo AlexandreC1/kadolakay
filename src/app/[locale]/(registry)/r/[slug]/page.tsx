@@ -6,6 +6,8 @@ import { CurrencyDisplay } from "@/components/shared/CurrencyDisplay";
 import { RegistryShareButton } from "./RegistryShareButton";
 import { RegistryItemCard } from "./RegistryItemCard";
 import { safeHref } from "@/lib/url";
+import { Package } from "lucide-react";
+import { Glow } from "@/components/hero/motion";
 
 interface PageProps {
   params: Promise<{ slug: string; locale: string }>;
@@ -72,24 +74,25 @@ export default async function RegistryPage({ params, searchParams }: PageProps) 
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
-      {/* Header */}
-      <div className="text-center mb-8">
-        <span className="inline-block rounded-full bg-blue-100 text-blue-700 px-3 py-1 text-sm font-medium mb-4">
+      {/* Header: dark band in every theme, like the landing hero */}
+      <div className="relative isolate mb-10 overflow-hidden rounded-[2rem] bg-[#070b18] px-6 py-12 text-center text-white sm:py-16">
+        <Glow />
+        <span className="mb-5 inline-block rounded-full border border-white/15 bg-white/5 px-3 py-1 text-xs font-medium uppercase tracking-[0.16em] text-white/80">
           {registryTypeLabels[registry.type]?.[locale] || registry.type}
         </span>
 
-        <h1 className="text-3xl font-bold text-gray-900 sm:text-4xl">
+        <h1 className="text-4xl sm:text-5xl">
           {registry.title}
         </h1>
 
         {registry.description && (
-          <p className="mt-3 text-lg text-gray-600 max-w-2xl mx-auto">
+          <p className="mt-4 text-lg text-white/65 max-w-2xl mx-auto">
             {registry.description}
           </p>
         )}
 
         {registry.eventDate && (
-          <p className="mt-2 text-sm text-gray-500">
+          <p className="mt-2 text-sm text-[#f5b83d]">
             {new Date(registry.eventDate).toLocaleDateString(
               locale === "ht" ? "fr-HT" : locale === "fr" ? "fr-FR" : "en-US",
               { year: "numeric", month: "long", day: "numeric" }
@@ -103,10 +106,10 @@ export default async function RegistryPage({ params, searchParams }: PageProps) 
               <img
                 src={registry.user.image}
                 alt={registry.user.name || "Foto pwofil"}
-                className="h-8 w-8 rounded-full"
+                className="h-8 w-8 rounded-full ring-2 ring-white/20"
               />
             )}
-            <span className="text-sm text-gray-500">
+            <span className="text-sm text-white/65">
               {registry.user.name}
             </span>
           </div>
@@ -115,7 +118,7 @@ export default async function RegistryPage({ params, searchParams }: PageProps) 
         {/* Progress bar */}
         {totalItems > 0 && (
           <div className="mt-6 max-w-md mx-auto">
-            <div className="flex justify-between text-sm text-gray-500 mb-1">
+            <div className="flex justify-between text-sm text-white/65 mb-2">
               <span>
                 {t("giftCount", {
                   count: fulfilledItems,
@@ -126,9 +129,9 @@ export default async function RegistryPage({ params, searchParams }: PageProps) 
                 {Math.round((fulfilledItems / totalItems) * 100)}%
               </span>
             </div>
-            <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+            <div className="h-2 bg-white/10 rounded-full overflow-hidden">
               <div
-                className="h-full bg-amber-500 rounded-full transition-all"
+                className="h-full bg-[#f5b83d] rounded-full transition-all"
                 style={{
                   width: `${(fulfilledItems / totalItems) * 100}%`,
                 }}
@@ -138,16 +141,16 @@ export default async function RegistryPage({ params, searchParams }: PageProps) 
         )}
 
         {/* Share button */}
-        <div className="mt-6">
+        <div className="mt-8">
           <RegistryShareButton url={registryUrl} title={registry.title} />
         </div>
       </div>
 
       {/* Amazon wishlist link */}
       {amazonWishlistHref && (
-        <div className="mb-8 p-4 rounded-xl border border-amber-200 bg-amber-50">
+        <div className="mb-8 p-4 rounded-xl border border-gold-400/25 bg-gold-400/10">
           <div className="flex items-center gap-3">
-            <span className="text-2xl">📦</span>
+            <Package className="h-6 w-6 shrink-0 text-gold-300" aria-hidden="true" />
             <div>
               <p className="font-medium text-gray-900">
                 {t("amazonWishlist")}
@@ -156,7 +159,7 @@ export default async function RegistryPage({ params, searchParams }: PageProps) 
                 href={amazonWishlistHref ?? undefined}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-sm text-blue-600 hover:underline"
+                className="text-sm text-brand-300 hover:underline"
               >
                 {registry.amazonWishlistUrl}
               </a>

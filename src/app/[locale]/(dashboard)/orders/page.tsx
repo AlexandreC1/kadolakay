@@ -27,6 +27,9 @@ import { Link } from "@/i18n/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { pageHref, parsePageRequest } from "@/lib/pagination";
 import { getPlacedOrders, getReceivedOrders } from "@/lib/queries/orders";
+import { DEFAULT_BADGE_COLOR, ORDER_STATUS_COLORS } from "@/lib/constants";
+import { RegistryTypeIcon } from "@/components/shared/RegistryTypeIcon";
+import { Gift } from "lucide-react";
 
 interface PageProps {
   searchParams: Promise<{ tab?: string; cursor?: string }>;
@@ -47,21 +50,6 @@ export default async function OrdersPage({ searchParams }: PageProps) {
       ? await getPlacedOrders(session.user.id, page)
       : await getReceivedOrders(session.user.id, page);
   const nextHref = pageHref("/orders", { tab }, nextCursor);
-  const registryTypeEmoji: Record<string, string> = {
-    BABY_SHOWER: "👶",
-    WEDDING: "💍",
-    BIRTHDAY: "🎂",
-  };
-
-  const paymentStatusColors: Record<string, string> = {
-    PAID: "bg-green-100 text-green-800",
-    CONFIRMED: "bg-green-100 text-green-800",
-    SHIPPED: "bg-blue-100 text-blue-800",
-    DELIVERED: "bg-blue-100 text-blue-800",
-    PENDING: "bg-yellow-100 text-yellow-800",
-    FAILED: "bg-red-100 text-red-800",
-  };
-
   return (
     <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
       <div className="flex items-center justify-between mb-8">
@@ -75,7 +63,7 @@ export default async function OrdersPage({ searchParams }: PageProps) {
         </div>
         <Link
           href="/dashboard"
-          className="text-sm text-amber-700 hover:text-amber-800"
+          className="text-sm text-gold-300 hover:text-gold-300"
         >
           {t("common.back")} {t("nav.dashboard")}
         </Link>
@@ -88,7 +76,7 @@ export default async function OrdersPage({ searchParams }: PageProps) {
             href={`/orders?tab=${key}`}
             aria-current={tab === key ? "page" : undefined}
             className={`-mb-px border-b-2 px-4 py-2 text-sm font-medium ${
-              tab === key ? "border-amber-600 text-amber-700" : "border-transparent text-gray-500 hover:text-gray-700"
+              tab === key ? "border-gold-600 text-gold-300" : "border-transparent text-gray-500 hover:text-gray-700"
             }`}
           >
             {key === "received" ? t("orders.tabReceived") : t("orders.tabPlaced")}
@@ -99,7 +87,7 @@ export default async function OrdersPage({ searchParams }: PageProps) {
       {orders.length === 0 ? (
         <Card>
           <CardContent className="p-12 text-center">
-            <span className="text-5xl block mb-4">🎁</span>
+            <Gift className="mx-auto mb-4 h-12 w-12 text-gray-400" aria-hidden="true" />
             <h2 className="text-xl font-semibold text-gray-700 mb-2">
               {tab === "placed" ? t("orders.noPlacedYet") : t("orders.noOrdersYet")}
             </h2>
@@ -108,7 +96,7 @@ export default async function OrdersPage({ searchParams }: PageProps) {
             </p>
             <Link
               href="/my-registries"
-              className="inline-block bg-amber-600 text-white px-6 py-2 rounded-lg hover:bg-amber-700 transition-colors"
+              className="inline-block bg-gold-400 text-brand-950 px-6 py-2 rounded-full font-semibold hover:bg-gold-300 transition-colors"
             >
               {t("nav.myRegistries")}
             </Link>
@@ -127,9 +115,10 @@ export default async function OrdersPage({ searchParams }: PageProps) {
                 <CardHeader className="pb-3">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <span className="text-2xl">
-                        {registryTypeEmoji[registry?.type || ""] || "🎁"}
-                      </span>
+                      <RegistryTypeIcon
+                        type={registry?.type}
+                        className="h-6 w-6 shrink-0 text-brand-300"
+                      />
                       <div>
                         <CardTitle className="text-lg">
                           {order.isAnonymous ? t("orders.anonymous") : order.buyerName}
@@ -138,7 +127,7 @@ export default async function OrdersPage({ searchParams }: PageProps) {
                           {registry?.title && (
                             <Link
                               href={`/r/${registry.slug}`}
-                              className="text-amber-700 hover:underline"
+                              className="text-gold-300 hover:underline"
                             >
                               {registry.title}
                             </Link>
@@ -156,7 +145,7 @@ export default async function OrdersPage({ searchParams }: PageProps) {
                       <span className="font-bold text-gray-900">{amount}</span>
                       <span
                         className={`ml-2 inline-block px-2 py-0.5 rounded-full text-xs font-medium ${
-                          paymentStatusColors[order.status] || "bg-gray-100 text-gray-800"
+                          ORDER_STATUS_COLORS[order.status] ?? DEFAULT_BADGE_COLOR
                         }`}
                       >
                         {order.status === "PAID" ? t("orders.paid") : t(`orders.status.${order.status}`)}
@@ -193,11 +182,11 @@ export default async function OrdersPage({ searchParams }: PageProps) {
 
                   {/* Gift message */}
                   {order.giftMessage && (
-                    <div className="border-l-4 border-amber-400 bg-amber-50 p-3 rounded-r-lg">
-                      <p className="text-sm text-amber-900 italic">
+                    <div className="border-l-4 border-gold-400 bg-gold-400/10 p-3 rounded-r-lg">
+                      <p className="text-sm text-gold-300 italic">
                         &ldquo;{order.giftMessage}&rdquo;
                       </p>
-                      <p className="text-xs text-amber-700 mt-1">
+                      <p className="text-xs text-gold-300 mt-1">
                         — {order.isAnonymous ? t("orders.anonymous") : order.buyerName}
                       </p>
                     </div>
@@ -216,7 +205,7 @@ export default async function OrdersPage({ searchParams }: PageProps) {
           })}
           {nextHref && (
             <div className="pt-2 text-center">
-              <Link href={nextHref} className="text-sm font-medium text-amber-700 hover:underline">
+              <Link href={nextHref} className="text-sm font-medium text-gold-300 hover:underline">
                 {t("common.next")} →
               </Link>
             </div>
