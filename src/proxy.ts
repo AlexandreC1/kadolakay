@@ -40,6 +40,13 @@ export async function proxy(req: NextRequest) {
     if (!r.ok) return tooManyRequests(r.reset);
   }
 
+  // API routes are matched only for the rate limits above. They must not
+  // reach the locale middleware, which would rewrite /api/auth/... to
+  // /ht/api/auth/... and 404 every sign-in and payment webhook.
+  if (pathname.startsWith("/api/")) {
+    return NextResponse.next();
+  }
+
   const needsAdmin = ADMIN_PREFIX.test(pathname);
   const needsBusiness = BUSINESS_PREFIX.test(pathname);
 
