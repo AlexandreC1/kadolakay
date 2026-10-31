@@ -94,15 +94,15 @@ export function SettingsForm({ user }: SettingsFormProps) {
         <CardContent>
           <div className="grid grid-cols-3 gap-3">
             {[
-              { code: "ht", label: "Kreyòl Ayisyen", flag: "🇭🇹" },
-              { code: "fr", label: "Français", flag: "🇫🇷" },
-              { code: "en", label: "English", flag: "🇺🇸" },
+              { code: "ht", label: "Kreyòl Ayisyen" },
+              { code: "fr", label: "Français" },
+              { code: "en", label: "English" },
             ].map((locale) => (
               <label
                 key={locale.code}
                 className={`flex items-center gap-2 rounded-lg border-2 p-3 cursor-pointer transition-colors ${
                   user.preferredLocale === locale.code
-                    ? "border-amber-500 bg-amber-50"
+                    ? "border-gold-500 bg-gold-50"
                     : "border-gray-200 hover:border-gray-300"
                 }`}
               >
@@ -113,7 +113,6 @@ export function SettingsForm({ user }: SettingsFormProps) {
                   defaultChecked={user.preferredLocale === locale.code}
                   className="sr-only"
                 />
-                <span className="text-xl">{locale.flag}</span>
                 <span className="text-sm font-medium text-gray-900">
                   {locale.label}
                 </span>

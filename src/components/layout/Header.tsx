@@ -23,21 +23,21 @@ function HeaderContent({
       <div className="mx-auto max-w-7xl flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2">
-          <span className="text-2xl font-bold text-blue-700">Kado</span>
-          <span className="text-2xl font-bold text-amber-500">Lakay</span>
+          <span className="text-2xl font-bold text-brand-700">Kado</span>
+          <span className="text-2xl font-bold text-gold-500">Lakay</span>
         </Link>
 
         {/* Desktop Nav */}
         <nav className="hidden md:flex items-center gap-6">
           <Link
             href="/create"
-            className="text-sm font-medium text-gray-700 hover:text-blue-700 transition-colors"
+            className="text-sm font-medium text-gray-700 hover:text-brand-700 transition-colors"
           >
             {t("nav.createRegistry")}
           </Link>
           <Link
             href="/browse"
-            className="text-sm font-medium text-gray-700 hover:text-blue-700 transition-colors"
+            className="text-sm font-medium text-gray-700 hover:text-brand-700 transition-colors"
           >
             {t("nav.businesses")}
           </Link>
@@ -53,13 +53,13 @@ function HeaderContent({
               <div className="flex items-center gap-2">
                 <Link
                   href="/login"
-                  className="text-sm font-medium text-gray-700 hover:text-blue-700 px-3 py-2"
+                  className="text-sm font-medium text-gray-700 hover:text-brand-700 px-3 py-2"
                 >
                   {t("common.signIn")}
                 </Link>
                 <Link
                   href="/register"
-                  className="text-sm font-medium bg-blue-700 text-white px-4 py-2 rounded-lg hover:bg-blue-800 transition-colors"
+                  className="text-sm font-medium bg-brand-700 text-white px-4 py-2 rounded-lg hover:bg-brand-800 transition-colors"
                 >
                   {t("common.signUp")}
                 </Link>

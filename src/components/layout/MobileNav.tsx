@@ -52,14 +52,14 @@ export function MobileNav({ user }: MobileNavProps) {
           <nav className="flex flex-col p-4 space-y-3">
             <Link
               href="/create"
-              className="text-sm font-medium text-gray-700 hover:text-blue-700 py-2"
+              className="text-sm font-medium text-gray-700 hover:text-brand-700 py-2"
               onClick={() => setOpen(false)}
             >
               {t("nav.createRegistry")}
             </Link>
             <Link
               href="/browse"
-              className="text-sm font-medium text-gray-700 hover:text-blue-700 py-2"
+              className="text-sm font-medium text-gray-700 hover:text-brand-700 py-2"
               onClick={() => setOpen(false)}
             >
               {t("nav.businesses")}
@@ -70,14 +70,14 @@ export function MobileNav({ user }: MobileNavProps) {
                 <div className="border-t border-gray-100 pt-3" />
                 <Link
                   href="/dashboard"
-                  className="text-sm font-medium text-gray-700 hover:text-blue-700 py-2"
+                  className="text-sm font-medium text-gray-700 hover:text-brand-700 py-2"
                   onClick={() => setOpen(false)}
                 >
                   {t("nav.dashboard")}
                 </Link>
                 <Link
                   href="/my-registries"
-                  className="text-sm font-medium text-gray-700 hover:text-blue-700 py-2"
+                  className="text-sm font-medium text-gray-700 hover:text-brand-700 py-2"
                   onClick={() => setOpen(false)}
                 >
                   {t("nav.myRegistries")}
@@ -96,14 +96,14 @@ export function MobileNav({ user }: MobileNavProps) {
                 <div className="border-t border-gray-100 pt-3" />
                 <Link
                   href="/login"
-                  className="text-sm font-medium text-gray-700 hover:text-blue-700 py-2"
+                  className="text-sm font-medium text-gray-700 hover:text-brand-700 py-2"
                   onClick={() => setOpen(false)}
                 >
                   {t("common.signIn")}
                 </Link>
                 <Link
                   href="/register"
-                  className="text-sm font-medium bg-blue-700 text-white px-4 py-2 rounded-lg text-center hover:bg-blue-800"
+                  className="text-sm font-medium bg-brand-700 text-white px-4 py-2 rounded-lg text-center hover:bg-brand-800"
                   onClick={() => setOpen(false)}
                 >
                   {t("common.signUp")}

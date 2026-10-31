@@ -9,8 +9,8 @@ export default async function RegisterPage() {
       <div className="w-full max-w-md space-y-6">
         <div className="text-center">
           <div className="flex items-center justify-center gap-1 mb-4">
-            <span className="text-3xl font-bold text-blue-700">Kado</span>
-            <span className="text-3xl font-bold text-amber-500">Lakay</span>
+            <span className="text-3xl font-bold text-brand-700">Kado</span>
+            <span className="text-3xl font-bold text-gold-500">Lakay</span>
           </div>
           <h1 className="text-2xl font-bold text-gray-900">
             {t("signupTitle")}

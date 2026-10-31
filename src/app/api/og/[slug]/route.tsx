@@ -26,12 +26,6 @@ export async function GET(
     return new Response("Not found", { status: 404 });
   }
 
-  const typeEmoji: Record<string, string> = {
-    BABY_SHOWER: "👶",
-    WEDDING: "💍",
-    BIRTHDAY: "🎂",
-  };
-
   const typeLabel: Record<string, string> = {
     BABY_SHOWER: "Fèt Ti Bebe",
     WEDDING: "Maryaj",
@@ -42,7 +36,8 @@ export async function GET(
     (
       <div
         style={{
-          background: "linear-gradient(135deg, #1e3a5f, #2563eb)",
+          // Brand palette (globals.css): brand-950 background, gold-500 accent.
+          background: "#172554",
           width: "100%",
           height: "100%",
           display: "flex",
@@ -82,9 +77,6 @@ export async function GET(
             marginBottom: "20px",
           }}
         >
-          <span style={{ fontSize: 24 }}>
-            {typeEmoji[registry.type] || "🎁"}
-          </span>
           <span style={{ fontSize: 18, color: "#e2e8f0" }}>
             {typeLabel[registry.type] || registry.type}
           </span>
@@ -134,7 +126,7 @@ export async function GET(
           style={{
             display: "flex",
             backgroundColor: "#f59e0b",
-            color: "#1e3a5f",
+            color: "#172554",
             padding: "14px 36px",
             borderRadius: "12px",
             fontSize: 22,

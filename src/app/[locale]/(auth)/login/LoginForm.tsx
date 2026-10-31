@@ -30,9 +30,9 @@ export function LoginForm() {
     return (
       <Card>
         <CardContent className="p-8 text-center">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-blue-100 mb-4">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-brand-100 mb-4">
             <svg
-              className="h-8 w-8 text-blue-700"
+              className="h-8 w-8 text-brand-700"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"

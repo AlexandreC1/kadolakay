@@ -65,7 +65,7 @@ export function RegistryItemCard({ item, locale }: RegistryItemCardProps) {
         )}
 
         {item.business && (
-          <p className="mt-1 text-xs text-blue-600">{item.business.name}</p>
+          <p className="mt-1 text-xs text-brand-600">{item.business.name}</p>
         )}
 
         <div className="mt-2 flex items-center justify-between">

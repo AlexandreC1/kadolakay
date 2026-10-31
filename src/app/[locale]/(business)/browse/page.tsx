@@ -3,6 +3,7 @@ import { Link } from "@/i18n/navigation";
 import { pageHref, parsePageRequest } from "@/lib/pagination";
 import { BUSINESSES_PAGE_SIZE, getBrowseBusinesses } from "@/lib/queries/browse";
 import { Card, CardContent } from "@/components/ui/card";
+import { Store } from "lucide-react";
 
 export default async function BrowseBusinessesPage({ searchParams }: { searchParams: Promise<{ cursor?: string }> }) {
   const t = await getTranslations("business");
@@ -26,7 +27,7 @@ export default async function BrowseBusinessesPage({ searchParams }: { searchPar
 
       {businesses.length === 0 ? (
         <div className="text-center py-16">
-          <span className="text-5xl block mb-4">🏪</span>
+          <Store className="mx-auto mb-4 h-12 w-12 text-gray-400" aria-hidden="true" />
           <p className="text-lg text-gray-500">
             Pa gen biznis ankò. Tounen byento!
           </p>
@@ -57,7 +58,7 @@ export default async function BrowseBusinessesPage({ searchParams }: { searchPar
                       className="h-12 w-12 rounded-lg object-cover border border-gray-200"
                     />
                   ) : (
-                    <div className="h-12 w-12 rounded-lg bg-blue-100 flex items-center justify-center text-lg font-bold text-blue-700">
+                    <div className="h-12 w-12 rounded-lg bg-brand-100 flex items-center justify-center text-lg font-bold text-brand-700">
                       {business.name[0]}
                     </div>
                   )}
@@ -65,7 +66,7 @@ export default async function BrowseBusinessesPage({ searchParams }: { searchPar
                     <h3 className="font-semibold text-gray-900">
                       {business.name}
                     </h3>
-                    <p className="text-sm text-blue-600">{business.category}</p>
+                    <p className="text-sm text-brand-600">{business.category}</p>
                     {business.city && (
                       <p className="text-xs text-gray-400">{business.city}</p>
                     )}
@@ -113,7 +114,7 @@ export default async function BrowseBusinessesPage({ searchParams }: { searchPar
       )}
       {nextHref && (
         <div className="mt-8 text-center">
-          <Link href={nextHref} className="text-sm font-medium text-amber-700 hover:underline">
+          <Link href={nextHref} className="text-sm font-medium text-gold-700 hover:underline">
             {tc("next")} →
           </Link>
         </div>

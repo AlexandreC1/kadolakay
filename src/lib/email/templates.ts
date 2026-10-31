@@ -17,18 +17,18 @@ const appUrl = () => process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 const layout = (locale: EmailLocale, inner: string) => `
 <div lang="${locale}" style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;max-width:560px;margin:0 auto;padding:24px;">
   <div style="text-align:center;margin-bottom:24px;">
-    <h1 style="color:#b8860b;font-size:28px;margin:0;">KadoLakay</h1>
+    <h1 style="font-size:28px;margin:0;"><span style="color:#1d4ed8;">Kado</span><span style="color:#f59e0b;">Lakay</span></h1>
     <p style="color:#666;font-size:14px;margin:4px 0 0;">${COPY[locale].tagline}</p>
   </div>
   ${inner}
   <hr style="border:none;border-top:1px solid #e5e7eb;margin:24px 0;" />
-  <p style="color:#9ca3af;font-size:12px;text-align:center;">KadoLakay — ${COPY[locale].tagline}</p>
+  <p style="color:#9ca3af;font-size:12px;text-align:center;">KadoLakay · ${COPY[locale].tagline}</p>
 </div>`;
 
 const list = (items: string[]) =>
   `<ul style="margin:0;padding-left:20px;color:#4b5563;">${items.map((i) => `<li style="margin-bottom:4px;">${e(i)}</li>`).join("")}</ul>`;
 const button = (href: string, label: string) =>
-  `<div style="text-align:center;margin:24px 0;"><a href="${e(safeUrl(href))}" style="display:inline-block;background:#b8860b;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;">${e(label)}</a></div>`;
+  `<div style="text-align:center;margin:24px 0;"><a href="${e(safeUrl(href))}" style="display:inline-block;background:#1d4ed8;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;">${e(label)}</a></div>`;
 const money = (amount: string, currency: "HTG" | "USD") => (currency === "HTG" ? `G${amount}` : `$${amount}`);
 
 type Renderer<T extends EmailTemplate> = (p: EmailPayloads[T], locale: EmailLocale) => RenderedEmail;
@@ -41,22 +41,22 @@ const COPY = {
     items: "Atik yo:",
     orderNo: "Nimewo kòmand",
     thanks: "Mèsi pou itilize KadoLakay!",
-    team: "— Ekip KadoLakay",
-    giftSubject: (b: string) => `🎁 ${b} te voye yon kado pou ou! — KadoLakay`,
-    giftHeading: "🎁 Ou resevwa yon kado!",
+    team: "Ekip KadoLakay",
+    giftSubject: (b: string) => `${b} te voye yon kado pou ou! | KadoLakay`,
+    giftHeading: "Ou resevwa yon kado!",
     giftBody: (b: string, r: string) => `${b} te achte kado pou ou nan rejis "${r}" ou a.`,
     message: "Mesaj",
     viewRegistry: "Wè rejis ou",
-    receiptSubject: (o: string) => `Mèsi pou kado ou a! Kòmand #${o} — KadoLakay`,
-    receiptHeading: "✅ Kòmand ou konfime!",
+    receiptSubject: (o: string) => `Mèsi pou kado ou a! Kòmand #${o} | KadoLakay`,
+    receiptHeading: "Kòmand ou konfime!",
     receiptBody: (r: string) => `Mèsi pou kado ou a nan rejis "${r}".`,
     total: "Total",
-    natcashSubject: (o: string) => `Natcash: kòmand #${o} — KadoLakay`,
+    natcashSubject: (o: string) => `Natcash: kòmand #${o} | KadoLakay`,
     natcashBody: (a: string, m: string, o: string) => `Voye G${a} sou Natcash ${m} ak referans ${o}.`,
     instructions: "Enstriksyon",
-    shippedSubject: (o: string) => `Kòmand #${o} an wout! — KadoLakay`,
+    shippedSubject: (o: string) => `Kòmand #${o} an wout! | KadoLakay`,
     shippedBody: (b: string, o: string) => `${b} voye kòmand ${o} ou a.`,
-    rejectedSubject: (o: string) => `Peman kòmand #${o} pa pase — KadoLakay`,
+    rejectedSubject: (o: string) => `Peman kòmand #${o} pa pase | KadoLakay`,
     rejectedBody: (o: string, r: string) => `Nou pa t ka konfime peman kòmand ${o}: ${r}`,
     deletedSubject: "Kont KadoLakay ou efase",
     deletedBody: "Kont ou efase. Mèsi pou te itilize KadoLakay.",
@@ -71,22 +71,22 @@ const COPY = {
     items: "Articles :",
     orderNo: "Numéro de commande",
     thanks: "Merci d'utiliser KadoLakay !",
-    team: "— L'équipe KadoLakay",
-    giftSubject: (b: string) => `🎁 ${b} vous a offert un cadeau ! — KadoLakay`,
-    giftHeading: "🎁 Vous avez reçu un cadeau !",
+    team: "L'équipe KadoLakay",
+    giftSubject: (b: string) => `${b} vous a offert un cadeau ! | KadoLakay`,
+    giftHeading: "Vous avez reçu un cadeau !",
     giftBody: (b: string, r: string) => `${b} vous a acheté un cadeau sur votre liste « ${r} ».`,
     message: "Message",
     viewRegistry: "Voir votre liste",
-    receiptSubject: (o: string) => `Merci pour votre cadeau ! Commande n°${o} — KadoLakay`,
-    receiptHeading: "✅ Commande confirmée !",
+    receiptSubject: (o: string) => `Merci pour votre cadeau ! Commande n°${o} | KadoLakay`,
+    receiptHeading: "Commande confirmée !",
     receiptBody: (r: string) => `Merci pour votre cadeau sur la liste « ${r} ».`,
     total: "Total",
-    natcashSubject: (o: string) => `Natcash : commande n°${o} — KadoLakay`,
+    natcashSubject: (o: string) => `Natcash : commande n°${o} | KadoLakay`,
     natcashBody: (a: string, m: string, o: string) => `Envoyez G${a} via Natcash au ${m} avec la référence ${o}.`,
     instructions: "Instructions",
-    shippedSubject: (o: string) => `Votre commande n°${o} est en route ! — KadoLakay`,
+    shippedSubject: (o: string) => `Votre commande n°${o} est en route ! | KadoLakay`,
     shippedBody: (b: string, o: string) => `${b} a expédié votre commande ${o}.`,
-    rejectedSubject: (o: string) => `Paiement de la commande n°${o} refusé — KadoLakay`,
+    rejectedSubject: (o: string) => `Paiement de la commande n°${o} refusé | KadoLakay`,
     rejectedBody: (o: string, r: string) => `Nous n'avons pas pu confirmer le paiement de la commande ${o} : ${r}`,
     deletedSubject: "Votre compte KadoLakay a été supprimé",
     deletedBody: "Votre compte a été supprimé. Merci d'avoir utilisé KadoLakay.",
@@ -101,22 +101,22 @@ const COPY = {
     items: "Items:",
     orderNo: "Order number",
     thanks: "Thanks for using KadoLakay!",
-    team: "— The KadoLakay team",
-    giftSubject: (b: string) => `🎁 ${b} sent you a gift! — KadoLakay`,
-    giftHeading: "🎁 You received a gift!",
+    team: "The KadoLakay team",
+    giftSubject: (b: string) => `${b} sent you a gift! | KadoLakay`,
+    giftHeading: "You received a gift!",
     giftBody: (b: string, r: string) => `${b} bought you a gift from your "${r}" registry.`,
     message: "Message",
     viewRegistry: "View your registry",
-    receiptSubject: (o: string) => `Thanks for your gift! Order #${o} — KadoLakay`,
-    receiptHeading: "✅ Order confirmed!",
+    receiptSubject: (o: string) => `Thanks for your gift! Order #${o} | KadoLakay`,
+    receiptHeading: "Order confirmed!",
     receiptBody: (r: string) => `Thank you for your gift from the "${r}" registry.`,
     total: "Total",
-    natcashSubject: (o: string) => `Natcash: order #${o} — KadoLakay`,
+    natcashSubject: (o: string) => `Natcash: order #${o} | KadoLakay`,
     natcashBody: (a: string, m: string, o: string) => `Send G${a} via Natcash to ${m} with reference ${o}.`,
     instructions: "Instructions",
-    shippedSubject: (o: string) => `Order #${o} is on its way! — KadoLakay`,
+    shippedSubject: (o: string) => `Order #${o} is on its way! | KadoLakay`,
     shippedBody: (b: string, o: string) => `${b} shipped your order ${o}.`,
-    rejectedSubject: (o: string) => `Payment for order #${o} failed — KadoLakay`,
+    rejectedSubject: (o: string) => `Payment for order #${o} failed | KadoLakay`,
     rejectedBody: (o: string, r: string) => `We couldn't confirm payment for order ${o}: ${r}`,
     deletedSubject: "Your KadoLakay account was deleted",
     deletedBody: "Your account has been deleted. Thanks for using KadoLakay.",
@@ -143,12 +143,12 @@ const renderers: { [K in EmailTemplate]: Renderer<K> } = {
         `${c.orderNo}: ${t(p.orderNumber)}`, "", `${c.viewRegistry}: ${url}`, "", c.thanks, c.team,
       ].join("\n"),
       html: layout(l, `
-  <div style="background:linear-gradient(135deg,#fef3c7,#fde68a);border-radius:12px;padding:24px;margin-bottom:20px;">
+  <div style="background:#fef3c7;border-radius:12px;padding:24px;margin-bottom:20px;">
     <h2 style="color:#92400e;margin:0 0 8px;">${c.giftHeading}</h2>
     <p style="color:#78350f;margin:0;">${c.giftBody(strong(p.buyerName), strong(p.registryTitle))}</p>
   </div>
   <div style="background:#f9fafb;border-radius:8px;padding:16px;margin-bottom:16px;"><h3 style="margin:0 0 8px;color:#374151;">${c.items}</h3>${list(p.itemNames)}</div>
-  ${p.giftMessage ? `<div style="border-left:4px solid #b8860b;padding:12px 16px;margin-bottom:16px;background:#fffbeb;"><p style="margin:0;color:#92400e;font-style:italic;">"${e(p.giftMessage)}"</p><p style="margin:8px 0 0;color:#b45309;font-size:14px;">— ${e(p.buyerName)}</p></div>` : ""}
+  ${p.giftMessage ? `<div style="border-left:4px solid #f59e0b;padding:12px 16px;margin-bottom:16px;background:#fffbeb;"><p style="margin:0;color:#92400e;font-style:italic;">"${e(p.giftMessage)}"</p><p style="margin:8px 0 0;color:#b45309;font-size:14px;">${e(p.buyerName)}</p></div>` : ""}
   <p style="color:#6b7280;font-size:14px;">${c.orderNo}: ${strong(p.orderNumber)}</p>
   ${button(url, c.viewRegistry)}`),
     };

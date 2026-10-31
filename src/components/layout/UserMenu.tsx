@@ -43,7 +43,7 @@ export function UserMenu({ user }: UserMenuProps) {
             className="h-8 w-8 rounded-full object-cover"
           />
         ) : (
-          <div className="h-8 w-8 rounded-full bg-blue-700 flex items-center justify-center text-white text-sm font-medium">
+          <div className="h-8 w-8 rounded-full bg-brand-700 flex items-center justify-center text-white text-sm font-medium">
             {(user.name || user.email || "U")[0].toUpperCase()}
           </div>
         )}

@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { CurrencyDisplay } from "@/components/shared/CurrencyDisplay";
+import { Package } from "lucide-react";
 
 interface Product {
   id: string;
@@ -65,7 +66,7 @@ export function ProductList({ businessId, products }: ProductListProps) {
                 <textarea
                   name="description"
                   rows={2}
-                  className="flex w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="flex w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
@@ -98,7 +99,7 @@ export function ProductList({ businessId, products }: ProductListProps) {
 
       {products.length === 0 ? (
         <div className="text-center py-12 border-2 border-dashed border-gray-200 rounded-xl">
-          <span className="text-4xl block mb-2">📦</span>
+          <Package className="mx-auto mb-2 h-12 w-12 text-gray-400" aria-hidden="true" />
           <p className="text-gray-500">{t("business.noProducts")}</p>
           <Button
             variant="gold"

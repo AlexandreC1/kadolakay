@@ -5,6 +5,7 @@ import { db } from "@/lib/db";
 import { Link } from "@/i18n/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Gift, Package, Settings, Store } from "lucide-react";
 
 export default async function DashboardPage() {
   const session = await auth();
@@ -62,7 +63,7 @@ export default async function DashboardPage() {
         <Link href="/my-registries">
           <Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
             <CardContent className="p-6 flex items-center gap-4">
-              <span className="text-3xl">🎁</span>
+              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-brand-50"><Gift className="h-6 w-6 text-brand-700" aria-hidden="true" /></span>
               <div>
                 <h3 className="font-semibold text-gray-900">
                   {t("nav.myRegistries")}
@@ -77,7 +78,7 @@ export default async function DashboardPage() {
         <Link href="/orders">
           <Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
             <CardContent className="p-6 flex items-center gap-4">
-              <span className="text-3xl">📦</span>
+              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-brand-50"><Package className="h-6 w-6 text-brand-700" aria-hidden="true" /></span>
               <div>
                 <h3 className="font-semibold text-gray-900">
                   {t("nav.orders")}
@@ -92,7 +93,7 @@ export default async function DashboardPage() {
         <Link href="/business/signup">
           <Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
             <CardContent className="p-6 flex items-center gap-4">
-              <span className="text-3xl">🏪</span>
+              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-brand-50"><Store className="h-6 w-6 text-brand-700" aria-hidden="true" /></span>
               <div>
                 <h3 className="font-semibold text-gray-900">
                   {t("business.signup")}
@@ -107,7 +108,7 @@ export default async function DashboardPage() {
         <Link href="/settings">
           <Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
             <CardContent className="p-6 flex items-center gap-4">
-              <span className="text-3xl">⚙️</span>
+              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-brand-50"><Settings className="h-6 w-6 text-brand-700" aria-hidden="true" /></span>
               <div>
                 <h3 className="font-semibold text-gray-900">
                   {t("nav.settings")}

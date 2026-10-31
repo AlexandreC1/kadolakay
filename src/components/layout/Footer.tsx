@@ -11,8 +11,8 @@ export function Footer() {
           {/* Logo & tagline */}
           <div className="flex flex-col items-center md:items-start gap-1">
             <div className="flex items-center gap-1">
-              <span className="text-lg font-bold text-blue-700">Kado</span>
-              <span className="text-lg font-bold text-amber-500">Lakay</span>
+              <span className="text-lg font-bold text-brand-700">Kado</span>
+              <span className="text-lg font-bold text-gold-500">Lakay</span>
             </div>
             <p className="text-sm text-gray-500">{t("footer.tagline")}</p>
           </div>

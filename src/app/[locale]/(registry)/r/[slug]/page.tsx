@@ -6,6 +6,7 @@ import { CurrencyDisplay } from "@/components/shared/CurrencyDisplay";
 import { RegistryShareButton } from "./RegistryShareButton";
 import { RegistryItemCard } from "./RegistryItemCard";
 import { safeHref } from "@/lib/url";
+import { Package } from "lucide-react";
 
 interface PageProps {
   params: Promise<{ slug: string; locale: string }>;
@@ -74,7 +75,7 @@ export default async function RegistryPage({ params, searchParams }: PageProps) 
     <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
       {/* Header */}
       <div className="text-center mb-8">
-        <span className="inline-block rounded-full bg-blue-100 text-blue-700 px-3 py-1 text-sm font-medium mb-4">
+        <span className="inline-block rounded-full bg-brand-100 text-brand-700 px-3 py-1 text-sm font-medium mb-4">
           {registryTypeLabels[registry.type]?.[locale] || registry.type}
         </span>
 
@@ -128,7 +129,7 @@ export default async function RegistryPage({ params, searchParams }: PageProps) 
             </div>
             <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
               <div
-                className="h-full bg-amber-500 rounded-full transition-all"
+                className="h-full bg-gold-500 rounded-full transition-all"
                 style={{
                   width: `${(fulfilledItems / totalItems) * 100}%`,
                 }}
@@ -145,9 +146,9 @@ export default async function RegistryPage({ params, searchParams }: PageProps) 
 
       {/* Amazon wishlist link */}
       {amazonWishlistHref && (
-        <div className="mb-8 p-4 rounded-xl border border-amber-200 bg-amber-50">
+        <div className="mb-8 p-4 rounded-xl border border-gold-200 bg-gold-50">
           <div className="flex items-center gap-3">
-            <span className="text-2xl">📦</span>
+            <Package className="h-6 w-6 shrink-0 text-gold-700" aria-hidden="true" />
             <div>
               <p className="font-medium text-gray-900">
                 {t("amazonWishlist")}
@@ -156,7 +157,7 @@ export default async function RegistryPage({ params, searchParams }: PageProps) 
                 href={amazonWishlistHref ?? undefined}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-sm text-blue-600 hover:underline"
+                className="text-sm text-brand-600 hover:underline"
               >
                 {registry.amazonWishlistUrl}
               </a>

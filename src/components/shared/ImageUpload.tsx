@@ -106,7 +106,7 @@ export function ImageUpload({
         onDrop={handleDrop}
         className={`relative ${aspectClass} rounded-xl border-2 border-dashed cursor-pointer overflow-hidden transition-all ${
           dragOver
-            ? "border-blue-500 bg-blue-50"
+            ? "border-brand-500 bg-brand-50"
             : "border-gray-300 bg-gray-50 hover:border-gray-400 hover:bg-gray-100"
         }`}
       >
@@ -137,7 +137,7 @@ export function ImageUpload({
 
         {uploading && (
           <div className="absolute inset-0 bg-white/80 flex items-center justify-center">
-            <div className="h-8 w-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+            <div className="h-8 w-8 border-2 border-brand-500 border-t-transparent rounded-full animate-spin" />
           </div>
         )}
       </div>

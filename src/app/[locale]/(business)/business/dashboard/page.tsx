@@ -5,12 +5,8 @@ import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-
-const statusBadge: Record<string, string> = {
-  PENDING_REVIEW: "bg-yellow-100 text-yellow-700",
-  APPROVED: "bg-green-100 text-green-700",
-  SUSPENDED: "bg-red-100 text-red-700",
-};
+import { BUSINESS_STATUS_COLORS } from "@/lib/constants";
+import { Package, Receipt } from "lucide-react";
 
 export default async function BusinessDashboardPage() {
   const session = await auth();
@@ -46,7 +42,7 @@ export default async function BusinessDashboardPage() {
           <h1 className="text-3xl font-bold text-gray-900">{business.name}</h1>
           <div className="flex items-center gap-2 mt-2">
             <span
-              className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${statusBadge[business.status]}`}
+              className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${BUSINESS_STATUS_COLORS[business.status]}`}
             >
               {t(`business.${business.status === "PENDING_REVIEW" ? "pendingReview" : business.status === "APPROVED" ? "approved" : "suspended"}`)}
             </span>
@@ -61,8 +57,8 @@ export default async function BusinessDashboardPage() {
       </div>
 
       {business.status === "PENDING_REVIEW" && (
-        <div className="mb-8 rounded-xl border border-yellow-200 bg-yellow-50 p-4">
-          <p className="text-sm text-yellow-800">
+        <div className="mb-8 rounded-xl border border-gold-200 bg-gold-50 p-4">
+          <p className="text-sm text-gold-800">
             {t("business.pendingMessage")}{" "}
             {t("business.pendingHint")}
           </p>
@@ -101,7 +97,7 @@ export default async function BusinessDashboardPage() {
           </CardHeader>
           <CardContent>
             <span
-              className={`rounded-full px-3 py-1 text-sm font-medium ${statusBadge[business.status]}`}
+              className={`rounded-full px-3 py-1 text-sm font-medium ${BUSINESS_STATUS_COLORS[business.status]}`}
             >
               {business.status.replace("_", " ")}
             </span>
@@ -114,7 +110,7 @@ export default async function BusinessDashboardPage() {
         <Link href="/business/products">
           <Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
             <CardContent className="p-6 flex items-center gap-4">
-              <span className="text-3xl">📦</span>
+              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-brand-50"><Package className="h-6 w-6 text-brand-700" aria-hidden="true" /></span>
               <div>
                 <h3 className="font-semibold text-gray-900">
                   {t("business.products")}
@@ -129,7 +125,7 @@ export default async function BusinessDashboardPage() {
         <Link href="/business/orders">
           <Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
             <CardContent className="p-6 flex items-center gap-4">
-              <span className="text-3xl">🧾</span>
+              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-brand-50"><Receipt className="h-6 w-6 text-brand-700" aria-hidden="true" /></span>
               <div>
                 <h3 className="font-semibold text-gray-900">
                   {t("nav.orders")}

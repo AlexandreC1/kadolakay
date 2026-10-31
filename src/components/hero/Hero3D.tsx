@@ -24,26 +24,28 @@ import {
   useTransform,
   useReducedMotion,
 } from "framer-motion";
+import { Baby, Cake, Gift, Heart, Smartphone, type LucideIcon } from "lucide-react";
 
 const SPRING = { stiffness: 120, damping: 18, mass: 0.6 };
 
 type FloatingCard = {
-  emoji: string;
+  icon: LucideIcon;
   label: string;
   z: number; // depth in px
   x: number; // % of stage width
   y: number; // % of stage height
   rotate: number;
   delay: number;
-  hue: string;
+  // The center card is gold (the "Lakay" accent); the rest are plain white.
+  featured?: boolean;
 };
 
 const CARDS: FloatingCard[] = [
-  { emoji: "🎁", label: "Kado",        z:  80, x: 50, y: 50, rotate: -6, delay: 0.0, hue: "from-amber-300 to-amber-500" },
-  { emoji: "👶", label: "Baby Shower", z:  40, x: 18, y: 28, rotate: -10, delay: 0.1, hue: "from-pink-300 to-rose-400" },
-  { emoji: "💍", label: "Maryaj",      z:  20, x: 82, y: 30, rotate:  9, delay: 0.2, hue: "from-violet-300 to-purple-400" },
-  { emoji: "🎂", label: "Anivèsè",     z:  60, x: 78, y: 75, rotate:  4, delay: 0.3, hue: "from-sky-300 to-cyan-400" },
-  { emoji: "🇭🇹", label: "MonCash",     z:   0, x: 22, y: 78, rotate: -3, delay: 0.4, hue: "from-emerald-300 to-teal-400" },
+  { icon: Gift,       label: "Kado",        z:  80, x: 50, y: 50, rotate: -6, delay: 0.0, featured: true },
+  { icon: Baby,       label: "Baby Shower", z:  40, x: 18, y: 28, rotate: -10, delay: 0.1 },
+  { icon: Heart,      label: "Maryaj",      z:  20, x: 82, y: 30, rotate:  9, delay: 0.2 },
+  { icon: Cake,       label: "Anivèsè",     z:  60, x: 78, y: 75, rotate:  4, delay: 0.3 },
+  { icon: Smartphone, label: "MonCash",     z:   0, x: 22, y: 78, rotate: -3, delay: 0.4 },
 ];
 
 export function Hero3D() {
@@ -131,25 +133,17 @@ export function Hero3D() {
             }}
           >
             <div
-              className={`relative rounded-2xl bg-gradient-to-br ${c.hue} px-5 py-4 shadow-2xl ring-1 ring-white/30 backdrop-blur-sm`}
-              style={{
-                boxShadow:
-                  "0 25px 50px -12px rgba(0,0,0,0.45), 0 0 0 1px rgba(255,255,255,0.15) inset",
-              }}
+              className={`relative flex flex-col items-center rounded-2xl px-5 py-4 shadow-2xl ${
+                c.featured ? "bg-gold-500 text-brand-950" : "bg-white text-brand-800"
+              }`}
             >
-              <div className="text-4xl sm:text-5xl drop-shadow-md">{c.emoji}</div>
-              <div className="mt-1 text-xs font-semibold tracking-wide text-white/90 uppercase">
+              <c.icon className="h-10 w-10 sm:h-12 sm:w-12" strokeWidth={1.5} />
+              <div className="mt-2 text-xs font-semibold tracking-wide uppercase">
                 {c.label}
               </div>
             </div>
           </motion.div>
         ))}
-
-        {/* Soft floor reflection — anchored deepest in Z so the stack feels grounded. */}
-        <div
-          className="absolute inset-x-10 bottom-2 h-8 rounded-full bg-amber-300/30 blur-2xl"
-          style={{ transform: "translateZ(-100px)" }}
-        />
       </motion.div>
     </div>
   );

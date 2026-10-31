@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { CurrencyDisplay } from "@/components/shared/CurrencyDisplay";
+import { Package } from "lucide-react";
 
 interface BusinessProduct {
   id: string;
@@ -110,14 +111,14 @@ export function ProductPicker({ registryId, onAdd, onClose }: ProductPickerProps
                       />
                     ) : (
                       <div className="h-14 w-14 rounded-lg bg-gray-100 flex items-center justify-center text-gray-400 text-xs">
-                        📦
+                        <Package className="h-6 w-6" aria-hidden="true" />
                       </div>
                     )}
                     <div className="flex-1 min-w-0">
                       <p className="font-medium text-gray-900 text-sm truncate">
                         {product.name}
                       </p>
-                      <p className="text-xs text-blue-600">{product.businessName}</p>
+                      <p className="text-xs text-brand-600">{product.businessName}</p>
                       <CurrencyDisplay
                         priceHTG={product.priceHTG}
                         priceUSD={product.priceUSD}

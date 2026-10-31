@@ -6,11 +6,12 @@ import { createRegistry } from "@/actions/registry";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
+import { RegistryTypeIcon } from "@/components/shared/RegistryTypeIcon";
 
 const registryTypes = [
-  { value: "BABY_SHOWER", icon: "👶", colorClass: "border-pink-300 bg-pink-50" },
-  { value: "WEDDING", icon: "💍", colorClass: "border-purple-300 bg-purple-50" },
-  { value: "BIRTHDAY", icon: "🎂", colorClass: "border-amber-300 bg-amber-50" },
+  { value: "BABY_SHOWER" },
+  { value: "WEDDING" },
+  { value: "BIRTHDAY" },
 ] as const;
 
 export function CreateRegistryForm() {
@@ -50,11 +51,11 @@ export function CreateRegistryForm() {
               onClick={() => setSelectedType(type.value)}
               className={`flex flex-col items-center gap-2 rounded-xl border-2 p-4 transition-all ${
                 selectedType === type.value
-                  ? `${type.colorClass} border-blue-500 ring-2 ring-blue-200`
+                  ? "border-brand-500 bg-brand-50 ring-2 ring-brand-200"
                   : "border-gray-200 bg-white hover:border-gray-300"
               }`}
             >
-              <span className="text-3xl">{type.icon}</span>
+              <RegistryTypeIcon type={type.value} className="h-8 w-8 text-brand-700" />
               <span className="text-sm font-medium text-gray-700">
                 {typeLabels[type.value]}
               </span>
@@ -99,7 +100,7 @@ export function CreateRegistryForm() {
               id="description"
               name="description"
               rows={3}
-              className="flex w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="flex w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
             />
           </div>
 

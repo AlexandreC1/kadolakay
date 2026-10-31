@@ -2,6 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
+import { CircleAlert } from "lucide-react";
 
 export default function Error({
   reset,
@@ -14,7 +15,7 @@ export default function Error({
   return (
     <div className="flex items-center justify-center min-h-[60vh] px-4">
       <div className="text-center max-w-md">
-        <span className="text-5xl block mb-4">😕</span>
+        <CircleAlert className="mx-auto mb-4 h-12 w-12 text-gray-400" aria-hidden="true" />
         <h2 className="text-xl font-semibold text-gray-900 mb-2">
           {t("common.error")}
         </h2>
