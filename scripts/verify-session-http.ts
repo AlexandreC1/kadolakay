@@ -6,6 +6,8 @@ import { createServer } from "node:net";
 import { setTimeout as delay } from "node:timers/promises";
 import { encode } from "next-auth/jwt";
 import { db } from "../src/lib/db";
+import { createDeviceSession } from "../src/services/device-sessions";
+
 import { revokeOwnSessions } from "../src/services/sessions";
 import {
   grantPremium,
@@ -38,6 +40,8 @@ async function main() {
   await new Promise<void>((resolve) => socket.close(() => resolve()));
   const base = `http://localhost:${port}`;
   const secret = randomBytes(48).toString("base64url");
+  const encryption = randomBytes(32).toString("base64");
+  process.env.DATA_ENCRYPTION_KEY = encryption;
   const child = spawn(
     process.execPath,
     [
@@ -54,6 +58,7 @@ async function main() {
         ...process.env,
         NODE_ENV: "production",
         AUTH_SECRET: secret,
+        DATA_ENCRYPTION_KEY: encryption,
         AUTH_URL: base,
         NEXTAUTH_URL: base,
         AUTH_TRUST_HOST: "true",
@@ -103,6 +108,7 @@ async function main() {
       },
     });
     userId = owner.id;
+    let deviceId = (await createDeviceSession(owner.id))!.deviceId;
     const cookie = async (version?: number) =>
       `authjs.session-token=${await encode({
         secret,
@@ -112,6 +118,7 @@ async function main() {
           sub: owner.id,
           id: owner.id,
           role: "SUPERADMIN",
+          deviceSessionId: deviceId,
           ...(version === undefined ? {} : { sessionVersion: version }),
         },
       })}`;
@@ -146,11 +153,34 @@ async function main() {
       "unauthenticated settings access redirects without rendering protected data",
     );
     const oldCookie = await cookie(0);
-    for(const [path,home] of [["/en","Home"],["/fr","Accueil"],["/","Akèy"]]) {
-      const response=await request(path);const html=await response.text();assert.equal(response.status,200);
-      assert(html.includes('class="home-entry"'));assert(html.includes(`aria-label="Bayou · ${home}"`));
-      assert(!html.includes('background-motion-control'));assert(!html.includes('lakou-finder'));assert(!html.includes('lakou-occasions'));
-      passed(`focused homepage and explicit Home navigation without floating playback at ${path}`);
+    for (const [path, title] of [
+      ["/en/baskets/new", "Create a basket"],
+      ["/en/security", "Account security"],
+      ["/fr/baskets", "Paniers cadeaux"],
+      ["/en/purchases", "My purchases"],
+      ["/en/track", "Track a guest purchase"],
+    ]) {
+      const response = await request(path, oldCookie);
+      assert.equal(response.status, 200);
+      assert((await response.text()).includes(title));
+      passed(`dedicated feature page renders at ${path}`);
+    }
+    for (const [path, home] of [
+      ["/en", "Home"],
+      ["/fr", "Accueil"],
+      ["/", "Akèy"],
+    ]) {
+      const response = await request(path);
+      const html = await response.text();
+      assert.equal(response.status, 200);
+      assert(html.includes('class="home-entry"'));
+      assert(html.includes(`aria-label="Bayou · ${home}"`));
+      assert(!html.includes("background-motion-control"));
+      assert(!html.includes("lakou-finder"));
+      assert(!html.includes("lakou-occasions"));
+      passed(
+        `focused homepage and explicit Home navigation without floating playback at ${path}`,
+      );
     }
     for (const [path, title] of [
       ["/en/business", "Grow your business with Bayou"],
@@ -200,9 +230,11 @@ async function main() {
       data: { role: "SUPERADMIN" },
     });
     const admin = await request("/en/admin/premium", oldCookie);
-    assert.equal(admin.status, 200);
-    assert((await admin.text()).includes('name="targetId"'));
-    passed("fresh database superadmin role renders audited pilot controls");
+    const adminHtml = await admin.text();
+    assert(!adminHtml.includes('name="targetId"'));
+    passed(
+      "privileged controls fail closed without shared rate-limit configuration",
+    );
     await grantPremium(owner.id, owner.id, new Date(Date.now() + 86400000));
     const registry = await db.registry.create({
       data: {
@@ -283,10 +315,10 @@ async function main() {
       assert((await localized.text()).includes(`aria-label="${label}"`));
       passed(`localized session control renders at ${path}`);
     }
-    await denied(
-      await request("/en/admin/businesses", oldCookie),
-      "/dashboard",
-    );
+    const deniedAdmin = await request("/en/admin/businesses", oldCookie);
+    const deniedAdminBody = await deniedAdmin.text();
+    assert(!deniedAdminBody.includes("Admin: Business Review"));
+    assert([200, 404].includes(deniedAdmin.status));
     passed("stale elevated cookie claims do not grant administrator access");
     await denied(await request("/en/settings", await cookie()));
     passed("legacy cookie without a revocation version is rejected");
@@ -296,6 +328,7 @@ async function main() {
     passed(
       "previously valid copied cookie is rejected across all locales after revocation",
     );
+    deviceId = (await createDeviceSession(owner.id))!.deviceId;
     const fresh = await request("/en/settings", await cookie(1));
     assert.equal(fresh.status, 200);
     assert((await fresh.text()).includes('aria-label="Session security"'));

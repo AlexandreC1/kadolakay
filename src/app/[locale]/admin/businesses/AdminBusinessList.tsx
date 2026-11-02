@@ -1,6 +1,9 @@
 "use client";
 
-import { useSafeMutation, MutationFeedback } from "@/components/shared/useSafeMutation";
+import {
+  useSafeMutation,
+  MutationFeedback,
+} from "@/components/shared/useSafeMutation";
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
@@ -28,20 +31,20 @@ const statusBadge: Record<string, string> = {
   SUSPENDED: "bg-red-100 text-red-700",
 };
 
-export function AdminBusinessList({
-  businesses,
-}: {
-  businesses: Business[];
-}) {
+export function AdminBusinessList({ businesses }: { businesses: Business[] }) {
   const [items, setItems] = useState(businesses);
   const { pending: loading, status, run } = useSafeMutation();
 
   async function handleAction(
     businessId: string,
-    newStatus: "APPROVED" | "SUSPENDED"
+    newStatus: "APPROVED" | "SUSPENDED",
   ) {
     if (await run(() => updateBusinessStatus(businessId, newStatus))) {
-      setItems((prev) => prev.map((b) => b.id === businessId ? { ...b, status: newStatus } : b));
+      setItems((prev) =>
+        prev.map((b) =>
+          b.id === businessId ? { ...b, status: newStatus } : b,
+        ),
+      );
     }
   }
 
@@ -154,7 +157,9 @@ function BusinessCard({
               Owner: {business.ownerName || business.ownerEmail} |{" "}
               {new Date(business.createdAt).toLocaleDateString()}
             </p>
-            <p className="text-sm text-[var(--brand-secondary)] mt-2 break-words">{t("patenteNumber")}: {business.patenteNumber || t("notProvided")}</p>
+            <p className="text-sm text-[var(--brand-secondary)] mt-2 break-words">
+              {t("patenteNumber")}: {business.patenteNumber || t("notProvided")}
+            </p>
           </div>
 
           <div className="flex gap-2 shrink-0">

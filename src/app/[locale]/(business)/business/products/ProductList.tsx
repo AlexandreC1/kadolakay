@@ -1,9 +1,14 @@
 "use client";
 
-import { useSafeMutation, MutationFeedback } from "@/components/shared/useSafeMutation";
+import {
+  useSafeMutation,
+  MutationFeedback,
+} from "@/components/shared/useSafeMutation";
 
 import { useState } from "react";
 import { useTranslations, useLocale } from "next-intl";
+import { Link } from "@/i18n/navigation";
+import { workspaceCopy } from "@/lib/workspace-copy";
 import { catalogCopy } from "@/lib/catalog-copy";
 import { inventoryCopy } from "@/lib/inventory-copy";
 import { EditProductForm } from "@/components/business/EditProductForm";
@@ -95,9 +100,29 @@ export function ProductList({ products }: ProductListProps) {
                 <Input name="category" />
               </div>
               <div>
-                <label htmlFor="new-product-quantity" className="mb-1 block text-sm font-medium">{stock.quantity} *</label>
-                <Input id="new-product-quantity" name="stockQuantity" type="number" min="0" max="1000000" step="1" required disabled={pending} aria-describedby="new-product-quantity-hint" />
-                <p id="new-product-quantity-hint" className="mt-1 text-sm text-[var(--brand-muted)]">{stock.hint}</p>
+                <label
+                  htmlFor="new-product-quantity"
+                  className="mb-1 block text-sm font-medium"
+                >
+                  {stock.quantity} *
+                </label>
+                <Input
+                  id="new-product-quantity"
+                  name="stockQuantity"
+                  type="number"
+                  min="0"
+                  max="1000000"
+                  step="1"
+                  required
+                  disabled={pending}
+                  aria-describedby="new-product-quantity-hint"
+                />
+                <p
+                  id="new-product-quantity-hint"
+                  className="mt-1 text-sm text-[var(--brand-muted)]"
+                >
+                  {stock.hint}
+                </p>
               </div>
               <Button type="submit" disabled={pending}>
                 {pending ? t("common.loading") : t("business.addProduct")}
@@ -109,7 +134,10 @@ export function ProductList({ products }: ProductListProps) {
 
       {products.length === 0 ? (
         <div className="text-center py-12 border-2 border-dashed border-gray-200 rounded-xl">
-          <Package className="mx-auto mb-2 h-9 w-9 text-slate-400" aria-hidden="true" />
+          <Package
+            className="mx-auto mb-2 h-9 w-9 text-slate-400"
+            aria-hidden="true"
+          />
           <p className="text-gray-500">{t("business.noProducts")}</p>
           <Button
             variant="gold"
@@ -147,12 +175,19 @@ export function ProductList({ products }: ProductListProps) {
                   </div>
                   <span
                     className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${
-                      product.inStock && product.stockQuantity !== null && product.stockQuantity > product.reservedStock
+                      product.inStock &&
+                      product.stockQuantity !== null &&
+                      product.stockQuantity > product.reservedStock
                         ? "bg-green-100 text-green-700"
                         : "bg-gray-100 text-gray-500"
                     }`}
                   >
-                    {product.stockQuantity === null ? stock.unknown : product.inStock && product.stockQuantity > product.reservedStock ? copy.inStock : copy.outOfStock}
+                    {product.stockQuantity === null
+                      ? stock.unknown
+                      : product.inStock &&
+                          product.stockQuantity > product.reservedStock
+                        ? copy.inStock
+                        : copy.outOfStock}
                   </span>
                 </div>
                 <div className="mt-2">
@@ -163,11 +198,56 @@ export function ProductList({ products }: ProductListProps) {
                   />
                 </div>
                 <div className="mt-3 text-sm text-[var(--brand-muted)]">
-                  {product.stockQuantity === null ? <p>{stock.unknown}</p> : <><p>{stock.units}: {product.stockQuantity}</p><p>{stock.held}: {product.reservedStock}</p><p>{stock.available}: {product.inStock ? product.stockQuantity - product.reservedStock : 0}</p></>}
+                  {product.stockQuantity === null ? (
+                    <p>{stock.unknown}</p>
+                  ) : (
+                    <>
+                      <p>
+                        {stock.units}: {product.stockQuantity}
+                      </p>
+                      <p>
+                        {stock.held}: {product.reservedStock}
+                      </p>
+                      <p>
+                        {stock.available}:{" "}
+                        {product.inStock
+                          ? product.stockQuantity - product.reservedStock
+                          : 0}
+                      </p>
+                    </>
+                  )}
                 </div>
-                {product.reservedStock > 0 && <p role="status" className="mt-2 text-sm text-[var(--brand-muted)]">{stock.locked}</p>}
-                <Button type="button" disabled={product.reservedStock > 0} className="mt-4 rounded-full" variant="outline" onClick={() => setEditingId(editingId === product.id ? null : product.id)}>{copy.edit}</Button>
-                {editingId === product.id && <EditProductForm product={product} onClose={() => setEditingId(null)} />}
+                {product.reservedStock > 0 && (
+                  <p
+                    role="status"
+                    className="mt-2 text-sm text-[var(--brand-muted)]"
+                  >
+                    {stock.locked}
+                  </p>
+                )}
+                <Button
+                  type="button"
+                  disabled={product.reservedStock > 0}
+                  className="mt-4 rounded-full"
+                  variant="outline"
+                  onClick={() =>
+                    setEditingId(editingId === product.id ? null : product.id)
+                  }
+                >
+                  {copy.edit}
+                </Button>
+                <Link
+                  href={`/business/products/${product.id}/photos`}
+                  className="ml-4 text-sm underline"
+                >
+                  {workspaceCopy(locale).photos}
+                </Link>
+                {editingId === product.id && (
+                  <EditProductForm
+                    product={product}
+                    onClose={() => setEditingId(null)}
+                  />
+                )}
               </CardContent>
             </Card>
           ))}

@@ -1,6 +1,9 @@
 "use client";
 
-import { useSafeMutation, MutationFeedback } from "@/components/shared/useSafeMutation";
+import {
+  useSafeMutation,
+  MutationFeedback,
+} from "@/components/shared/useSafeMutation";
 
 import { useState } from "react";
 import { useTranslations, useLocale } from "next-intl";
@@ -9,7 +12,12 @@ import {
   publishRegistry,
   deleteRegistry,
 } from "@/actions/registry";
-import { addItemToRegistry, removeRegistryItem, addBusinessProductsToRegistry } from "@/actions/registry-item";
+import {
+  addItemToRegistry,
+  updateRegistryItem,
+  removeRegistryItem,
+  addBusinessProductsToRegistry,
+} from "@/actions/registry-item";
 import { ProductPicker } from "@/components/registry/ProductPicker";
 import { pickerCopy } from "@/components/registry/product-picker-copy";
 import { catalogCopy } from "@/lib/catalog-copy";
@@ -54,18 +62,23 @@ export function RegistryEditForm({ registry }: RegistryEditFormProps) {
   const [showAddItem, setShowAddItem] = useState(false);
   const { pending, status, run } = useSafeMutation();
 
-  async function handlePublish() { await run(() => publishRegistry(registry.id)); }
+  async function handlePublish() {
+    await run(() => publishRegistry(registry.id));
+  }
 
   async function handleDelete() {
-    if (confirm(t("registry.deleteRegistry") + "?")) await run(() => deleteRegistry(registry.id));
+    if (confirm(t("registry.deleteRegistry") + "?"))
+      await run(() => deleteRegistry(registry.id));
   }
 
   async function handleAddItem(formData: FormData) {
-    if (await run(() => addItemToRegistry(registry.id, formData))) setShowAddItem(false);
+    if (await run(() => addItemToRegistry(registry.id, formData)))
+      setShowAddItem(false);
   }
 
   async function handleRemoveItem(itemId: string) {
-    if (confirm(t("common.delete") + "?")) await run(() => removeRegistryItem(itemId));
+    if (confirm(t("common.delete") + "?"))
+      await run(() => removeRegistryItem(itemId));
   }
 
   return (
@@ -74,11 +87,19 @@ export function RegistryEditForm({ registry }: RegistryEditFormProps) {
       {/* Actions bar */}
       <div className="flex flex-wrap gap-3">
         {registry.status === "DRAFT" && (
-          <Button variant="gold" onClick={handlePublish} disabled={pending || registry.items.length === 0}>
+          <Button
+            variant="gold"
+            onClick={handlePublish}
+            disabled={pending || registry.items.length === 0}
+          >
             {t("registry.publish")}
           </Button>
         )}
-        {registry.status === "DRAFT" && registry.items.length === 0 && <p className="text-sm text-gray-600">{t("registry.addBeforePublish")}</p>}
+        {registry.status === "DRAFT" && registry.items.length === 0 && (
+          <p className="text-sm text-gray-600">
+            {t("registry.addBeforePublish")}
+          </p>
+        )}
         {registry.status === "PUBLISHED" && (
           <a href={`/r/${registry.slug}`} target="_blank" rel="noopener">
             <Button variant="secondary">{t("registry.viewRegistry")}</Button>
@@ -152,19 +173,42 @@ export function RegistryEditForm({ registry }: RegistryEditFormProps) {
           <h2 className="text-xl font-semibold text-gray-900">
             {t("registry.items")} ({registry.items.length})
           </h2>
-          <div className="flex flex-wrap gap-3"><Button className="rounded-full" onClick={() => { setCatalogAddedCount(0); setShowCatalog(true); }} disabled={pending}>{copy.addLocal}</Button>
-          <Button variant="outline" onClick={() => setShowAddItem(!showAddItem)}>
-            {showAddItem ? t("common.cancel") : t("registry.addItem")}
-          </Button></div>
+          <div className="flex flex-wrap gap-3">
+            <Button
+              className="rounded-full"
+              onClick={() => {
+                setCatalogAddedCount(0);
+                setShowCatalog(true);
+              }}
+              disabled={pending}
+            >
+              {copy.addLocal}
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => setShowAddItem(!showAddItem)}
+            >
+              {showAddItem ? t("common.cancel") : t("registry.addItem")}
+            </Button>
+          </div>
         </div>
 
-        {catalogAddedCount > 0 && <p role="status" className="mb-4 text-sm text-[var(--brand-success)]">{selectionCopy.added(catalogAddedCount)}</p>}
+        {catalogAddedCount > 0 && (
+          <p role="status" className="mb-4 text-sm text-[var(--brand-success)]">
+            {selectionCopy.added(catalogAddedCount)}
+          </p>
+        )}
         {showCatalog && (
           <ProductPicker
-            existingProductIds={registry.items.flatMap(item => item.productId ? [item.productId] : [])}
+            existingProductIds={registry.items.flatMap((item) =>
+              item.productId ? [item.productId] : [],
+            )}
             onClose={() => setShowCatalog(false)}
-            onAdd={async productIds => {
-              const result = await addBusinessProductsToRegistry({ registryId: registry.id, productIds });
+            onAdd={async (productIds) => {
+              const result = await addBusinessProductsToRegistry({
+                registryId: registry.id,
+                productIds,
+              });
               if (result.ok) setCatalogAddedCount(result.addedCount);
               return result;
             }}
@@ -208,7 +252,12 @@ export function RegistryEditForm({ registry }: RegistryEditFormProps) {
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       {t("item.quantity")}
                     </label>
-                    <Input name="quantity" type="number" min="1" defaultValue="1" />
+                    <Input
+                      name="quantity"
+                      type="number"
+                      min="1"
+                      defaultValue="1"
+                    />
                   </div>
                 </div>
                 <div>
@@ -228,7 +277,11 @@ export function RegistryEditForm({ registry }: RegistryEditFormProps) {
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     {t("item.externalUrl")}
                   </label>
-                  <Input name="externalUrl" type="url" placeholder="https://..." />
+                  <Input
+                    name="externalUrl"
+                    type="url"
+                    placeholder="https://..."
+                  />
                 </div>
                 <Button type="submit" disabled={pending}>
                   {pending ? t("common.loading") : t("registry.addItem")}
@@ -275,11 +328,47 @@ export function RegistryEditForm({ registry }: RegistryEditFormProps) {
                       )}
                     </div>
                   </div>
+                  {item.canRemove && (
+                    <form
+                      className="flex flex-wrap items-end gap-2"
+                      action={async (form) => {
+                        await run(() => updateRegistryItem(item.id, form));
+                      }}
+                    >
+                      <label
+                        className="text-xs"
+                        htmlFor={`quantity-${item.id}`}
+                      >
+                        {t("registry.quantity")}
+                        <input
+                          id={`quantity-${item.id}`}
+                          name="quantity"
+                          type="number"
+                          min={1}
+                          max={1000}
+                          defaultValue={item.quantity}
+                          required
+                          disabled={pending}
+                          className="block w-20 rounded-lg border p-2"
+                        />
+                      </label>
+                      <Button
+                        type="submit"
+                        size="sm"
+                        variant="outline"
+                        disabled={pending}
+                      >
+                        {t("common.save")}
+                      </Button>
+                    </form>
+                  )}
                   <Button
                     variant="ghost"
                     size="sm"
                     disabled={pending || !item.canRemove}
-                    title={!item.canRemove ? t("registry.itemLocked") : undefined}
+                    title={
+                      !item.canRemove ? t("registry.itemLocked") : undefined
+                    }
                     onClick={() => handleRemoveItem(item.id)}
                     className="text-red-500 hover:text-red-700 hover:bg-red-50"
                   >

@@ -9,7 +9,8 @@ import { cookies } from "next/headers";
 import { parseTheme, themeCookie } from "@/lib/theme";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import { AppBackground } from "@/components/theme/AppBackground";
-import { currentSeason, parseSeasonPreference, seasonCookie } from "@/lib/seasons";
+import { seasonalPresentation } from "@/services/campaigns";
+import { parseSeasonPreference, seasonCookie } from "@/lib/seasons";
 import { SeasonalBanner } from "@/components/theme/SeasonalBanner";
 import "../foundations.css";
 
@@ -40,7 +41,10 @@ export default async function LocaleLayout({
   const messages = await getMessages();
   const jar = await cookies();
   const initialTheme = parseTheme(jar.get(themeCookie)?.value);
-  const season = currentSeason(new Date(),parseSeasonPreference(jar.get(seasonCookie)?.value));
+  const seasonal = await seasonalPresentation(
+    locale,
+    parseSeasonPreference(jar.get(seasonCookie)?.value),
+  );
 
   return (
     <html
@@ -51,10 +55,20 @@ export default async function LocaleLayout({
       <body className="min-h-full flex flex-col">
         <NextIntlClientProvider messages={messages}>
           <ThemeProvider initialTheme={initialTheme}>
-          <a href="#main-content" className="skip-link">{locale === "ht" ? "Ale nan kontni an" : locale === "fr" ? "Aller au contenu" : "Skip to content"}</a><Header />
-          <main id="main-content" className="flex-1"><SeasonalBanner season={season} locale={locale}/>{children}</main>
-          <Footer />
-          <AppBackground />
+            <a href="#main-content" className="skip-link">
+              {locale === "ht"
+                ? "Ale nan kontni an"
+                : locale === "fr"
+                  ? "Aller au contenu"
+                  : "Skip to content"}
+            </a>
+            <Header />
+            <main id="main-content" className="flex-1">
+              <SeasonalBanner {...seasonal} locale={locale} />
+              {children}
+            </main>
+            <Footer />
+            <AppBackground />
           </ThemeProvider>
         </NextIntlClientProvider>
       </body>

@@ -4,13 +4,20 @@ import { Link } from "@/i18n/navigation";
 export function SeasonalBanner({
   season,
   locale,
+  title,
+  gifting,
+  occasion,
 }: {
   season: Season;
   locale: string;
+  title?: string;
+  gifting?: boolean;
+  occasion?: string;
 }) {
-  if (season === "everyday") return null;
+  if (season === "everyday" && !title) return null;
   const c = foundationsCopy(locale);
-  const gifting = season === "valentine" || season === "christmas";
+  const hasGifts =
+    gifting ?? (season === "valentine" || season === "christmas");
   return (
     <aside
       className="seasonal-banner"
@@ -18,12 +25,14 @@ export function SeasonalBanner({
       aria-label={c.season}
     >
       <div>
-        <strong>{c[season]}</strong>
-        {!gifting && <span>{c.commemorate}</span>}
+        <strong>
+          {title || (season === "everyday" ? c.standard : c[season])}
+        </strong>
+        {!hasGifts && <span>{c.commemorate}</span>}
       </div>
-      {gifting && (
+      {hasGifts && (
         <Link
-          href={`/discover?occasion=${season === "christmas" ? "CHRISTMAS" : "VALENTINE"}`}
+          href={`/discover?occasion=${occasion || (season === "christmas" ? "CHRISTMAS" : "VALENTINE")}`}
         >
           {c.seasonalGift}
         </Link>
