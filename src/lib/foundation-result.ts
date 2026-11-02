@@ -6,7 +6,8 @@ export type FoundationReason =
   | "tooLate"
   | "paymentRequired"
   | "passwordRequired"
-  | "limited";
+  | "limited"
+  | "mfaLocked";
 export type FoundationResult = {
   reason?: FoundationReason;
   status: "idle" | "saved" | "invalid" | "unavailable" | "premium" | "mfa";

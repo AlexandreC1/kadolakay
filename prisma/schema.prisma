@@ -38,6 +38,9 @@ model User {
   suspendedAt           DateTime?
   mfaSecret             String?         @db.Text
   mfaLastCounter        BigInt          @default(-1)
+  mfaFailedAttempts     Int             @default(0)
+  mfaFailureWindowStart DateTime?
+  mfaLockedUntil        DateTime?
   recoveryHashes        String[]        @default([])
   deviceSessions        DeviceSession[]
   mfaEnrollment         MfaEnrollment?

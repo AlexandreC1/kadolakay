@@ -140,6 +140,11 @@ export async function confirmMfaEnrollment(
     return recovery;
   });
 }
+/** Wrong codes allowed inside one window before step-up is locked. */
+export const MFA_MAX_FAILURES = 10;
+export const MFA_FAILURE_WINDOW_MS = 60 * 60 * 1000;
+export const MFA_LOCK_MS = 15 * 60 * 1000;
+
 export async function verifyMfaStepUp(
   userId: string,
   deviceId: string | undefined,
@@ -148,7 +153,9 @@ export async function verifyMfaStepUp(
   userId = parseEntityId(userId);
   if (!deviceId || typeof code !== "string" || code.length > 40)
     throw new Error("MFA_CODE_INVALID");
-  return db.$transaction(async (tx) => {
+  // Failed attempts must be committed, so the transaction reports the outcome and the
+  // error is thrown only after it commits. Throwing inside would roll back the count.
+  const outcome = await db.$transaction(async (tx) => {
     await tx.$queryRaw`SELECT id FROM users WHERE id=${userId} FOR UPDATE`;
     const now = new Date(),
       user = await tx.user.findUnique({
@@ -158,6 +165,9 @@ export async function verifyMfaStepUp(
           mfaLastCounter: true,
           recoveryHashes: true,
           suspendedAt: true,
+          mfaFailedAttempts: true,
+          mfaFailureWindowStart: true,
+          mfaLockedUntil: true,
         },
       });
     const device = await tx.deviceSession.findFirst({
@@ -165,6 +175,8 @@ export async function verifyMfaStepUp(
     });
     if (!user?.mfaSecret || user.suspendedAt || !device)
       throw new Error("MFA_CODE_INVALID");
+    // While locked, codes are not even checked, so guessing gains nothing.
+    if (user.mfaLockedUntil && user.mfaLockedUntil > now) return "locked" as const;
     const normalized = code.trim().toUpperCase(),
       recoveryHash = digestCapability(`${userId}:${normalized}`);
     const recovery = user.recoveryHashes.includes(recoveryHash);
@@ -175,17 +187,38 @@ export async function verifyMfaStepUp(
           normalized,
           now,
         );
-    if (!recovery && (counter === null || counter <= user.mfaLastCounter))
-      throw new Error("MFA_CODE_INVALID");
+    if (!recovery && (counter === null || counter <= user.mfaLastCounter)) {
+      const windowOpen =
+        user.mfaFailureWindowStart &&
+        now.getTime() - user.mfaFailureWindowStart.getTime() < MFA_FAILURE_WINDOW_MS;
+      const attempts = (windowOpen ? user.mfaFailedAttempts : 0) + 1;
+      const lock = attempts >= MFA_MAX_FAILURES;
+      await tx.user.update({
+        where: { id: userId },
+        data: lock
+          ? { mfaFailedAttempts: 0, mfaFailureWindowStart: null, mfaLockedUntil: new Date(now.getTime() + MFA_LOCK_MS) }
+          : { mfaFailedAttempts: attempts, mfaFailureWindowStart: windowOpen ? user.mfaFailureWindowStart : now },
+      });
+      if (lock) {
+        // Any browser that had passed step-up loses it while the account is locked.
+        await tx.deviceSession.updateMany({
+          where: { userId, mfaVerifiedUntil: { not: null } },
+          data: { mfaVerifiedUntil: null },
+        });
+        await auditOperation(tx, userId, "MFA_LOCKED", "USER", userId);
+      }
+      return lock ? ("locked" as const) : ("invalid" as const);
+    }
     await tx.user.update({
       where: { id: userId },
-      data: recovery
-        ? {
-            recoveryHashes: user.recoveryHashes.filter(
-              (h) => h !== recoveryHash,
-            ),
-          }
-        : { mfaLastCounter: counter! },
+      data: {
+        ...(recovery
+          ? { recoveryHashes: user.recoveryHashes.filter((h) => h !== recoveryHash) }
+          : { mfaLastCounter: counter! }),
+        mfaFailedAttempts: 0,
+        mfaFailureWindowStart: null,
+        mfaLockedUntil: null,
+      },
     });
     await tx.deviceSession.update({
       where: { id: device.id },
@@ -202,5 +235,8 @@ export async function verifyMfaStepUp(
       "SESSION",
       deviceId,
     );
+    return "verified" as const;
   });
+  if (outcome === "locked") throw new Error("MFA_LOCKED");
+  if (outcome === "invalid") throw new Error("MFA_CODE_INVALID");
 }
