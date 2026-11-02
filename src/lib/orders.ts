@@ -1,5 +1,5 @@
 import { db } from "./db";
-import { sendGiftNotification, sendOrderConfirmation } from "./email";
+import { anonymousBuyer, emailLocale, sendGiftNotification, sendOrderConfirmation } from "./email";
 import { toMinorUnits } from "@/services/money";
 import { settleProductStock } from "@/services/inventory";
 
@@ -14,7 +14,7 @@ export interface PaymentEvidence {
 export async function fulfillOrder(orderId: string, evidence?: PaymentEvidence) {
   const order = await db.order.findUnique({
     where: { id: orderId },
-    include: { items: { include: { registryItem: { include: { registry: { include: { user: { select: { email: true, name: true } } } } } } } }, payment: true },
+    include: { items: { include: { registryItem: { include: { registry: { include: { user: { select: { email: true, name: true, preferredLocale: true } } } } } } } }, payment: true },
   });
   if (!order) throw new Error("ORDER_NOT_FOUND");
   if (order.status !== "PENDING") return null;
@@ -45,11 +45,15 @@ export async function fulfillOrder(orderId: string, evidence?: PaymentEvidence) 
   const registry = order.items[0]?.registryItem.registry;
   if (registry) {
     const itemNames = order.items.map((item) => item.registryItem.title);
+    // Each person reads the email in their own language: the list owner's saved preference,
+    // and the language the buyer used at checkout.
+    const ownerLocale = emailLocale(registry.user.preferredLocale);
+    const buyerLocale = emailLocale(order.checkoutLocale);
     // Await notifications so a serverless runtime does not discard their work.
     // Delivery is best-effort; payment remains committed if email fails.
     await Promise.allSettled([
-      registry.user.email ? sendGiftNotification({ recipientEmail: registry.user.email, recipientName: registry.user.name || "Zanmi", buyerName: order.isAnonymous ? "Yon moun" : order.buyerName, giftMessage: order.giftMessage, itemNames, registryTitle: registry.title, registrySlug: registry.slug, orderNumber: order.orderNumber }) : Promise.resolve(),
-      sendOrderConfirmation({ buyerEmail: order.buyerEmail, buyerName: order.buyerName, itemNames, registryTitle: registry.title, orderNumber: order.orderNumber, totalAmount: Number(order.totalUSD), currency: "USD" }),
+      registry.user.email ? sendGiftNotification({ locale: ownerLocale, recipientEmail: registry.user.email, recipientName: registry.user.name, buyerName: order.isAnonymous ? anonymousBuyer(ownerLocale) : order.buyerName, giftMessage: order.giftMessage, itemNames, registryTitle: registry.title, registrySlug: registry.slug, orderNumber: order.orderNumber }) : Promise.resolve(),
+      sendOrderConfirmation({ locale: buyerLocale, buyerEmail: order.buyerEmail, buyerName: order.buyerName, itemNames, registryTitle: registry.title, orderNumber: order.orderNumber, totalAmount: Number(order.totalUSD), currency: "USD" }),
     ]);
   }
   return order;
