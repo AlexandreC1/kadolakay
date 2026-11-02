@@ -72,6 +72,7 @@ jobs:
       - name: Reject schema drift after migrations
         run: npx prisma migrate diff --from-config-datasource --to-schema prisma/schema.prisma --exit-code
       - run: npm test
+      - run: npm run test:quality-loop
       - run: npm run test:db
   build:
     name: Build

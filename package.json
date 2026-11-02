@@ -3,6 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "quality:loop": "node scripts/quality-loop.mjs",
+    "test:quality-loop": "node --test scripts/quality-loop.test.mjs",
     "dev": "next dev",
     "auth:setup": "node scripts/setup-google-auth.mjs",
     "admin:bootstrap": "node --import tsx scripts/bootstrap-superadmin.ts",

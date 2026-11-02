@@ -1,5 +1,9 @@
 # Bayou engineering handoff
 
+## November 2 bounded quality loop
+
+Branch codex/quality-loop adds scripts/quality-loop.mjs and docs/QUALITY-LOOP.md. It prepares a committed detached worktree, runs sequential static/unit checks, optionally build/audit, and can invoke the signed-in Codex CLI for at most three source repairs. Do not run it in Claude's live scratch checkout or copy environment files into it. Test/config/schema/instruction hash guards and no-progress/repeated-failure stops retain failures for review. Existing database/HTTP/browser/provider/hosted gates remain required. Local branding restoration in Claude's separate design/brand-system checkout is not included in this branch. See the runner guide for limitations and use.
+
 ## Current checkpoint: October 30 product foundations
 
 Branch codex/product-foundations, based on codex/release-session-security (PR #12 dependency). Owner paused Netlify. Four workstreams implemented: private merchant payment preference plus fail-closed merchant-direct adapter contract; expiring Premium personalization/quantity insights with audited SUPERADMIN grant/revoke; public /business entry and locale-safe dedicated registration; /discover budget/occasion recommendations plus Haiti-calendar seasonal presentation and visitor opt-out. See PRODUCT-FOUNDATIONS.md for routes, exact rules, algorithm limitations and external references. No real provider, settlement or subscription billing is activated.
