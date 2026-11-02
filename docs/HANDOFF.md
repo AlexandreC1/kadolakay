@@ -6,6 +6,12 @@ Based on codex/quality-loop d32a2a9 (on codex/offline-completion 9754b15). Added
 
 Verification in a Linux sandbox: 345 unit tests and 60 PostgreSQL tests pass (migrations applied with psql to a disposable bayou_release_test), typecheck clean, lint 0 errors / 14 existing warnings, production build passes with `next build --webpack` and mocked Google Fonts (sandbox blocks fonts.googleapis.com; Turbopack build not run there). Production server served /privacy, /terms, /contact in all locales. Not yet checked in a real browser or on Windows. Open owner items: docs/LEGAL-TODO.md.
 
+## November 2 evening: Claude follow-up (same branch)
+
+Three more commits on claude/compliance-quickwins. Transactional emails use the list owner's preferredLocale and the order's checkoutLocale (Kreyòl fallback; anonymous buyer label localized). Admin step-up locks for 15 minutes after 10 wrong codes within an hour: counts are committed even though the attempt fails, prior step-up is withdrawn, recovery codes are refused while locked, MFA_LOCKED is audited; additive migration 20261102120000_mfa_lockout. Workstream ownership: .github/ownership.json, scripts/check-ownership.mjs (plain Node), CI job "Workstream Ownership" for ws<N>/* PRs, and a test that every tracked file has an owner. Agent playbook moved into docs/agents/.
+
+Verification in the Linux sandbox: 349 unit, 62 PostgreSQL, 13 quality-loop and 4 ownership tests pass; typecheck clean; lint 0 errors / 14 existing warnings; `next build --webpack` passes with mocked Google Fonts. Not run: Turbopack build, Windows, real browser.
+
 ## November 2 bounded quality loop
 
 Branch codex/quality-loop adds scripts/quality-loop.mjs and docs/QUALITY-LOOP.md. It prepares a committed detached worktree, runs sequential static/unit checks, optionally build/audit, and can invoke the signed-in Codex CLI for at most three source repairs. Do not run it in Claude's live scratch checkout or copy environment files into it. Test/config/schema/instruction hash guards and no-progress/repeated-failure stops retain failures for review. Existing database/HTTP/browser/provider/hosted gates remain required. Local branding restoration in Claude's separate design/brand-system checkout is not included in this branch. See the runner guide for limitations and use.
