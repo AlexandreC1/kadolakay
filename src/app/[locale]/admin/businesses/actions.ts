@@ -7,7 +7,7 @@ import { revalidatePath } from "next/cache";
 
 export async function updateBusinessStatus(
   businessId: string,
-  status: "APPROVED" | "SUSPENDED"
+  status: "APPROVED" | "SUSPENDED",
 ) {
   const actor = await requireActor("admin:business");
   await reviewBusiness(actor.id, { businessId, status });

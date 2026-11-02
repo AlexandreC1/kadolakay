@@ -1,10 +1,20 @@
+import { requireBackoffice } from "@/services/backoffice-auth";
+import { Link } from "@/i18n/navigation";
+import { workspaceCopy } from "@/lib/workspace-copy";
+import { getLocale } from "next-intl/server";
+import { entityIdSchema } from "@/lib/validators/entity-id";
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { AdminBusinessList } from "./AdminBusinessList";
 import { isAdministrator } from "@/services/permissions";
 
-export default async function AdminBusinessesPage() {
+export default async function AdminBusinessesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ after?: string }>;
+}) {
+  await requireBackoffice();
   const session = await auth();
   if (!session?.user?.id) {
     redirect("/login");
@@ -20,12 +30,17 @@ export default async function AdminBusinessesPage() {
     redirect("/dashboard");
   }
 
+  const locale = await getLocale(),
+    raw = (await searchParams).after,
+    after = entityIdSchema.safeParse(raw);
   const businesses = await db.business.findMany({
+    where: after.success ? { id: { gt: after.data } } : {},
+    take: 31,
     include: {
       owner: { select: { name: true, email: true } },
       _count: { select: { products: true } },
     },
-    orderBy: [{ status: "asc" }, { createdAt: "desc" }],
+    orderBy: { id: "asc" },
   });
 
   return (
@@ -35,7 +50,7 @@ export default async function AdminBusinessesPage() {
       </h1>
 
       <AdminBusinessList
-        businesses={businesses.map((b) => ({
+        businesses={businesses.slice(0, 30).map((b) => ({
           id: b.id,
           name: b.name,
           slug: b.slug,
@@ -49,6 +64,11 @@ export default async function AdminBusinessesPage() {
           createdAt: b.createdAt.toISOString(),
         }))}
       />
+      {businesses.length > 30 && (
+        <Link href={`/admin/businesses?after=${businesses[29].id}`}>
+          {workspaceCopy(locale).next}
+        </Link>
+      )}
     </div>
   );
 }

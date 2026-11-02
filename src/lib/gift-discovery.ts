@@ -18,10 +18,26 @@ export const discoverySchema = z
       .refine((v) => Number(v) > 0 && Number(v) <= 1000000)
       .default("100"),
     currency: z.enum(["USD", "HTG"]).default("USD"),
+    budgetMode: z.enum(["gift", "basket"]).default("gift"),
+    maxGifts: z
+      .union([
+        z.number(),
+        z
+          .string()
+          .regex(/^\d{1,2}$/)
+          .transform(Number),
+      ])
+      .pipe(z.number().int().min(1).max(12))
+      .default(6),
     occasion: z.enum(occasions).default("ANY"),
   })
   .strict();
-export type DiscoveryInput = z.infer<typeof discoverySchema>;
+type ParsedDiscoveryInput = z.infer<typeof discoverySchema>;
+export type DiscoveryInput = Pick<
+  ParsedDiscoveryInput,
+  "budget" | "currency" | "occasion"
+> &
+  Partial<Pick<ParsedDiscoveryInput, "budgetMode" | "maxGifts">>;
 const categories: Record<DiscoveryInput["occasion"], readonly string[]> = {
   ANY: [],
   BIRTHDAY: ["fashion", "clothing", "electronics", "art", "crafts", "beauty"],
@@ -56,7 +72,7 @@ export function rankGifts<T extends RankedGift>(
   const max = toMinorUnits(input.budget);
   const eligible = candidates.filter((p) => {
     try {
-      return toMinorUnits(p.amount) <= max;
+      return toMinorUnits(p.amount) > 0 && toMinorUnits(p.amount) <= max;
     } catch {
       return false;
     }
@@ -77,10 +93,58 @@ export function rankGifts<T extends RankedGift>(
     (count < 3 ? first : rest).push(item);
     counts.set(item.businessId, count + 1);
   }
-  return [...first, ...rest]
-    .slice(0, 12)
-    .map((p) => ({
-      ...p,
-      reason: occasionMatch(p.category, input.occasion) ? "occasion" : "budget",
-    }));
+  return [...first, ...rest].slice(0, 12).map((p) => ({
+    ...p,
+    reason: occasionMatch(p.category, input.occasion) ? "occasion" : "budget",
+  }));
+}
+
+export function selectGiftBundle<T extends RankedGift>(
+  candidates: T[],
+  input: DiscoveryInput,
+): (T & { reason: "occasion" | "budget" })[] {
+  const settings = discoverySchema.parse(input),
+    budget = toMinorUnits(settings.budget),
+    target = budget / settings.maxGifts;
+  const eligible = candidates
+    .filter((p) => {
+      try {
+        return toMinorUnits(p.amount) > 0 && toMinorUnits(p.amount) <= budget;
+      } catch {
+        return false;
+      }
+    })
+    .sort(
+      (a, b) =>
+        Number(occasionMatch(b.category, settings.occasion)) -
+          Number(occasionMatch(a.category, settings.occasion)) ||
+        Math.abs(toMinorUnits(a.amount) - target) -
+          Math.abs(toMinorUnits(b.amount) - target) ||
+        a.id.localeCompare(b.id),
+    );
+  let total = 0;
+  const chosen: T[] = [],
+    ids = new Set<string>(),
+    counts = new Map<string, number>();
+  for (const cap of [3, 12])
+    for (const p of eligible) {
+      if (chosen.length >= settings.maxGifts) break;
+      const amount = toMinorUnits(p.amount);
+      if (
+        ids.has(p.id) ||
+        total + amount > budget ||
+        (counts.get(p.businessId) || 0) >= cap
+      )
+        continue;
+      chosen.push(p);
+      ids.add(p.id);
+      counts.set(p.businessId, (counts.get(p.businessId) || 0) + 1);
+      total += amount;
+    }
+  return chosen.map((p) => ({
+    ...p,
+    reason: occasionMatch(p.category, settings.occasion)
+      ? "occasion"
+      : "budget",
+  }));
 }

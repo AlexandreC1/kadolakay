@@ -2,6 +2,8 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
+import { trackingCopy } from "@/lib/tracking-copy";
+import { workspaceCopy } from "@/lib/workspace-copy";
 import { featureNavCopy } from "@/lib/feature-nav-copy";
 
 export function ExploreMenu() {
@@ -9,7 +11,8 @@ export function ExploreMenu() {
   const root = useRef<HTMLDivElement>(null),
     trigger = useRef<HTMLButtonElement>(null);
   const id = useId();
-  const c = featureNavCopy(useLocale());
+  const locale = useLocale();
+  const c = featureNavCopy(locale);
   const t = useTranslations();
   useEffect(() => {
     if (!open) return;
@@ -42,6 +45,15 @@ export function ExploreMenu() {
       </button>
       {open && (
         <div className="explore-links" id={id}>
+          <Link href="/track" onClick={() => setOpen(false)}>
+            {trackingCopy(locale).title}
+          </Link>
+          <Link href="/registries" onClick={() => setOpen(false)}>
+            {workspaceCopy(locale).registrySearch}
+          </Link>
+          <Link href="/baskets" onClick={() => setOpen(false)}>
+            {workspaceCopy(locale).baskets}
+          </Link>
           <Link href="/browse" onClick={() => setOpen(false)}>
             {t("nav.businesses")}
           </Link>

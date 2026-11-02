@@ -1,28 +1,40 @@
 "use server";
 
-import { headers } from "next/headers";
+import { registryAccessCookie } from "@/lib/registry-access";
+import { headers, cookies } from "next/headers";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { checkoutSchema } from "@/lib/validators/checkout";
 import { checkRateLimit } from "@/lib/rate-limit";
-import { beginCheckout, resumeCheckout, CheckoutError } from "@/services/checkout";
+import {
+  beginCheckout,
+  resumeCheckout,
+  CheckoutError,
+} from "@/services/checkout";
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { rateLimitClientKey } from "@/lib/client-ip";
 import { recordOperationalEvent } from "@/lib/operational-events";
 
-const resumeSchema = z.strictObject({ checkoutRequestId: checkoutSchema.shape.checkoutRequestId, registrySlug: checkoutSchema.shape.registrySlug });
+const resumeSchema = z.strictObject({
+  checkoutRequestId: checkoutSchema.shape.checkoutRequestId,
+  registrySlug: checkoutSchema.shape.registrySlug,
+});
 
 export async function resumeOrder(input: unknown) {
   const session = await auth();
   const h = await headers();
   const ip = rateLimitClientKey(h);
-  const rl = await checkRateLimit("checkout", session?.user?.id ? `user:${session.user.id}` : `ip:${ip}`);
+  const rl = await checkRateLimit(
+    "checkout",
+    session?.user?.id ? `user:${session.user.id}` : `ip:${ip}`,
+  );
   if (!rl.ok) return { error: "RATE_LIMITED" };
   const parsed = resumeSchema.safeParse(input);
   if (!parsed.success) return { error: "INVALID_INPUT" };
-  try { return await resumeCheckout(parsed.data, session?.user?.id); }
-  catch (error) {
+  try {
+    return await resumeCheckout(parsed.data, session?.user?.id);
+  } catch (error) {
     if (error instanceof CheckoutError) return { error: error.message };
     recordOperationalEvent("checkout_failed", { outcome: "failed" });
     return { error: "CHECKOUT_FAILED" };
@@ -33,25 +45,53 @@ export async function createOrder(formData: FormData) {
   const session = await auth();
   const h = await headers();
   const ip = rateLimitClientKey(h);
-  const rl = await checkRateLimit("checkout", session?.user?.id ? `user:${session.user.id}` : `ip:${ip}`);
+  const rl = await checkRateLimit(
+    "checkout",
+    session?.user?.id ? `user:${session.user.id}` : `ip:${ip}`,
+  );
   if (!rl.ok) return { error: "RATE_LIMITED" };
-  const allowed = new Set(["checkoutRequestId", "registrySlug", "locale", "registryItemIds", "quantities", "buyerName", "buyerEmail", "buyerPhone", "giftMessage", "isAnonymous", "paymentProvider"]);
-  if ([...formData.keys()].some((key) => !key.startsWith("$ACTION_") && !allowed.has(key))) return { error: "INVALID_INPUT" };
-  if ([...allowed].some(key => formData.getAll(key).length > 1)) return { error: "INVALID_INPUT" };
+  const allowed = new Set([
+    "checkoutRequestId",
+    "registrySlug",
+    "locale",
+    "registryItemIds",
+    "quantities",
+    "buyerName",
+    "buyerEmail",
+    "buyerPhone",
+    "giftMessage",
+    "isAnonymous",
+    "paymentProvider",
+  ]);
+  if (
+    [...formData.keys()].some(
+      (key) => !key.startsWith("$ACTION_") && !allowed.has(key),
+    )
+  )
+    return { error: "INVALID_INPUT" };
+  if ([...allowed].some((key) => formData.getAll(key).length > 1))
+    return { error: "INVALID_INPUT" };
   try {
     const parsed = checkoutSchema.safeParse({
       checkoutRequestId: formData.get("checkoutRequestId"),
-      registrySlug: formData.get("registrySlug"), locale: formData.get("locale"),
+      registrySlug: formData.get("registrySlug"),
+      locale: formData.get("locale"),
       registryItemIds: JSON.parse(String(formData.get("registryItemIds"))),
       quantities: JSON.parse(String(formData.get("quantities"))),
-      buyerName: formData.get("buyerName"), buyerEmail: formData.get("buyerEmail"),
+      buyerName: formData.get("buyerName"),
+      buyerEmail: formData.get("buyerEmail"),
       buyerPhone: formData.get("buyerPhone") || undefined,
       giftMessage: formData.get("giftMessage") || undefined,
       isAnonymous: formData.get("isAnonymous") === "true",
       paymentProvider: formData.get("paymentProvider"),
     });
     if (!parsed.success) return { error: "INVALID_INPUT" };
-    return await beginCheckout(parsed.data, session?.user?.id);
+    return await beginCheckout(
+      parsed.data,
+      session?.user?.id,
+      (await cookies()).get(registryAccessCookie(parsed.data.registrySlug))
+        ?.value,
+    );
   } catch (error) {
     if (error instanceof SyntaxError) return { error: "INVALID_INPUT" };
     if (error instanceof CheckoutError) return { error: error.message };
@@ -64,9 +104,14 @@ export async function createOrder(formData: FormData) {
 export async function confirmExternalPurchase(registryItemId: string) {
   const session = await auth();
   if (!session?.user?.id) return { error: "UNAUTHORIZED" };
-  if (typeof registryItemId !== "string" || registryItemId.length > 100) return { error: "INVALID_INPUT" };
+  if (typeof registryItemId !== "string" || registryItemId.length > 100)
+    return { error: "INVALID_INPUT" };
   const item = await db.registryItem.findFirst({
-    where: { id: registryItemId, registry: { userId: session.user.id }, source: { in: ["AMAZON", "EXTERNAL"] } },
+    where: {
+      id: registryItemId,
+      registry: { userId: session.user.id },
+      source: { in: ["AMAZON", "EXTERNAL"] },
+    },
     select: { registry: { select: { slug: true } } },
   });
   if (!item) return { error: "ITEM_UNAVAILABLE" };

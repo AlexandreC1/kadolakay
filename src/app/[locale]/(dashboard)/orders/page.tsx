@@ -40,7 +40,8 @@ export default async function OrdersPage() {
   // Find all orders that contain items from the user's registries
   const orders = await db.order.findMany({
     where: {
-      status: "PAID",
+      status: { in: ["PAID", "CONFIRMED", "SHIPPED", "DELIVERED"] },
+      payment: { status: "COMPLETED" },
       items: {
         some: {
           registryItem: {
@@ -52,15 +53,26 @@ export default async function OrdersPage() {
       },
     },
     select: {
-      id: true, orderNumber: true, buyerName: true, isAnonymous: true,
-      giftMessage: true, status: true, createdAt: true,
+      id: true,
+      orderNumber: true,
+      buyerName: true,
+      isAnonymous: true,
+      giftMessage: true,
+      status: true,
+      createdAt: true,
       payment: { select: { currency: true, provider: true } },
       items: {
         where: { registryItem: { registry: { userId: session.user.id } } },
         select: {
-          id: true, quantity: true, priceUSD: true, priceHTG: true,
+          id: true,
+          quantity: true,
+          priceUSD: true,
+          priceHTG: true,
           registryItem: {
-            select: { title: true, registry: { select: { title: true, slug: true, type: true } } },
+            select: {
+              title: true,
+              registry: { select: { title: true, slug: true, type: true } },
+            },
           },
         },
       },
@@ -68,7 +80,6 @@ export default async function OrdersPage() {
     take: 100,
     orderBy: { createdAt: "desc" },
   });
-
 
   const paymentStatusColors: Record<string, string> = {
     PAID: "bg-green-100 text-green-800",
@@ -78,14 +89,15 @@ export default async function OrdersPage() {
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
+      <Link href="/purchases" className="underline">
+        {t("dashboard.orders")}
+      </Link>
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">
             {t("nav.orders")}
           </h1>
-          <p className="text-gray-600 mt-1">
-            {t("orders.subtitle")}
-          </p>
+          <p className="text-gray-600 mt-1">{t("orders.subtitle")}</p>
         </div>
         <Link
           href="/dashboard"
@@ -102,9 +114,7 @@ export default async function OrdersPage() {
             <h2 className="text-xl font-semibold text-gray-700 mb-2">
               {t("orders.noOrdersYet")}
             </h2>
-            <p className="text-gray-500 mb-6">
-              {t("orders.noOrdersDesc")}
-            </p>
+            <p className="text-gray-500 mb-6">{t("orders.noOrdersDesc")}</p>
             <Link
               href="/my-registries"
               className={buttonVariants({ size: "lg" })}
@@ -118,8 +128,19 @@ export default async function OrdersPage() {
           {orders.map((order) => {
             const registry = order.items[0]?.registryItem.registry;
             const localCurrency = order.payment?.currency === "HTG";
-            const ownTotal = order.items.reduce((sum, item) => sum + Math.round(Number(localCurrency ? item.priceHTG ?? 0 : item.priceUSD ?? 0) * 100) * item.quantity, 0);
-            const amount = (localCurrency ? "G" : "$") + (ownTotal / 100).toFixed(2);
+            const ownTotal = order.items.reduce(
+              (sum, item) =>
+                sum +
+                Math.round(
+                  Number(
+                    localCurrency ? (item.priceHTG ?? 0) : (item.priceUSD ?? 0),
+                  ) * 100,
+                ) *
+                  item.quantity,
+              0,
+            );
+            const amount =
+              (localCurrency ? "G" : "$") + (ownTotal / 100).toFixed(2);
 
             return (
               <Card key={order.id} className="overflow-hidden">
@@ -131,7 +152,9 @@ export default async function OrdersPage() {
                       </span>
                       <div>
                         <CardTitle className="text-lg">
-                          {order.isAnonymous ? t("orders.anonymous") : order.buyerName}
+                          {order.isAnonymous
+                            ? t("orders.anonymous")
+                            : order.buyerName}
                         </CardTitle>
                         <p className="text-sm text-gray-500">
                           {registry?.title && (
@@ -143,11 +166,14 @@ export default async function OrdersPage() {
                             </Link>
                           )}
                           {" · "}
-                          {new Date(order.createdAt).toLocaleDateString("fr-HT", {
-                            day: "numeric",
-                            month: "short",
-                            year: "numeric",
-                          })}
+                          {new Date(order.createdAt).toLocaleDateString(
+                            "fr-HT",
+                            {
+                              day: "numeric",
+                              month: "short",
+                              year: "numeric",
+                            },
+                          )}
                         </p>
                       </div>
                     </div>
@@ -155,10 +181,13 @@ export default async function OrdersPage() {
                       <span className="font-bold text-gray-900">{amount}</span>
                       <span
                         className={`ml-2 inline-block px-2 py-0.5 rounded-full text-xs font-medium ${
-                          paymentStatusColors[order.status] || "bg-gray-100 text-gray-800"
+                          paymentStatusColors[order.status] ||
+                          "bg-gray-100 text-gray-800"
                         }`}
                       >
-                        {order.status === "PAID" ? t("orders.paid") : order.status}
+                        {order.status === "PAID"
+                          ? t("orders.paid")
+                          : order.status}
                       </span>
                     </div>
                   </div>
@@ -175,7 +204,10 @@ export default async function OrdersPage() {
                           <span className="text-gray-700">
                             {oi.registryItem.title}
                             {oi.quantity > 1 && (
-                              <span className="text-gray-400"> x{oi.quantity}</span>
+                              <span className="text-gray-400">
+                                {" "}
+                                x{oi.quantity}
+                              </span>
                             )}
                           </span>
                           <span className="text-gray-500">
@@ -197,7 +229,10 @@ export default async function OrdersPage() {
                         &ldquo;{order.giftMessage}&rdquo;
                       </p>
                       <p className="text-xs text-amber-700 mt-1">
-                        - {order.isAnonymous ? t("orders.anonymous") : order.buyerName}
+                        -{" "}
+                        {order.isAnonymous
+                          ? t("orders.anonymous")
+                          : order.buyerName}
                       </p>
                     </div>
                   )}
@@ -205,9 +240,7 @@ export default async function OrdersPage() {
                   {/* Order number */}
                   <p className="text-xs text-gray-400 mt-3">
                     {t("checkout.orderNumber")}: {order.orderNumber}
-                    {order.payment && (
-                      <> · {order.payment.provider}</>
-                    )}
+                    {order.payment && <> · {order.payment.provider}</>}
                   </p>
                 </CardContent>
               </Card>

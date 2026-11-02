@@ -4,13 +4,12 @@ import { cookies } from "next/headers";
 import { Link } from "@/i18n/navigation";
 import { foundationsCopy } from "@/lib/foundations-copy";
 import { discoverySchema, occasions } from "@/lib/gift-discovery";
-import {
-  currentSeason,
-  parseSeasonPreference,
-  seasonCookie,
-} from "@/lib/seasons";
+import { parseSeasonPreference, seasonCookie } from "@/lib/seasons";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { rateLimitClientKey } from "@/lib/client-ip";
+import { seasonalPresentation } from "@/services/campaigns";
+import { workspaceCopy } from "@/lib/workspace-copy";
+import { fromMinorUnits, toMinorUnits } from "@/services/money";
 import { discoverGifts } from "@/services/discovery";
 
 export default async function DiscoverPage({
@@ -24,20 +23,18 @@ export default async function DiscoverPage({
     cookies(),
   ]);
   const c = foundationsCopy(locale);
-  const season = currentSeason(
-    new Date(),
+  const w = workspaceCopy(locale);
+  const seasonal = await seasonalPresentation(
+    locale,
     parseSeasonPreference(jar.get(seasonCookie)?.value),
   );
-  const defaultOccasion =
-    season === "christmas"
-      ? "CHRISTMAS"
-      : season === "valentine"
-        ? "VALENTINE"
-        : "ANY";
+  const defaultOccasion = seasonal.occasion;
   const parsed = discoverySchema.safeParse({
     budget: raw.budget,
     currency: raw.currency,
     occasion: raw.occasion ?? defaultOccasion,
+    budgetMode: raw.budgetMode,
+    maxGifts: raw.maxGifts,
   });
   let error: string | undefined;
   let gifts: Awaited<ReturnType<typeof discoverGifts>> = [];
@@ -69,7 +66,13 @@ export default async function DiscoverPage({
         action={locale === "ht" ? "/discover" : `/${locale}/discover`}
       >
         <div>
-          <label htmlFor="budget">{c.budget}</label>
+          <label htmlFor="budget">
+            {locale === "fr"
+              ? "Budget maximum"
+              : locale === "ht"
+                ? "Bidjè maksimòm"
+                : "Maximum budget"}
+          </label>
           <input
             id="budget"
             name="budget"
@@ -103,11 +106,51 @@ export default async function DiscoverPage({
             ))}
           </select>
         </div>
+        <div>
+          <label htmlFor="budget-mode">{w.budgetMode}</label>
+          <select
+            id="budget-mode"
+            name="budgetMode"
+            defaultValue={parsed.success ? parsed.data.budgetMode : "gift"}
+          >
+            <option value="gift">{w.perGift}</option>
+            <option value="basket">{w.wholeBasket}</option>
+          </select>
+        </div>
+        <div>
+          <label htmlFor="max-gifts">
+            {w.maximum} ({w.wholeBasket})
+          </label>
+          <input
+            id="max-gifts"
+            name="maxGifts"
+            type="number"
+            min={1}
+            max={12}
+            required
+            defaultValue={parsed.success ? parsed.data.maxGifts : 6}
+          />
+        </div>
         <button type="submit">{c.search}</button>
       </form>
       <p id="discovery-price-note" className="foundation-note">
         {c.priceNote}
       </p>
+      {parsed.success &&
+        !error &&
+        gifts.length > 0 &&
+        parsed.data.budgetMode === "basket" && (
+          <section className="foundation-panel workspace-section">
+            <h2>
+              {w.total}:{" "}
+              {fromMinorUnits(
+                gifts.reduce((sum, p) => sum + toMinorUnits(p.amount), 0),
+              )}{" "}
+              {input.currency}
+            </h2>
+            <p>{w.bundleHint}</p>
+          </section>
+        )}
       {error ? (
         <p className="foundation-error" role="alert">
           {error}

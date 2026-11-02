@@ -43,3 +43,7 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 /work/
+
+# Encrypted database exports stay outside source control
+*.backup.enc
+*.dump

@@ -1,3 +1,4 @@
+import { requireBackoffice } from "@/services/backoffice-auth";
 import { getLocale } from "next-intl/server";
 import { notFound, redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
@@ -7,6 +8,7 @@ import { savePremiumGrant, removePremiumGrant } from "@/actions/foundations";
 import { foundationsCopy } from "@/lib/foundations-copy";
 
 export default async function AdminPremiumPage() {
+  await requireBackoffice();
   const locale = await getLocale();
   const c = foundationsCopy(locale);
   const session = await auth();

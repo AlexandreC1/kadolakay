@@ -4,13 +4,13 @@ generator client {
 
 // Append-only administrative decision history. No contact or credential payloads.
 model SecurityAuditEvent {
-  id String @id @default(cuid())
-  actorId String
-  action String
-  targetId String
+  id             String         @id @default(cuid())
+  actorId        String
+  action         String
+  targetId       String
   previousStatus BusinessStatus
-  nextStatus BusinessStatus
-  createdAt DateTime @default(now())
+  nextStatus     BusinessStatus
+  createdAt      DateTime       @default(now())
 
   @@index([actorId, createdAt])
   @@index([targetId, createdAt])
@@ -24,26 +24,32 @@ datasource db {
 // ─── AUTH (Auth.js) ───────────────────────────────────────
 
 model User {
-  id              String    @id @default(cuid())
-  email           String    @unique
-  emailVerified   DateTime?
-  name            String?
-  image           String?
-  phone           String?
-  preferredLocale String    @default("ht")
-  onboardingStep Int        @default(0)
+  id                    String          @id @default(cuid())
+  email                 String          @unique
+  emailVerified         DateTime?
+  name                  String?
+  image                 String?
+  phone                 String?
+  preferredLocale       String          @default("ht")
+  onboardingStep        Int             @default(0)
   onboardingCompletedAt DateTime?
-  onboardingDeferredAt DateTime?
-  role            Role      @default(USER)
-  sessionVersion  Int       @default(0)
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  onboardingDeferredAt  DateTime?
+  role                  Role            @default(USER)
+  suspendedAt           DateTime?
+  mfaSecret             String?         @db.Text
+  mfaLastCounter        BigInt          @default(-1)
+  recoveryHashes        String[]        @default([])
+  deviceSessions        DeviceSession[]
+  mfaEnrollment         MfaEnrollment?
+  sessionVersion        Int             @default(0)
+  createdAt             DateTime        @default(now())
+  updatedAt             DateTime        @updatedAt
 
-  accounts   Account[]
-  sessions   Session[]
-  registries Registry[]
-  orders     Order[]
-  business   Business?
+  accounts     Account[]
+  sessions     Session[]
+  registries   Registry[]
+  orders       Order[]
+  business     Business?
   premiumGrant PremiumGrant?
 
   @@map("users")
@@ -57,22 +63,22 @@ enum Role {
 }
 
 model UserRoleAuditEvent {
-  id String @id @default(cuid())
-  actorId String
-  targetId String
+  id           String   @id @default(cuid())
+  actorId      String
+  targetId     String
   previousRole Role
-  nextRole Role
-  source String
-  createdAt DateTime @default(now())
+  nextRole     Role
+  source       String
+  createdAt    DateTime @default(now())
 
   @@index([targetId, createdAt])
   @@map("user_role_audit_events")
 }
 
 model SessionRevocationEvent {
-  id String @id @default(cuid())
-  actorId String
-  targetId String
+  id        String   @id @default(cuid())
+  actorId   String
+  targetId  String
   createdAt DateTime @default(now())
 
   @@index([targetId, createdAt])
@@ -95,8 +101,8 @@ model Account {
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@index([userId])
   @@unique([provider, providerAccountId])
+  @@index([userId])
   @@map("accounts")
 }
 
@@ -139,28 +145,33 @@ enum RegistryStatus {
 }
 
 model Registry {
-  id          String         @id @default(cuid())
-  slug        String         @unique
-  userId      String
-  type        RegistryType
-  status      RegistryStatus @default(DRAFT)
-  title       String
-  description String?        @db.Text
-  eventDate   DateTime?
-  coverImage  String?
-  locale      String         @default("ht")
-  palette     String         @default("mint") @db.VarChar(20)
+  id               String         @id @default(cuid())
+  slug             String         @unique
+  userId           String
+  type             RegistryType
+  status           RegistryStatus @default(DRAFT)
+  title            String
+  description      String?        @db.Text
+  eventDate        DateTime?
+  coverImage       String?
+  locale           String         @default("ht")
+  kind             String         @default("SELF") @db.VarChar(30)
+  recipientName    String?        @db.VarChar(100)
+  recipientMessage String?        @db.VarChar(1000)
+  visibility       String         @default("PUBLIC") @db.VarChar(20)
+  searchable       Boolean        @default(false)
+  palette          String         @default("mint") @db.VarChar(20)
 
-  ogImageUrl  String?
+  ogImageUrl String?
 
   amazonWishlistUrl String?
   externalLinks     Json?
 
-  isPublic    Boolean  @default(true)
-  password    String?
+  isPublic Boolean @default(true)
+  password String?
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   user  User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   items RegistryItem[]
@@ -169,6 +180,8 @@ model Registry {
   @@index([slug])
   @@index([status, isPublic, createdAt])
   @@index([userId, status, updatedAt])
+  @@index([status, visibility, searchable, title, id])
+  @@index([userId, kind, updatedAt])
   @@map("registries")
 }
 
@@ -201,14 +214,14 @@ model RegistryItem {
   status       ItemStatus @default(AVAILABLE)
   source       ItemSource @default(CUSTOM)
 
-  externalUrl  String?
+  externalUrl String?
 
-  businessId   String?
-  productId    String?
+  businessId String?
+  productId  String?
 
-  priority     Int      @default(0)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  priority  Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   registry   Registry    @relation(fields: [registryId], references: [id], onDelete: Cascade)
   business   Business?   @relation(fields: [businessId], references: [id])
@@ -228,38 +241,41 @@ enum BusinessStatus {
 }
 
 model Business {
-  id          String         @id @default(cuid())
-  ownerId     String         @unique
-  name        String
-  slug        String         @unique
-  description String?        @db.Text
-  logoUrl     String?
-  coverUrl    String?
-  category    String
-  patenteNumber String?      @db.VarChar(100)
+  id            String  @id @default(cuid())
+  ownerId       String  @unique
+  name          String
+  slug          String  @unique
+  description   String? @db.Text
+  logoUrl       String?
+  coverUrl      String?
+  category      String
+  patenteNumber String? @db.VarChar(100)
 
-  city        String?
-  department  String?
-  address     String?
+  city       String?
+  department String?
+  address    String?
 
-  phone       String?
-  whatsapp    String?
-  email       String?
-  website     String?
+  phone    String?
+  whatsapp String?
+  email    String?
+  website  String?
 
   moncashNumber   String?
   natcashNumber   String?
   stripeAccountId String?
 
-  status          BusinessStatus @default(PENDING_REVIEW)
-  commissionRate  Decimal        @default(0.0) @db.Decimal(4, 2)
+  status            BusinessStatus        @default(PENDING_REVIEW)
+  fulfillmentPolicy String?               @db.VarChar(2000)
+  fulfillments      MerchantFulfillment[]
+  refunds           RefundRequest[]
+  commissionRate    Decimal               @default(0.0) @db.Decimal(4, 2)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  owner    User           @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  items    RegistryItem[]
-  products Product[]
+  owner          User                    @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  items          RegistryItem[]
+  products       Product[]
   paymentProfile MerchantPaymentProfile?
 
   @@index([slug])
@@ -268,22 +284,23 @@ model Business {
 }
 
 model Product {
-  id          String   @id @default(cuid())
-  businessId  String
-  name        String
-  description String?  @db.Text
-  imageUrl    String?
-  priceHTG    Decimal? @db.Decimal(12, 2)
-  priceUSD    Decimal? @db.Decimal(12, 2)
-  inStock     Boolean  @default(true)
+  media         ProductMedia[]
+  id            String         @id @default(cuid())
+  businessId    String
+  name          String
+  description   String?        @db.Text
+  imageUrl      String?
+  priceHTG      Decimal?       @db.Decimal(12, 2)
+  priceUSD      Decimal?       @db.Decimal(12, 2)
+  inStock       Boolean        @default(true)
   // Unsold physical units, including active checkout holds. Null is unconfirmed.
   stockQuantity Int?
-  reservedStock Int @default(0)
-  category    String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  reservedStock Int            @default(0)
+  category      String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
 
-  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  business   Business    @relation(fields: [businessId], references: [id], onDelete: Cascade)
   orderItems OrderItem[]
 
   @@index([businessId])
@@ -295,27 +312,30 @@ model Product {
 
 // Private setup intent only. No secrets, bank numbers or provider verification claims.
 model MerchantPaymentProfile {
-  businessId String @id
-  provider String @db.VarChar(20)
+  businessId  String   @id
+  provider    String   @db.VarChar(20)
   requestedAt DateTime @default(now())
-  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  business    Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
   @@map("merchant_payment_profiles")
 }
 
 model PremiumGrant {
-  userId String @id
+  userId    String   @id
   expiresAt DateTime
   updatedAt DateTime @updatedAt
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@map("premium_grants")
 }
 
 model PremiumAuditEvent {
-  id String @id @default(cuid())
-  actorId String
-  targetId String
+  id        String   @id @default(cuid())
+  actorId   String
+  targetId  String
   expiresAt DateTime
   createdAt DateTime @default(now())
+
   @@index([targetId, createdAt], map: "premium_audit_target_created")
   @@map("premium_audit_events")
 }
@@ -349,29 +369,32 @@ enum PaymentStatus {
 }
 
 model Order {
-  checkoutRequestId String? @unique
-  checkoutRequestHash String?
-  checkoutLocale String?
-  id          String      @id @default(cuid())
-  orderNumber String      @unique
-  buyerId     String?
-  buyerName   String
-  buyerEmail  String
-  buyerPhone  String?
-  giftMessage String?     @db.Text
-  isAnonymous Boolean     @default(false)
+  checkoutRequestId        String? @unique
+  checkoutRequestHash      String?
+  checkoutLocale           String?
+  id                       String  @id @default(cuid())
+  orderNumber              String  @unique
+  buyerId                  String?
+  buyerName                String
+  buyerEmail               String
+  buyerPhone               String?
+  giftMessage              String? @db.Text
+  deliveryContactEncrypted String? @db.Text
+  isAnonymous              Boolean @default(false)
 
-  totalHTG    Decimal?    @db.Decimal(12, 2)
-  totalUSD    Decimal?    @db.Decimal(12, 2)
-  platformFee Decimal?    @db.Decimal(12, 2)
+  totalHTG    Decimal? @db.Decimal(12, 2)
+  totalUSD    Decimal? @db.Decimal(12, 2)
+  platformFee Decimal? @db.Decimal(12, 2)
 
-  status      OrderStatus @default(PENDING)
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  status    OrderStatus @default(PENDING)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
 
-  buyer   User?       @relation(fields: [buyerId], references: [id])
-  items   OrderItem[]
-  payment Payment?
+  buyer          User?                 @relation(fields: [buyerId], references: [id])
+  items          OrderItem[]
+  payment        Payment?
+  fulfillments   MerchantFulfillment[]
+  refundRequests RefundRequest[]
 
   @@index([buyerId])
   @@index([orderNumber])
@@ -400,10 +423,10 @@ model OrderItem {
 }
 
 model Payment {
-  id              String          @id @default(cuid())
-  orderId         String          @unique
-  provider        PaymentProvider
-  status          PaymentStatus   @default(PENDING)
+  id       String          @id @default(cuid())
+  orderId  String          @unique
+  provider PaymentProvider
+  status   PaymentStatus   @default(PENDING)
 
   stripePaymentId String?
   checkoutUrl     String? @db.Text
@@ -413,11 +436,11 @@ model Payment {
 
   // Provider event ID (e.g. Stripe event.id) — used to make webhook handlers
   // idempotent. Unique so a duplicate delivery is rejected at the DB level.
-  providerEventId String?         @unique
+  providerEventId String? @unique
 
-  amountHTG       Decimal?        @db.Decimal(12, 2)
-  amountUSD       Decimal?        @db.Decimal(12, 2)
-  currency        String
+  amountHTG Decimal? @db.Decimal(12, 2)
+  amountUSD Decimal? @db.Decimal(12, 2)
+  currency  String
 
   providerResponse Json?
 
@@ -429,5 +452,118 @@ model Payment {
 
   @@index([stripePaymentId])
   @@index([moncashTxId])
+  @@index([status, currency, createdAt], map: "payment_status_currency_created")
   @@map("payments")
+}
+
+model DeviceSession {
+  id               String    @id @default(cuid())
+  userId           String
+  label            String    @default("Browser session") @db.VarChar(80)
+  createdAt        DateTime  @default(now())
+  expiresAt        DateTime
+  revokedAt        DateTime?
+  mfaVerifiedUntil DateTime?
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, expiresAt])
+  @@map("device_sessions")
+}
+
+model MfaEnrollment {
+  deviceId        String   @default("") @db.VarChar(100)
+  userId          String   @id
+  encryptedSecret String   @db.Text
+  expiresAt       DateTime
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("mfa_enrollments")
+}
+
+model OperationAuditEvent {
+  id            String   @id @default(cuid())
+  actorId       String
+  action        String   @db.VarChar(60)
+  entityType    String   @db.VarChar(30)
+  targetId      String
+  previousValue String?  @db.VarChar(100)
+  nextValue     String?  @db.VarChar(100)
+  createdAt     DateTime @default(now())
+
+  @@index([createdAt, id])
+  @@index([targetId, createdAt])
+  @@map("operation_audit_events")
+}
+
+model ProductMedia {
+  id        String  @id @default(cuid())
+  productId String
+  url       String  @db.VarChar(2048)
+  alt       String  @db.VarChar(200)
+  position  Int     @default(0)
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, position])
+  @@map("product_media")
+}
+
+model MerchantFulfillment {
+  id           String   @id @default(cuid())
+  orderId      String
+  businessId   String
+  state        String   @default("NEW") @db.VarChar(30)
+  method       String   @default("PICKUP") @db.VarChar(20)
+  instructions String?  @db.VarChar(1000)
+  updatedAt    DateTime @updatedAt
+  order        Order    @relation(fields: [orderId], references: [id], onDelete: Restrict)
+  business     Business @relation(fields: [businessId], references: [id], onDelete: Restrict)
+
+  @@unique([orderId, businessId])
+  @@index([businessId, state, updatedAt])
+  @@map("merchant_fulfillments")
+}
+
+model RefundRequest {
+  id          String   @id @default(cuid())
+  orderId     String
+  businessId  String
+  requesterId String
+  kind        String   @db.VarChar(20)
+  state       String   @default("REQUESTED") @db.VarChar(30)
+  reason      String   @db.VarChar(1000)
+  amountMinor BigInt
+  currency    String   @db.VarChar(3)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  order       Order    @relation(fields: [orderId], references: [id], onDelete: Restrict)
+  business    Business @relation(fields: [businessId], references: [id], onDelete: Restrict)
+
+  @@unique([orderId, businessId])
+  @@index([businessId, state, createdAt])
+  @@map("refund_requests")
+}
+
+model SeasonCampaign {
+  id        String   @id @default(cuid())
+  titleEN   String   @db.VarChar(120)
+  titleFR   String   @db.VarChar(120)
+  titleHT   String   @db.VarChar(120)
+  season    String   @db.VarChar(20)
+  kind      String   @db.VarChar(20)
+  occasion  String   @db.VarChar(20)
+  startsAt  DateTime
+  endsAt    DateTime
+  priority  Int      @default(0)
+  enabled   Boolean  @default(false)
+  updatedAt DateTime @updatedAt
+
+  @@index([enabled, startsAt, endsAt, priority])
+  @@map("season_campaigns")
+}
+
+model SiteSettings {
+  id              String  @id @default("site")
+  seasonalEnabled Boolean @default(true)
+
+  @@map("site_settings")
 }

@@ -1,3 +1,4 @@
+import { foundationFeedback } from "@/lib/foundation-feedback";
 import { foundationsCopy } from "@/lib/foundations-copy";
 import { FoundationActionForm } from "./FoundationActionForm";
 import type { FoundationResult } from "@/lib/foundation-result";
@@ -19,11 +20,18 @@ export function FoundationForm({
     <FoundationActionForm
       {...props}
       messages={{
+        reasons: foundationFeedback(locale),
         saved: c.saved,
         failed: c.failed,
         premiumInactive: c.premiumInactive,
         saving: c.saving,
         invalidDetails: c.invalidDetails,
+        mfaRequired:
+          locale === "fr"
+            ? "Vérifiez votre navigateur pour continuer."
+            : locale === "ht"
+              ? "Verifye navigatè ou pou kontinye."
+              : "Verify your browser to continue.",
       }}
     />
   );
