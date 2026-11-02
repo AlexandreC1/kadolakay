@@ -21,6 +21,9 @@ const result = spawnSync(
   [
     "node_modules/vitest/vitest.mjs",
     "run",
+    // Integration files share site settings and DB-wide assertions. Keep files serial;
+    // Promise.all race tests inside each file still exercise concurrent transactions.
+    "--maxWorkers=1",
     "src/services/checkout.integration.test.ts",
     "src/services/registry.integration.test.ts",
     "src/services/catalog.integration.test.ts",
