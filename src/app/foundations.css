@@ -478,3 +478,37 @@ html[data-theme="dark"] .wishlist-page[data-palette] .wishlist-eyebrow {
 .workspace-tabs a {
   white-space: nowrap;
 }
+
+.workspace-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 36px;
+}
+.workspace-heading > div {
+  max-width: 680px;
+}
+.workspace-heading h1 {
+  font-family: var(--font-display), serif;
+  font-size: clamp(2.2rem, 4.5vw, 3.8rem);
+  line-height: 1.12;
+  margin: 12px 0 20px;
+  text-wrap: balance;
+}
+.workspace-heading p {
+  line-height: 1.75;
+  color: var(--brand-secondary);
+  max-width: 65ch;
+}
+.workspace-heading > .foundation-primary {
+  margin-top: 0;
+  flex-shrink: 0;
+}
+@media (max-width: 767px) {
+  .workspace-heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 12px;
+  }
+}
