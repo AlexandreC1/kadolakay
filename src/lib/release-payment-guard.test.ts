@@ -11,6 +11,7 @@ const base = {
   UPSTASH_REDIS_REST_TOKEN: "fixture",
   CRON_SECRET: "fixture-cron-secret-at-least-thirty-two-characters",
   NEXT_PUBLIC_APP_URL: "https://staging.example.invalid",
+  SUPPORT_EMAIL: "support@example.invalid",
   CHECKOUT_ENABLED: "false",
 };
 const run = (env: Record<string, string | undefined>, staging = false) =>
@@ -61,5 +62,13 @@ describe("Haiti marketplace payment release boundary", () => {
     expect(result.status).toBe(1);
     expect(result.stderr).toContain("sandbox mode and test credentials");
     expect(result.stderr).not.toContain("sk_live_fixture");
+  });
+  it("requires a real support address and an allowed client IP header", () => {
+    expect(run({ SUPPORT_EMAIL: "" }).stderr).toContain("SUPPORT_EMAIL: missing");
+    expect(run({ SUPPORT_EMAIL: "Support <a@b.c>" }).stderr).toContain("SUPPORT_EMAIL: must be a plain email address");
+    const header = run({ CLIENT_IP_HEADER: "x-forwarded-for" });
+    expect(header.status).toBe(1);
+    expect(header.stderr).toContain("CLIENT_IP_HEADER: must be one of");
+    expect(run({ CLIENT_IP_HEADER: "x-nf-client-connection-ip" }).status).toBe(0);
   });
 });

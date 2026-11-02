@@ -1,0 +1,38 @@
+.draft {
+  border: 1px solid var(--brand-line);
+  border-left: 4px solid var(--brand-action);
+  border-radius: 12px;
+  padding: 14px 18px;
+  margin: 0 0 32px;
+  color: var(--brand-secondary);
+  line-height: 1.6;
+}
+.sections {
+  display: grid;
+  gap: 32px;
+}
+.sections ul {
+  display: grid;
+  gap: 10px;
+  padding-left: 1.2em;
+  list-style: disc;
+}
+.sections li,
+.sections p {
+  line-height: 1.75;
+  color: var(--brand-secondary);
+  max-width: 68ch;
+}
+.meta {
+  margin-top: 40px;
+  font-size: 0.8125rem;
+  color: var(--brand-muted);
+}
+.email {
+  font-size: 1.125rem;
+  font-weight: 600;
+  word-break: break-all;
+}
+.contactNotes {
+  margin-top: 32px;
+}

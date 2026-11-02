@@ -288,12 +288,28 @@
     "signOutEverywhereDescription": "Dekonekte tout navigatè yo, ansanm ak sa w ap itilize kounye a. W ap bezwen konekte ankò sou chak aparèy.",
     "signOutEverywhere": "Dekonekte tout kote",
     "signingOut": "N ap dekonekte…",
-    "signOutEverywhereFailed": "Nou pa t ka dekonekte tout aparèy yo. Tanpri eseye ankò."
+    "signOutEverywhereFailed": "Nou pa t ka dekonekte tout aparèy yo. Tanpri eseye ankò.",
+    "yourData": "Done ou",
+    "exportDescription": "Telechaje yon kopi pwofil ou, lis ou ak acha ou nan yon fichye JSON. Nou pa janm mete modpas oswa sekrè koneksyon ladan l.",
+    "exportButton": "Telechaje done mwen",
+    "deleteTitle": "Efase kont mwen",
+    "deleteDescription": "Sa retire pwofil ou, fason ou konekte ak lis ki pa t janm resevwa kado. Lis ki te resevwa kado yo ap achive san tèks pèsonèl ou, epi acha ou yo rete kote machann yo san kontak ou. Ou pa ka defèt sa.",
+    "deleteConfirmLabel": "Tape adrès imèl ou pou konfime",
+    "deleteButton": "Efase kont mwen",
+    "deleting": "N ap efase…",
+    "deleteInvalid": "Tape adrès imèl ou pou konfime.",
+    "deleteMismatch": "Sa pa koresponn ak adrès imèl ou.",
+    "deleteUnavailable": "Nou pa ka efase kont ou kounye a. Eseye ankò nan yon minit.",
+    "deleteBlocked_ADMIN_ACCOUNT": "Ou pa ka efase yon kont administratè isit la. Mande yon lòt administratè retire wòl ou anvan.",
+    "deleteBlocked_ACTIVE_ORDERS": "Youn nan acha ou yo ap prepare oswa livre toujou. Ou ka efase kont ou lè li fini.",
+    "deleteBlocked_OPEN_REFUNDS": "Ou gen yon demann anilasyon oswa ranbousman ki louvri. Ou ka efase kont ou lè li regle.",
+    "deleteBlocked_MERCHANT_RECORDS": "Biznis ou gen istwa kòmand nou dwe kenbe. Kontakte nou pou nou ka fèmen kont machann ou kòrèkteman."
   },
   "footer": {
     "tagline": "Kado pou tout okazyon, lakay ou.",
     "privacy": "Règ sou vi prive",
     "terms": "Kondisyon itilizasyon",
-    "contact": "Kontakte nou"
+    "contact": "Kontakte nou",
+    "legalNavigation": "Lyen legal"
   }
 }

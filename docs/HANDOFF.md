@@ -1,5 +1,11 @@
 # Bayou engineering handoff
 
+## November 2: Claude compliance quick wins (branch claude/compliance-quickwins)
+
+Based on codex/quality-loop d32a2a9 (on codex/offline-completion 9754b15). Added draft Privacy, Terms and Contact pages (ht/fr/en, footer links, support address from SUPPORT_EMAIL only), Settings data export (JSON route, no secrets) and account deletion (tombstone user, scrub or delete lists, anonymize purchases; blocked for admins, active purchases, open refunds and merchants with order history; audited ACCOUNT_DELETED). Fixed rate-limit identity on Netlify functions, where NETLIFY=true is not present at runtime (detect SITE_ID plus SITE_NAME, optional CLIENT_IP_HEADER allowlist, logged fallback). .env.example now lists DIRECT_DATABASE_URL, DATA_ENCRYPTION_KEY, DATA_ENCRYPTION_PREVIOUS_KEYS, SUPPORT_EMAIL, CLIENT_IP_HEADER; release check requires SUPPORT_EMAIL. No migration.
+
+Verification in a Linux sandbox: 345 unit tests and 60 PostgreSQL tests pass (migrations applied with psql to a disposable bayou_release_test), typecheck clean, lint 0 errors / 14 existing warnings, production build passes with `next build --webpack` and mocked Google Fonts (sandbox blocks fonts.googleapis.com; Turbopack build not run there). Production server served /privacy, /terms, /contact in all locales. Not yet checked in a real browser or on Windows. Open owner items: docs/LEGAL-TODO.md.
+
 ## November 2 bounded quality loop
 
 Branch codex/quality-loop adds scripts/quality-loop.mjs and docs/QUALITY-LOOP.md. It prepares a committed detached worktree, runs sequential static/unit checks, optionally build/audit, and can invoke the signed-in Codex CLI for at most three source repairs. Do not run it in Claude's live scratch checkout or copy environment files into it. Test/config/schema/instruction hash guards and no-progress/repeated-failure stops retain failures for review. Existing database/HTTP/browser/provider/hosted gates remain required. Local branding restoration in Claude's separate design/brand-system checkout is not included in this branch. See the runner guide for limitations and use.
