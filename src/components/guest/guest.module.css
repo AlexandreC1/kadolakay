@@ -1,0 +1,353 @@
+/*
+ * Shared layout for the guest pages that list things: find a list, all lists,
+ * gift finder, shop directory and shop page. Tokens from theme.css.
+ */
+.page {
+  --gutter: clamp(20px, 4.2vw, 56px);
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: clamp(32px, 5vw, 72px) var(--gutter) clamp(56px, 7vw, 96px);
+  display: grid;
+  gap: clamp(20px, 2.6vw, 32px);
+}
+.narrow {
+  max-width: 880px;
+}
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: end;
+  gap: 16px 40px;
+  animation: rise 500ms var(--ease-out) both;
+}
+.header > div {
+  display: grid;
+  gap: 14px;
+  max-width: 62ch;
+}
+.title {
+  font-weight: 760;
+  font-size: clamp(1.85rem, 1.45rem + 1.6vw, 2.6rem);
+  line-height: 1.08;
+  letter-spacing: -0.03em;
+  color: var(--brand-ink);
+  text-wrap: balance;
+}
+.intro {
+  font-size: clamp(1rem, 0.96rem + 0.2vw, 1.12rem);
+  line-height: 1.65;
+  color: var(--brand-secondary);
+}
+.headerLink {
+  display: inline-flex;
+  align-items: center;
+  min-height: 48px;
+  font-weight: 650;
+  color: var(--brand-ocean);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+/* Filter bar */
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 14px 16px;
+  padding: clamp(16px, 2vw, 22px);
+  border-radius: 20px;
+  background: var(--brand-surface);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--brand-ink) 7%, transparent);
+  animation: rise 500ms var(--ease-out) 60ms both;
+}
+.field {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+.fieldWide {
+  flex: 1 1 260px;
+}
+.field label,
+.legend {
+  font-weight: 650;
+  font-size: 0.9rem;
+  color: var(--brand-ink);
+}
+.field input,
+.field select {
+  min-height: 48px;
+  width: 100%;
+  padding: 0 14px;
+  border: 1px solid var(--brand-line-strong);
+  border-radius: 12px;
+  background: var(--brand-canvas);
+  color: var(--brand-ink);
+  font: inherit;
+  transition: border-color 180ms, box-shadow 180ms;
+}
+.field select {
+  min-width: 180px;
+}
+.field input:focus,
+.field select:focus {
+  outline: none;
+  border-color: var(--brand-ink);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--brand-accent) 45%, transparent);
+}
+.submit {
+  min-height: 48px;
+  padding: 0 22px;
+  border-radius: 12px;
+  background: var(--brand-action);
+  color: var(--brand-on-action);
+  font-weight: 700;
+  font-size: 0.95rem;
+  transition: background 180ms, transform 160ms var(--ease-out);
+}
+.submit:hover {
+  background: var(--brand-action-hover);
+}
+.submit:active {
+  transform: scale(0.97);
+}
+.clear {
+  display: inline-flex;
+  align-items: center;
+  min-height: 48px;
+  font-weight: 600;
+  font-size: 0.92rem;
+  color: var(--brand-secondary);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.pending {
+  font-size: 0.88rem;
+  color: var(--brand-secondary);
+  min-height: 48px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.pending::before {
+  content: "";
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid var(--brand-line);
+  border-top-color: var(--brand-ink);
+  animation: spin 700ms linear infinite;
+}
+
+/* Segmented choices built from radio inputs: still a plain form without script. */
+.choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+.choices legend {
+  float: left;
+  width: 100%;
+  margin-bottom: 8px;
+  padding: 0;
+}
+.choices label {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid var(--brand-line-strong);
+  background: var(--brand-surface);
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--brand-secondary);
+  cursor: pointer;
+  transition: background 180ms var(--ease-out), border-color 180ms, color 180ms, transform 160ms var(--ease-out);
+}
+.choices label:hover {
+  border-color: var(--brand-line-strong);
+  color: var(--brand-ink);
+}
+.choices label:active {
+  transform: scale(0.97);
+}
+.choices input {
+  position: absolute;
+  opacity: 0;
+  inset: 0;
+  margin: 0;
+  cursor: pointer;
+}
+.choices label:has(input:checked) {
+  background: var(--brand-ink);
+  border-color: var(--brand-ink);
+  color: var(--brand-canvas);
+}
+.choices label:has(input:focus-visible) {
+  outline: 3px solid var(--brand-accent);
+  outline-offset: 2px;
+}
+
+/* Result tiles */
+.resultsHead {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px 24px;
+}
+.resultsHead h2 {
+  font-weight: 740;
+  font-size: 1.3rem;
+  color: var(--brand-ink);
+}
+.resultsHead p {
+  color: var(--brand-secondary);
+}
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 230px), 1fr));
+  gap: clamp(16px, 2vw, 28px);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.tile {
+  display: grid;
+  gap: 8px;
+  border-radius: 22px;
+}
+.tileShop {
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--brand-ocean);
+}
+.tileName {
+  font-weight: 650;
+  line-height: 1.35;
+  color: var(--brand-ink);
+}
+.tilePrice {
+  font-weight: 700;
+  color: var(--brand-ink);
+  font-variant-numeric: tabular-nums;
+}
+.tileNote {
+  font-size: 0.86rem;
+  color: var(--brand-secondary);
+}
+
+/* Messages */
+.notice {
+  max-width: 820px;
+  padding: 14px 18px;
+  border-radius: 16px;
+  background: var(--brand-info-surface);
+  color: var(--brand-ink);
+  line-height: 1.55;
+}
+.note {
+  font-size: 0.88rem;
+  line-height: 1.6;
+  color: var(--brand-muted);
+  max-width: 70ch;
+}
+.error {
+  padding: 14px 18px;
+  border-radius: 16px;
+  background: var(--brand-error-surface);
+  color: var(--brand-error);
+  line-height: 1.55;
+  max-width: 820px;
+}
+.empty {
+  display: grid;
+  justify-items: start;
+  gap: 10px;
+  padding: clamp(24px, 3vw, 36px);
+  border-radius: 24px;
+  border: 1.5px dashed var(--brand-line-strong);
+  max-width: 820px;
+}
+.empty h2 {
+  font-weight: 700;
+  font-size: 1.15rem;
+  color: var(--brand-ink);
+}
+.empty p {
+  color: var(--brand-secondary);
+  line-height: 1.6;
+}
+.empty a,
+.textLink {
+  font-weight: 650;
+  color: var(--brand-ocean);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.pagination {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.pagination a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 46px;
+  padding: 0 18px;
+  border-radius: 14px;
+  border: 1.5px solid var(--brand-line-strong);
+  font-weight: 650;
+  color: var(--brand-ink);
+  transition: border-color 180ms;
+}
+.pagination a:hover {
+  border-color: var(--brand-ink);
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (max-width: 620px) {
+  .filters > * {
+    flex: 1 1 100%;
+  }
+  .field select {
+    min-width: 0;
+  }
+  .tiles {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .header,
+  .filters {
+    animation: none;
+  }
+  .pending::before {
+    animation-duration: 2s;
+  }
+  .choices label,
+  .submit {
+    transition: none;
+  }
+}
+.results { display: grid; gap: 14px; }

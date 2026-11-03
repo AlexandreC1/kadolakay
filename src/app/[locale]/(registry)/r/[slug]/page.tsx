@@ -9,10 +9,13 @@ import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 
 import { getRegistryBySlug } from "@/actions/registry";
-import { wishlistCopy } from "@/lib/wishlist-copy";
+import { daysUntil, listCopy, wishlistCopy } from "@/lib/wishlist-copy";
 import { RegistryShareButton } from "./RegistryShareButton";
 import { WishlistGallery } from "./WishlistGallery";
-import { RegistryProgress } from "@/components/registry/RegistryProgress";
+import { strandsFor, WovenProgress } from "@/components/registry/WovenProgress";
+import { PageTransition } from "@/components/shared/PageTransition";
+import { giftQuantities, registryProgress } from "@/lib/registry-progress";
+import styles from "./list.module.css";
 import { stripeCheckoutAvailable } from "@/services/checkout";
 import { formatEventDate } from "@/lib/event-date";
 import { registryShareUrl } from "@/lib/registry-share-url";
@@ -92,77 +95,90 @@ export default async function RegistryPage({ params }: PageProps) {
     );
   }
   const t = await getTranslations("registry");
+  const l = listCopy(locale);
   const registryUrl = registryShareUrl(
     registry.slug,
     locale,
     process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
   );
+  const progress = registryProgress(registry.items);
+  const strands = strandsFor(
+    registry.items.map((item) => {
+      const q = giftQuantities(item);
+      return { quantity: q.requested, fulfilledQty: q.confirmed, reservedQty: q.held };
+    }),
+  );
+  const days = registry.eventDate ? daysUntil(registry.eventDate) : null;
   return (
-    <div className="wishlist-page" data-palette={registry.palette}>
-      <section className="wishlist-hero" aria-labelledby="wishlist-title">
-        <div className="wishlist-introduction">
-          <p className="wishlist-eyebrow">{c.eyebrow}</p>
-          <div className="wishlist-occasion">
-            <span>{occasionLabel(registry.type, locale)}</span>
-            {registry.eventDate && (
-              <time dateTime={registry.eventDate.toISOString()}>
-                {formatEventDate(registry.eventDate, locale)}
-              </time>
+    <PageTransition>
+      <div className={styles.page} data-palette={registry.palette}>
+        <section className={styles.hero} aria-labelledby="wishlist-title">
+          <div className={styles.heroMain}>
+            <p className={styles.occasion}>
+              <span>{occasionLabel(registry.type, locale)}</span>
+              {registry.eventDate && (
+                <time dateTime={registry.eventDate.toISOString()}>
+                  {formatEventDate(registry.eventDate, locale)}
+                </time>
+              )}
+              {days != null && <span className={styles.countdown} data-past={days < 0 || undefined}>{l.countdown(days)}</span>}
+            </p>
+            <h1 id="wishlist-title" className={styles.title}>{registry.title}</h1>
+            {registry.user?.name && <p className={styles.owner}>{l.owner(registry.user.name)}</p>}
+            {registry.recipientName && (
+              <p className={styles.text}>
+                {workspaceCopy(locale).recipient}: {registry.recipientName}
+              </p>
             )}
+            {registry.recipientMessage && <blockquote className={styles.message}>{registry.recipientMessage}</blockquote>}
+            {registry.description && <p className={styles.text}>{registry.description}</p>}
+            {registry.kind === "BASKET_PERSONAL" && (
+              <p className={styles.text}>
+                {locale === "fr"
+                  ? "La personne qui a créé ce panier achètera les cadeaux."
+                  : locale === "ht"
+                    ? "Se moun ki kreye panyen an k ap achte kado yo."
+                    : "The creator of this basket will buy the gifts."}
+              </p>
+            )}
+            <div className={styles.actions}>
+              <RegistryShareButton url={registryUrl} title={registry.title} slug={registry.slug} label={l.share} />
+              {registry.amazonWishlistUrl && (
+                <a className={styles.secondary} href={registry.amazonWishlistUrl} target="_blank" rel="noopener noreferrer">
+                  {t("amazonWishlist")}
+                </a>
+              )}
+            </div>
           </div>
-          <h1 id="wishlist-title">{registry.title}</h1>
-          {registry.recipientName && (
-            <p className="wishlist-description">
-              {workspaceCopy(locale).recipient}: {registry.recipientName}
-            </p>
-          )}
-          {registry.recipientMessage && (
-            <p className="wishlist-description">{registry.recipientMessage}</p>
-          )}
-          {registry.kind === "BASKET_PERSONAL" && (
-            <p className="foundation-note">
-              {locale === "fr"
-                ? "La personne qui a créé ce panier achètera les cadeaux."
-                : locale === "ht"
-                  ? "Se moun ki kreye panyen an k ap achte kado yo."
-                  : "The creator of this basket will buy the gifts."}
-            </p>
-          )}
-          {registry.description && (
-            <p className="wishlist-description">{registry.description}</p>
-          )}
-          {registry.user?.name && (
-            <p className="wishlist-owner">{registry.user.name}</p>
-          )}
-          <div className="wishlist-share">
-            <RegistryShareButton
-              url={registryUrl}
-              title={registry.title}
-              slug={registry.slug}
-            />
-          </div>
-        </div>
-        <RegistryProgress items={registry.items} locale={locale} />
-      </section>
-      {registry.amazonWishlistUrl && (
-        <div className="wishlist-external">
-          <a
-            href={registry.amazonWishlistUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            {t("amazonWishlist")}
-          </a>
-        </div>
-      )}
-      <WishlistGallery
-        items={registry.items}
-        locale={locale}
-        paymentAvailable={
-          stripeCheckoutAvailable() &&
-          (registry.kind !== "BASKET_PERSONAL" || personalBuyer)
-        }
-      />
-    </div>
+          <aside className={styles.progress} aria-label={c.progress}>
+            <WovenProgress strands={strands} label={l.weave(progress.confirmed, progress.requested)} size="large" />
+            <p className={styles.progressSummary}>{l.summary(progress.confirmed, progress.requested)}</p>
+            <dl className={styles.progressFacts}>
+              <div>
+                <dt>{c.available}</dt>
+                <dd>{progress.available}</dd>
+              </div>
+              <div>
+                <dt>{c.held}</dt>
+                <dd>{progress.held}</dd>
+              </div>
+              <div>
+                <dt>{c.confirmed}</dt>
+                <dd>{progress.confirmed}</dd>
+              </div>
+            </dl>
+            {progress.held > 0 && <p className={styles.progressNote}>{l.heldNote(progress.held)} {c.progressNote}</p>}
+          </aside>
+        </section>
+        <WishlistGallery
+          items={registry.items}
+          locale={locale}
+          paymentAvailable={
+            stripeCheckoutAvailable() &&
+            (registry.kind !== "BASKET_PERSONAL" || personalBuyer)
+          }
+        />
+      </div>
+    </PageTransition>
   );
 }

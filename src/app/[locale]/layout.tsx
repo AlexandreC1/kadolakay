@@ -8,11 +8,12 @@ import { Footer } from "@/components/layout/Footer";
 import { cookies } from "next/headers";
 import { parseTheme, themeCookie } from "@/lib/theme";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
-import { AppBackground } from "@/components/theme/AppBackground";
 import { seasonalPresentation } from "@/services/campaigns";
 import { parseSeasonPreference, seasonCookie } from "@/lib/seasons";
 import { SeasonalBanner } from "@/components/theme/SeasonalBanner";
 import "../foundations.css";
+import "../transitions.css";
+import "../app-shell.css";
 
 const bodyFont = Figtree({
   variable: "--font-manrope",
@@ -68,7 +69,6 @@ export default async function LocaleLayout({
               {children}
             </main>
             <Footer />
-            <AppBackground />
           </ThemeProvider>
         </NextIntlClientProvider>
       </body>

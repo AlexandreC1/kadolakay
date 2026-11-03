@@ -8,6 +8,12 @@ import { previewSharedRegistry } from "@/services/registry-finder";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { rateLimitClientKey } from "@/lib/client-ip";
 import styles from "./finder.module.css";
+import { ChevronRight, ListChecks, Plus, Search } from "lucide-react";
+import { ListFinder } from "@/components/home/ListFinder";
+import { PageTransition } from "@/components/shared/PageTransition";
+import { guestCopy } from "@/lib/guest-copy";
+import guest from "@/components/guest/guest.module.css";
+import rows from "@/components/guest/rows.module.css";
 import { formatEventDate } from "@/lib/event-date";
 import { RegistryQrScanner } from "@/components/registry/RegistryQrScanner";
 import { occasionLabel } from "@/lib/occasions";
@@ -50,73 +56,77 @@ export default async function FindRegistry({
   }
   const registry = result?.status === "found" ? result.registry : null;
   const occasion = registry ? occasionLabel(registry.type, locale) : c.other;
+  const g = guestCopy(locale);
   return (
-    <div className={styles.page}>
-      <header>
-        <h1>{c.title}</h1>
-        <p>{c.intro}</p>
-      </header>
-      <p className="mb-6">
-        <Link href="/registries">{workspaceCopy(locale).registrySearch}</Link>
-      </p>
-      <RegistryQrScanner baseUrl={base} />
-      <form
-        action={locale === "ht" ? "/find" : `/${locale}/find`}
-        method="get"
-        className={styles.form}
-      >
-        <label htmlFor="registry-address">{c.label}</label>
-        <p id="address-hint" className={styles.hint}>
-          {c.hint}
-        </p>
-        <div className={styles.controls}>
-          <input
-            id="registry-address"
-            name="q"
-            type="text"
-            defaultValue={typeof q === "string" ? q.slice(0, 500) : ""}
-            required
-            maxLength={500}
-            autoCapitalize="none"
-            spellCheck={false}
-            aria-invalid={error ? true : undefined}
-            aria-describedby={`address-hint${error ? " finder-error" : ""}`}
-          />
-          <button type="submit">{c.submit}</button>
-        </div>
+    <PageTransition>
+      <div className={`${guest.page} ${guest.narrow}`}>
+        <header className={guest.header}>
+          <div>
+            <h1 className={guest.title}>{c.title}</h1>
+            <p className={guest.intro}>{c.intro}</p>
+          </div>
+        </header>
+        {registry ? (
+          <section className={styles.result} aria-labelledby="result-title">
+            <p className={styles.resultKind}>{c.result}</p>
+            <div className={styles.resultMain}>
+              <span className={styles.resultIcon}>
+                <ListChecks size={22} strokeWidth={1.8} aria-hidden="true" />
+              </span>
+              <div>
+                <h2 id="result-title">{registry.title}</h2>
+                <p>
+                  {[occasion, registry.eventDate ? formatEventDate(registry.eventDate, locale) : null, `${c.gifts}: ${registry.giftCount}`]
+                    .filter(Boolean)
+                    .join(", ")}
+                </p>
+              </div>
+            </div>
+            {!registry.giftCount && <p className={styles.resultNote}>{c.noGifts}</p>}
+            <Link href={`/r/${registry.slug}`} className={styles.open} transitionTypes={["nav-forward"]}>
+              {c.open}
+            </Link>
+          </section>
+        ) : null}
         {error && (
-          <p id="finder-error" role="alert" className={styles.error}>
+          <p id="finder-error" role="alert" className={guest.error}>
             {error}
           </p>
         )}
-      </form>
-      {registry && (
-        <section className={styles.result} aria-labelledby="result-title">
-          <p className={styles.eyebrow}>{c.result}</p>
-          <p className={styles.occasion}>{occasion}</p>
-          <h2 id="result-title">{registry.title}</h2>
-          <dl>
-            <div>
-              <dt>{c.gifts}</dt>
-              <dd>{registry.giftCount}</dd>
-            </div>
-            {registry.eventDate && (
-              <div>
-                <dt>{c.date}</dt>
-                <dd>{formatEventDate(registry.eventDate, locale)}</dd>
-              </div>
-            )}
-          </dl>
-          {!registry.giftCount && <p>{c.noGifts}</p>}
-          <Link href={`/r/${registry.slug}`} className={styles.open}>
-            {c.open}
-          </Link>
+        <ListFinder locale={locale} />
+        <section id="scan" className={styles.scan} aria-label={g.findByLink}>
+          <RegistryQrScanner baseUrl={base} />
         </section>
-      )}
-      <p className={styles.privacy}>{c.privacy}</p>
-      <p className={styles.create}>
-        {c.create} <Link href="/create">{c.createLink}</Link>
-      </p>
-    </div>
+        <section className={styles.more} aria-labelledby="more-ways">
+          <h2 id="more-ways">{g.otherWays}</h2>
+          <ul className={rows.rows}>
+            <li>
+              <Link href="/registries" className={rows.row}>
+                <span className={rows.thumb}>
+                  <Search size={20} strokeWidth={1.8} aria-hidden="true" />
+                </span>
+                <span className={rows.main}>
+                  <strong>{workspaceCopy(locale).registrySearch}</strong>
+                  <span className={rows.meta}>{c.privacy}</span>
+                </span>
+                <ChevronRight className={rows.chevron} size={18} aria-hidden="true" />
+              </Link>
+            </li>
+            <li>
+              <Link href="/create" className={rows.row}>
+                <span className={rows.thumb}>
+                  <Plus size={20} strokeWidth={2} aria-hidden="true" />
+                </span>
+                <span className={rows.main}>
+                  <strong>{c.createLink}</strong>
+                  <span className={rows.meta}>{c.create}</span>
+                </span>
+                <ChevronRight className={rows.chevron} size={18} aria-hidden="true" />
+              </Link>
+            </li>
+          </ul>
+        </section>
+      </div>
+    </PageTransition>
   );
 }

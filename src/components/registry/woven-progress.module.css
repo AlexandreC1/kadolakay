@@ -1,0 +1,55 @@
+.weave {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 600 / 96;
+  max-height: 96px;
+  overflow: visible;
+}
+.large {
+  max-height: 112px;
+}
+.warp {
+  fill: var(--brand-surface-muted);
+  stroke: var(--brand-line-strong);
+  stroke-width: 1;
+}
+.fill {
+  fill: var(--brand-ink);
+  transform-box: fill-box;
+  transform-origin: 50% 0;
+  transform: scaleY(0);
+  transition: transform 500ms cubic-bezier(0.23, 1, 0.32, 1);
+  transition-delay: calc(var(--i, 0) * 30ms);
+}
+.strand[data-state="confirmed"] .fill {
+  transform: scaleY(1);
+}
+/* Held strands are a deeper teal so they read apart from both open and given
+   strands at 3:1 or more (WCAG 1.4.11), in light and dark. */
+.strand[data-state="held"] .fill {
+  transform: scaleY(1);
+  fill: #1f8a78;
+}
+html[data-theme="dark"] .strand[data-state="held"] .fill {
+  fill: #3f9886;
+}
+@media (prefers-color-scheme: dark) {
+  html[data-theme="system"] .strand[data-state="held"] .fill {
+    fill: #3f9886;
+  }
+}
+.weftUnder {
+  fill: color-mix(in srgb, var(--brand-accent) 70%, var(--brand-canvas));
+}
+.weftOver rect {
+  fill: var(--brand-accent);
+}
+html[data-theme="dark"] .fill {
+  fill: var(--brand-ink);
+}
+@media (prefers-reduced-motion: reduce) {
+  .fill {
+    transition: none;
+  }
+}

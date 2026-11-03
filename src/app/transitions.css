@@ -1,0 +1,87 @@
+/*
+ * View transitions (React <ViewTransition>, see node_modules/next/dist/docs/01-app/02-guides/view-transitions.md).
+ * Global on purpose: these classes are matched by ::view-transition-* pseudo-elements,
+ * which CSS modules cannot reach. Browsers without support simply navigate instantly.
+ */
+:root {
+  --vt-exit: 140ms;
+  --vt-enter: 220ms;
+  --vt-move: 420ms;
+}
+
+/* Moving deeper (home to list, shelf to gift): old page drifts left, new arrives from the right. */
+::view-transition-old(.nav-forward) {
+  --vt-offset: -40px;
+  animation: var(--vt-exit) ease-in both vt-fade reverse, var(--vt-move) cubic-bezier(0.22, 1, 0.36, 1) both vt-slide reverse;
+}
+::view-transition-new(.nav-forward) {
+  --vt-offset: 40px;
+  animation: var(--vt-enter) ease-out var(--vt-exit) both vt-fade, var(--vt-move) cubic-bezier(0.22, 1, 0.36, 1) both vt-slide;
+}
+::view-transition-old(.nav-back) {
+  --vt-offset: 40px;
+  animation: var(--vt-exit) ease-in both vt-fade reverse, var(--vt-move) cubic-bezier(0.22, 1, 0.36, 1) both vt-slide reverse;
+}
+::view-transition-new(.nav-back) {
+  --vt-offset: -40px;
+  animation: var(--vt-enter) ease-out var(--vt-exit) both vt-fade, var(--vt-move) cubic-bezier(0.22, 1, 0.36, 1) both vt-slide;
+}
+
+/* A gift picture keeps its identity from shelf to gift page. */
+::view-transition-group(.gift-morph) {
+  animation-duration: 460ms;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+::view-transition-image-pair(.gift-morph) {
+  animation-name: vt-soften;
+}
+
+/* Filtering a list: cards that stay glide to their new place, others fade. */
+::view-transition-group(.gift-move) {
+  animation-duration: 380ms;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+::view-transition-new(.gift-in) {
+  animation: 260ms ease-out 80ms both vt-pop;
+}
+::view-transition-old(.gift-out) {
+  animation: 160ms ease-in both vt-pop reverse;
+}
+
+/* Choosing another shop photo on a gift page: a short crossfade. */
+::view-transition-old(.photo-out) {
+  animation: 180ms ease-in both vt-fade reverse;
+}
+::view-transition-new(.photo-in) {
+  animation: 240ms ease-out both vt-fade;
+}
+
+@keyframes vt-fade {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes vt-slide {
+  from {
+    translate: var(--vt-offset) 0;
+  }
+}
+@keyframes vt-soften {
+  40% {
+    filter: blur(2px);
+  }
+}
+@keyframes vt-pop {
+  from {
+    opacity: 0;
+    scale: 0.94;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}
