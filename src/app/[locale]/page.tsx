@@ -1,12 +1,12 @@
 import { useTranslations } from "next-intl";
 import {
-  ArrowRight, Baby, ClipboardList, CreditCard, Gem, Gift, Share2, Smartphone, Sofa, Sparkles, Store, Utensils,
+  Baby, ClipboardList, CreditCard, Gem, Gift, Share2, Smartphone, Sofa, Sparkles, Store, Utensils,
   type LucideIcon,
 } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import { RegistryTypeIcon } from "@/components/shared/RegistryTypeIcon";
 import { LiveRegistryDemo } from "@/components/hero/LiveRegistryDemo";
-import { FadeIn, Glow, Reveal } from "@/components/hero/motion";
+import { FadeIn, Reveal } from "@/components/hero/motion";
 
 const CATEGORY_ICONS: Record<string, LucideIcon> = {
   furniture: Sofa,
@@ -20,20 +20,19 @@ const STEP_ICONS: LucideIcon[] = [ClipboardList, Smartphone, Gift];
 export default function HomePage() {
   const t = useTranslations();
 
-  // "Celebrate together, no matter the distance": the part after the comma
-  // gets the gold italic accent. Works for all three languages.
+  // Keep the full heading in one solid text color.
   const [titleLead, titleAccent] = splitAtComma(t("landing.heroTitle"));
 
   return (
     <div>
       {/* ── Hero (always dark, in every theme) ───────────────────── */}
-      <section className="relative isolate overflow-hidden bg-[#070b18] text-white">
-        <Glow />
+      <section className="relative isolate overflow-hidden bg-transparent text-gray-900">
+
         <div className="mx-auto grid max-w-7xl items-center gap-16 px-4 py-20 sm:px-6 lg:grid-cols-[1.1fr_1fr] lg:px-8 lg:py-32">
           <div className="text-center lg:text-left">
             <FadeIn>
-              <span className="mb-8 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-xs text-white/80 backdrop-blur">
-                <Sparkles className="h-3.5 w-3.5 text-[#f5b83d]" aria-hidden="true" />
+              <span className="mb-8 inline-flex items-center gap-2 rounded-full border border-gray-200 bg-surface/80 px-3 py-1.5 text-xs text-gray-700 backdrop-blur">
+                <Sparkles className="h-3.5 w-3.5 text-brand-300" aria-hidden="true" />
                 {t("landing.eyebrow")}
               </span>
             </FadeIn>
@@ -42,25 +41,24 @@ export default function HomePage() {
               {titleAccent && (
                 <>
                   <br />
-                  <Reveal text={titleAccent} delay={0.25} className="italic text-[#f5b83d]" />
+                  <Reveal text={titleAccent} delay={0.25} className="text-gray-900" />
                 </>
               )}
             </h1>
             <FadeIn delay={0.3}>
-              <p className="mx-auto mt-6 max-w-lg text-lg leading-relaxed text-white/65 lg:mx-0">
+              <p className="mx-auto mt-6 max-w-lg text-lg leading-relaxed text-gray-600 lg:mx-0">
                 {t("landing.heroSubtitle")}
               </p>
               <div className="mt-10 flex flex-col items-center gap-3 sm:flex-row sm:justify-center lg:justify-start">
                 <Link
                   href="/create"
-                  className="group inline-flex items-center gap-2 rounded-full bg-[#f5b83d] px-6 py-3.5 font-semibold text-[#070b18] shadow-[0_8px_30px_-8px_rgba(245,184,61,0.55)] transition hover:bg-[#ffc95c]"
+                  className="group inline-flex items-center gap-2 rounded-full bg-[var(--brand-accent)] px-6 py-3.5 font-semibold text-[#102e29] shadow-[0_8px_30px_-8px_rgba(94,234,212,0.2)] transition hover:bg-[var(--brand-action-hover)]"
                 >
                   {t("landing.ctaCreate")}
-                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" aria-hidden="true" />
                 </Link>
                 <Link
                   href="/browse"
-                  className="inline-flex items-center gap-2 rounded-full border border-white/20 px-6 py-3.5 font-medium text-white/90 transition hover:bg-white/10"
+                  className="inline-flex items-center gap-2 rounded-full border border-gray-300 px-6 py-3.5 font-medium text-gray-900 transition hover:bg-surface-2"
                 >
                   {t("landing.ctaBrowse")}
                 </Link>
@@ -68,11 +66,10 @@ export default function HomePage() {
               <dl className="mt-12 flex justify-center gap-10 text-sm lg:justify-start">
                 {[
                   ["3", t("landing.statLanguages")],
-                  ["4", t("landing.statPayments")],
                   ["0 G", t("landing.statFree")],
                 ].map(([value, label]) => (
                   <div key={label} className="flex flex-col-reverse">
-                    <dt className="text-white/50">{label}</dt>
+                    <dt className="text-gray-500">{label}</dt>
                     <dd className="font-display text-2xl font-semibold">{value}</dd>
                   </div>
                 ))}
@@ -80,7 +77,7 @@ export default function HomePage() {
             </FadeIn>
           </div>
 
-          <LiveRegistryDemo giftedLabel={t("landing.giftReceived")} />
+          <LiveRegistryDemo giftedLabel={t("landing.giftReceived")} exampleLabel={t("landing.exampleRegistry")} />
         </div>
       </section>
 
@@ -99,16 +96,12 @@ export default function HomePage() {
               <FadeIn key={type} delay={i * 0.08}>
                 <Link
                   href="/create"
-                  className="group relative block overflow-hidden rounded-3xl border border-gray-200 bg-surface p-8 transition duration-300 hover:-translate-y-1 hover:border-brand-500/50 hover:shadow-[0_30px_60px_-30px_rgba(59,91,255,0.5)]"
+                  className="group relative block overflow-hidden rounded-3xl border border-gray-200 bg-surface p-8 transition duration-300 hover:-translate-y-1 hover:border-brand-500/50 hover:shadow-lg"
                 >
                   <span className="grid h-14 w-14 place-items-center rounded-2xl bg-brand-500/15 text-brand-300 transition group-hover:bg-brand-500 group-hover:text-white">
                     <RegistryTypeIcon type={type} className="h-7 w-7" strokeWidth={1.75} />
                   </span>
                   <h3 className="mt-10 font-display text-2xl text-gray-900">{title}</h3>
-                  <ArrowRight
-                    className="absolute right-8 top-8 h-5 w-5 text-gray-400 transition group-hover:translate-x-1 group-hover:text-gold-400"
-                    aria-hidden="true"
-                  />
                 </Link>
               </FadeIn>
             ))}
@@ -135,7 +128,7 @@ export default function HomePage() {
           <div className="relative mt-16 grid grid-cols-1 gap-12 sm:grid-cols-3">
             <div
               aria-hidden="true"
-              className="absolute left-[16%] right-[16%] top-8 hidden h-px bg-gradient-to-r from-transparent via-gold-400/50 to-transparent sm:block"
+              className="absolute left-[16%] right-[16%] top-8 hidden h-px bg-gray-200 sm:block"
             />
             {([1, 2, 3] as const).map((n, i) => {
               const StepIcon = STEP_ICONS[i];
@@ -190,7 +183,7 @@ export default function HomePage() {
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Link
                 href="/business/signup"
-                className="inline-flex items-center justify-center gap-2 rounded-full bg-gold-400 px-6 py-3 font-semibold text-brand-950 transition hover:bg-[#ffc95c]"
+                className="inline-flex items-center justify-center gap-2 rounded-full bg-gold-400 px-6 py-3 font-semibold text-brand-950 transition hover:bg-[var(--brand-action-hover)]"
               >
                 {t("business.signup")}
               </Link>
@@ -217,16 +210,15 @@ export default function HomePage() {
 
       {/* ── Final CTA (always dark) ──────────────────────────────── */}
       <section className="px-4 py-20 sm:px-6 lg:px-8">
-        <FadeIn className="relative isolate mx-auto max-w-5xl overflow-hidden rounded-[2rem] bg-[#070b18] px-6 py-16 text-center text-white sm:py-20">
-          <Glow />
+        <FadeIn className="relative isolate mx-auto max-w-5xl overflow-hidden rounded-[2rem] bg-transparent px-6 py-16 text-center text-gray-900 sm:py-20">
+
           <h2 className="text-4xl sm:text-5xl">{t("landing.finalTitle")}</h2>
-          <p className="mx-auto mt-4 max-w-xl text-lg text-white/65">{t("landing.heroSubtitle")}</p>
+          <p className="mx-auto mt-4 max-w-xl text-lg text-gray-600">{t("landing.heroSubtitle")}</p>
           <Link
             href="/create"
-            className="group mt-10 inline-flex items-center gap-2 rounded-full bg-[#f5b83d] px-8 py-4 text-lg font-semibold text-[#070b18] transition hover:bg-[#ffc95c]"
+            className="group mt-10 inline-flex items-center gap-2 rounded-full bg-[var(--brand-accent)] px-8 py-4 text-lg font-semibold text-[#102e29] transition hover:bg-[var(--brand-action-hover)]"
           >
             {t("landing.ctaCreate")}
-            <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" aria-hidden="true" />
           </Link>
         </FadeIn>
       </section>

@@ -40,7 +40,7 @@ function useGiftedCount(n: number, ms: number) {
   return reduce ? 2 : Math.min(tick, n);
 }
 
-export function LiveRegistryDemo({ giftedLabel }: { giftedLabel: string }) {
+export function LiveRegistryDemo({ giftedLabel, exampleLabel }: { giftedLabel: string; exampleLabel: string }) {
   const reduce = useReducedMotion();
   const gifted = useGiftedCount(ITEMS.length, 1800);
   const pct = Math.round((gifted / ITEMS.length) * 100);
@@ -48,27 +48,28 @@ export function LiveRegistryDemo({ giftedLabel }: { giftedLabel: string }) {
 
   return (
     <div className="relative mx-auto w-fit" aria-hidden="true">
+      <p className="mb-4 text-center text-sm text-gray-900">{exampleLabel}</p>
       <motion.div
         initial={reduce ? false : { opacity: 0, y: 40 }}
         animate={reduce ? { rotate: -4 } : { opacity: 1, y: [0, -10, 0], rotate: -4 }}
         transition={{ opacity: { duration: 0.8 }, y: { duration: 6, repeat: Infinity, ease: "easeInOut" } }}
       >
         {/* Phone */}
-        <div className="relative h-[540px] w-[270px] rounded-[44px] bg-gradient-to-b from-white/25 to-white/5 p-2.5 shadow-[0_40px_120px_-20px_rgba(59,91,255,0.55)] ring-1 ring-white/20">
+        <div className="relative h-[540px] w-[270px] rounded-[44px] bg-surface-2 p-2.5 shadow-lg ring-1 ring-gray-200">
           <div className="absolute left-1/2 top-4 z-10 h-5 w-20 -translate-x-1/2 rounded-full bg-black" />
-          <div className="flex h-full w-full flex-col gap-3 overflow-hidden rounded-[36px] bg-[#0e1428] p-4 pt-10">
+          <div className="flex h-full w-full flex-col gap-3 overflow-hidden rounded-[36px] bg-[var(--color-surface)] p-4 pt-10">
             <div>
-              <p className="text-[10px] uppercase tracking-[0.18em] text-white/50">Fèt Ti Bebe</p>
-              <p className="text-base font-semibold leading-tight text-white">Marie &amp; Pierre</p>
+              <p className="text-[10px] uppercase tracking-[0.18em] text-gray-500">Fèt Ti Bebe</p>
+              <p className="text-base font-semibold leading-tight text-gray-900">Marie &amp; Pierre</p>
             </div>
             <div>
-              <div className="flex justify-between text-[11px] text-white/50">
+              <div className="flex justify-between text-[11px] text-gray-500">
                 <span>{gifted}/{ITEMS.length}</span>
                 <span>{pct}%</span>
               </div>
               <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-white/10">
                 <motion.div
-                  className="h-full rounded-full bg-[#f5b83d]"
+                  className="h-full rounded-full bg-[var(--brand-accent)]"
                   animate={{ width: `${pct}%` }}
                   transition={{ type: "spring", stiffness: 80, damping: 18 }}
                 />
@@ -84,11 +85,11 @@ export function LiveRegistryDemo({ giftedLabel }: { giftedLabel: string }) {
                     animate={{ opacity: done ? 0.55 : 1 }}
                   >
                     <div className="grid h-8 w-8 place-items-center rounded-lg bg-white/10">
-                      <item.icon className="h-4 w-4 text-white" strokeWidth={1.75} />
+                      <item.icon className="h-4 w-4 text-gray-900" strokeWidth={1.75} />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-[12px] font-medium text-white">{item.title}</p>
-                      <p className="text-[11px] text-white/50">{item.price}</p>
+                      <p className="truncate text-[12px] font-medium text-gray-900">{item.title}</p>
+                      <p className="text-[11px] text-gray-500">{item.price}</p>
                     </div>
                     <AnimatePresence mode="wait" initial={false}>
                       {done ? (
@@ -97,7 +98,7 @@ export function LiveRegistryDemo({ giftedLabel }: { giftedLabel: string }) {
                           initial={{ scale: 0.4, opacity: 0 }}
                           animate={{ scale: 1, opacity: 1 }}
                           exit={{ scale: 0.4, opacity: 0 }}
-                          className="grid h-6 w-6 place-items-center rounded-full bg-emerald-400 text-[#070b18]"
+                          className="grid h-6 w-6 place-items-center rounded-full bg-emerald-400 text-[#102e29]"
                         >
                           <Check className="h-3.5 w-3.5" strokeWidth={3} />
                         </motion.span>
@@ -107,7 +108,7 @@ export function LiveRegistryDemo({ giftedLabel }: { giftedLabel: string }) {
                           initial={{ opacity: 0 }}
                           animate={{ opacity: 1 }}
                           exit={{ opacity: 0 }}
-                          className="h-2 w-2 rounded-full bg-[#f5b83d]"
+                          className="h-2 w-2 rounded-full bg-[var(--brand-accent)]"
                         />
                       )}
                     </AnimatePresence>
@@ -129,12 +130,12 @@ export function LiveRegistryDemo({ giftedLabel }: { giftedLabel: string }) {
               animate={{ y: 0, opacity: 1, scale: 1 }}
               exit={{ y: -12, opacity: 0 }}
               transition={{ type: "spring", stiffness: 260, damping: 22 }}
-              className="flex items-center gap-3 rounded-2xl bg-white px-4 py-3 text-[#070b18] shadow-2xl"
+              className="flex items-center gap-3 rounded-2xl bg-white px-4 py-3 text-[#102e29] shadow-2xl"
             >
               <CircleCheck className="h-5 w-5 shrink-0 text-emerald-600" />
               <div className="text-sm leading-tight">
                 <p className="font-semibold">{gift.who} · {giftedLabel}</p>
-                <p className="text-[#070b18]/60">{gift.what} · {gift.via}</p>
+                <p className="text-[#102e29]/60">{gift.what} · {gift.via}</p>
               </div>
             </motion.div>
           )}

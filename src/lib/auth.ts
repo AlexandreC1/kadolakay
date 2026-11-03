@@ -8,6 +8,9 @@ import { db } from "./db";
 import { checkRateLimit } from "./rate-limit";
 import { log } from "./log";
 
+import { authProviderConfig } from "./auth-provider-config";
+const providerConfig = authProviderConfig();
+
 const DAY = 24 * 60 * 60;
 /** How often (seconds) a session re-reads role/ban/tokenVersion from the DB (review M1). */
 export const SESSION_RECHECK_SECONDS = 5 * 60;
@@ -42,22 +45,24 @@ export const { handlers, auth, signIn, signOut, unstable_update } = NextAuth({
   // Short-lived and re-validated against the DB every few minutes (review M1).
   session: { strategy: "jwt", maxAge: 7 * DAY, updateAge: DAY },
   providers: [
-    Google({
-      clientId: process.env.AUTH_GOOGLE_ID,
-      clientSecret: process.env.AUTH_GOOGLE_SECRET,
-    }),
-    Resend({
-      from: process.env.AUTH_RESEND_FROM || "KadoLakay <noreply@kadolakay.com>",
-      // Magic links expire after 15 minutes (default is 24h).
+    ...(providerConfig.google ? [Google({
+      clientId: providerConfig.clientId,
+      clientSecret: providerConfig.clientSecret,
+      checks: ["pkce", "state"],
+    })] : []),
+    ...(providerConfig.email ? [Resend({
+      apiKey: providerConfig.emailKey,
+      from: providerConfig.emailFrom,
       maxAge: 15 * 60,
-    }),
+    })] : []),
   ],
   pages: {
     signIn: "/login",
     verifyRequest: "/login?verify=true",
   },
   callbacks: {
-    async signIn({ user, email }) {
+    async signIn({ user, email, account, profile }) {
+      if (account?.provider === "google" && profile?.email_verified !== true) return false;
       // Magic-link request: limit per address to stop email bombing.
       if (email?.verificationRequest) {
         const address = (user.email ?? "").trim().toLowerCase();

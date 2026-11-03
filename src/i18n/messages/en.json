@@ -1,6 +1,6 @@
 {
   "common": {
-    "appName": "KadoLakay",
+    "appName": "Bayou",
     "tagline": "Gifts for every occasion, from home.",
     "signIn": "Sign in",
     "signUp": "Sign up",
@@ -44,8 +44,8 @@
     "featureShareDesc": "Share your registry on WhatsApp, Facebook, and other social networks with one click.",
     "featureLocal": "Local Businesses",
     "featureLocalDesc": "Support Haitian businesses. Add local products to your registry.",
-    "featurePayment": "Easy Payment",
-    "featurePaymentDesc": "Accept gifts via MonCash, Natcash, credit card, and PayPal.",
+    "featurePayment": "Payments in preparation",
+    "featurePaymentDesc": "Online payments are not available yet. Payment methods will appear after merchant and provider verification.",
     "howItWorksTitle": "How does it work?",
     "step1Title": "Create your registry",
     "step1Desc": "Choose baby shower, wedding, or birthday. Add the items you want.",
@@ -58,7 +58,8 @@
     "statLanguages": "languages",
     "statPayments": "ways to pay",
     "statFree": "to create a registry",
-    "finalTitle": "Your registry, ready in two minutes"
+    "finalTitle": "Your registry, ready in two minutes",
+    "exampleRegistry": "Example registry"
   },
   "registry": {
     "create": "Create a registry",
@@ -152,7 +153,7 @@
   },
   "business": {
     "signup": "Register your business",
-    "signupDesc": "Put your business on KadoLakay and reach more customers.",
+    "signupDesc": "Put your business on Bayou and reach more customers.",
     "pendingMessage": "Your business is pending approval.",
     "pendingHint": "You can start adding products while you wait.",
     "noProducts": "No products yet.",
@@ -196,12 +197,12 @@
     "copyLink": "Copy link",
     "copied": "Link copied!",
     "twitter": "Twitter/X",
-    "shareText": "Check out my registry on KadoLakay! {url}"
+    "shareText": "Check out my registry on Bayou! {url}"
   },
   "auth": {
-    "loginTitle": "Sign in to KadoLakay",
+    "loginTitle": "Sign in to Bayou",
     "loginSubtitle": "Sign in with Google or your email.",
-    "signupTitle": "Create your KadoLakay account",
+    "signupTitle": "Create your Bayou account",
     "signupSubtitle": "Start creating your gift registry today.",
     "continueWithGoogle": "Continue with Google",
     "continueWithEmail": "Continue with email",
@@ -209,7 +210,10 @@
     "checkEmail": "Check your email",
     "checkEmailDesc": "We sent a sign-in link to your email. Click it to sign in.",
     "noAccount": "Don't have an account?",
-    "hasAccount": "Already have an account?"
+    "hasAccount": "Already have an account?",
+    "loginFailed": "Sign-in could not be completed. Please try again. If you already have an account, use the same sign-in method.",
+    "googleUnavailable": "Google sign-in is temporarily unavailable. Please try again later.",
+    "emailUnavailable": "Email sign-in is not available yet. Please use Google."
   },
   "error": {
     "description": "Something went wrong. Please try again.",

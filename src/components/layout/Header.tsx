@@ -1,3 +1,4 @@
+import {Brand} from "@/components/layout/Brand";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { LocaleSwitcher } from "./LocaleSwitcher";
@@ -29,9 +30,7 @@ function HeaderContent({
       <div className="mx-auto max-w-7xl flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2">
-          <span className="font-display text-2xl font-semibold tracking-tight text-gray-900">
-            Kado<span className="italic text-gold-400">Lakay</span>
-          </span>
+          <Brand />
         </Link>
 
         {/* Desktop Nav */}
@@ -69,7 +68,7 @@ function HeaderContent({
                 </Link>
                 <Link
                   href="/register"
-                  className="text-sm font-semibold bg-gold-400 text-brand-950 px-4 py-2 rounded-full hover:bg-[#ffc95c] transition-colors"
+                  className="text-sm font-semibold bg-gold-400 text-brand-950 px-4 py-2 rounded-full hover:bg-[var(--brand-action-hover)] transition-colors"
                 >
                   {t("common.signUp")}
                 </Link>

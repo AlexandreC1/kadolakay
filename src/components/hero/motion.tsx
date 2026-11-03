@@ -50,12 +50,12 @@ export function Glow() {
     <>
       <motion.div
         aria-hidden="true"
-        className="pointer-events-none absolute -left-40 -top-40 -z-10 h-[620px] w-[620px] rounded-full bg-[#3b5bff] opacity-30 blur-[140px]"
+        className="pointer-events-none absolute -left-40 -top-40 -z-10 h-[620px] w-[620px] rounded-full bg-[var(--brand-accent)] opacity-30 blur-[140px]"
         {...drift(80, 40, 18)}
       />
       <motion.div
         aria-hidden="true"
-        className="pointer-events-none absolute -bottom-48 right-0 -z-10 h-[560px] w-[560px] rounded-full bg-[#f5b83d] opacity-20 blur-[140px]"
+        className="pointer-events-none absolute -bottom-48 right-0 -z-10 h-[560px] w-[560px] rounded-full bg-[var(--brand-accent)] opacity-20 blur-[140px]"
         {...drift(-60, -30, 22)}
       />
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 bg-grid" />

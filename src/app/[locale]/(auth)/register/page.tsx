@@ -1,7 +1,10 @@
+import { authProviderAvailability } from "@/lib/auth-provider-config";
+import {Brand} from "@/components/layout/Brand";
 import { getTranslations } from "next-intl/server";
 import { LoginForm } from "../login/LoginForm";
 
-export default async function RegisterPage() {
+export default async function RegisterPage({searchParams}: {searchParams: Promise<{error?: string}>}) {
+  const {error} = await searchParams;
   const t = await getTranslations("auth");
 
   return (
@@ -9,8 +12,7 @@ export default async function RegisterPage() {
       <div className="w-full max-w-md space-y-6">
         <div className="text-center">
           <div className="flex items-center justify-center gap-1 mb-4">
-            <span className="text-3xl font-bold text-brand-300">Kado</span>
-            <span className="text-3xl font-bold text-gold-400">Lakay</span>
+            <Brand />
           </div>
           <h1 className="text-2xl font-bold text-gray-900">
             {t("signupTitle")}
@@ -18,7 +20,7 @@ export default async function RegisterPage() {
           <p className="mt-1 text-gray-600">{t("signupSubtitle")}</p>
         </div>
 
-        <LoginForm />
+        <LoginForm availability={authProviderAvailability()} initialError={Boolean(error)} />
       </div>
     </div>
   );

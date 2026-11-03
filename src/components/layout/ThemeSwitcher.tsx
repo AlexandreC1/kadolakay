@@ -1,54 +1,6 @@
 "use client";
-
-import { useState } from "react";
-import { useTranslations } from "next-intl";
-import { Monitor, Moon, Sun } from "lucide-react";
-import { THEMES, THEME_COOKIE, type Theme } from "@/lib/theme";
-
-const ICONS = { dark: Moon, light: Sun, system: Monitor } as const;
-
-/** Switches the page instantly and remembers the choice for a year. */
-function applyTheme(theme: Theme) {
-  document.documentElement.setAttribute("data-theme", theme);
-  document.cookie = `${THEME_COOKIE}=${theme}; path=/; max-age=31536000; samesite=lax`;
-}
-
-/**
- * Dark / light / system picker. Applies the choice instantly by setting
- * <html data-theme>, and saves it in a cookie so the server renders the
- * same theme on the next visit (no flash).
- */
-export function ThemeSwitcher({ initial }: { initial: Theme }) {
-  const t = useTranslations("theme");
-  const [theme, setTheme] = useState<Theme>(initial);
-
-  function choose(next: Theme) {
-    setTheme(next);
-    applyTheme(next);
-  }
-
-  return (
-    <div role="radiogroup" aria-label={t("label")} className="flex items-center rounded-full border border-gray-200 p-0.5">
-      {THEMES.map((value) => {
-        const Icon = ICONS[value];
-        const active = theme === value;
-        return (
-          <button
-            key={value}
-            type="button"
-            role="radio"
-            aria-checked={active}
-            aria-label={t(value)}
-            title={t(value)}
-            onClick={() => choose(value)}
-            className={`grid h-7 w-7 place-items-center rounded-full transition-colors ${
-              active ? "bg-gray-200 text-gray-900" : "text-gray-500 hover:text-gray-900"
-            }`}
-          >
-            <Icon className="h-3.5 w-3.5" aria-hidden="true" />
-          </button>
-        );
-      })}
-    </div>
-  );
-}
+import {useSyncExternalStore} from "react";import {useTranslations} from "next-intl";import {Moon,Sun} from "lucide-react";import {parseTheme,THEME_COOKIE,type Theme} from "@/lib/theme";
+const changed="bayou-theme-change";
+function subscribe(notify:()=>void){const media=matchMedia("(prefers-color-scheme:dark)");media.addEventListener("change",notify);window.addEventListener(changed,notify);return()=>{media.removeEventListener("change",notify);window.removeEventListener(changed,notify);};}
+function resolve(theme:Theme){return theme==="dark"||theme==="system"&&matchMedia("(prefers-color-scheme:dark)").matches?"dark":"light";}
+export function ThemeSwitcher({initial}:{initial:Theme}){const t=useTranslations("theme");const theme=useSyncExternalStore(subscribe,()=>resolve(parseTheme(document.documentElement.dataset.theme)),()=>initial==="dark"?"dark":"light");const dark=theme==="dark";function toggle(){const next=dark?"light":"dark";document.documentElement.dataset.theme=next;document.cookie=`${THEME_COOKIE}=${next}; Path=/; Max-Age=31536000; SameSite=Lax${location.protocol==="https:"?"; Secure":""}`;window.dispatchEvent(new Event(changed));}return <button type="button" role="switch" aria-checked={dark} aria-label={t("dark")} title={t(dark?"light":"dark")} onClick={toggle} className="grid h-11 w-11 place-items-center rounded-full text-gray-700 hover:bg-gray-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-400">{dark?<Moon size={18} aria-hidden="true"/>:<Sun size={18} aria-hidden="true"/>}</button>;}

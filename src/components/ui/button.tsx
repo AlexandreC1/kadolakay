@@ -7,13 +7,13 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-brand-500 text-white hover:bg-brand-400 shadow-[0_8px_30px_-8px_rgba(59,91,255,0.6)]",
+        default: "bg-gold-400 text-brand-950 hover:bg-[var(--brand-action-hover)]",
         secondary: "bg-gray-100 text-gray-900 hover:bg-gray-200",
         outline:
           "border border-gray-300 bg-transparent text-gray-900 hover:bg-gray-100",
         ghost: "text-gray-700 hover:bg-gray-100 hover:text-gray-900",
         destructive: "bg-red-500 text-white hover:bg-red-400",
-        gold: "bg-gold-400 text-brand-950 hover:bg-[#ffc95c] font-semibold shadow-[0_8px_30px_-8px_rgba(245,184,61,0.55)]",
+        gold: "bg-gold-400 text-brand-950 hover:bg-[var(--brand-action-hover)] font-semibold",
       },
       size: {
         default: "h-10 px-4 py-2",

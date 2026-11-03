@@ -1,6 +1,6 @@
 {
   "common": {
-    "appName": "KadoLakay",
+    "appName": "Bayou",
     "tagline": "Des cadeaux pour toute occasion, chez vous.",
     "signIn": "Se connecter",
     "signUp": "Créer un compte",
@@ -44,8 +44,8 @@
     "featureShareDesc": "Partagez votre registre sur WhatsApp, Facebook et autres réseaux sociaux en un seul clic.",
     "featureLocal": "Commerces locaux",
     "featureLocalDesc": "Soutenez les commerces haïtiens. Ajoutez des produits locaux à votre registre.",
-    "featurePayment": "Paiement facile",
-    "featurePaymentDesc": "Acceptez les cadeaux via MonCash, Natcash, carte de crédit et PayPal.",
+    "featurePayment": "Paiements en préparation",
+    "featurePaymentDesc": "Les paiements en ligne ne sont pas encore disponibles. Les moyens de paiement seront proposés après validation des commerçants et des prestataires.",
     "howItWorksTitle": "Comment ça marche ?",
     "step1Title": "Créez votre registre",
     "step1Desc": "Choisissez bébé, mariage ou anniversaire. Ajoutez les articles souhaités.",
@@ -58,7 +58,8 @@
     "statLanguages": "langues",
     "statPayments": "moyens de paiement",
     "statFree": "pour créer un registre",
-    "finalTitle": "Votre registre, prêt en deux minutes"
+    "finalTitle": "Votre registre, prêt en deux minutes",
+    "exampleRegistry": "Exemple de registre"
   },
   "registry": {
     "create": "Créer un registre",
@@ -152,7 +153,7 @@
   },
   "business": {
     "signup": "Inscrivez votre commerce",
-    "signupDesc": "Mettez votre commerce sur KadoLakay et touchez plus de clients.",
+    "signupDesc": "Mettez votre commerce sur Bayou et touchez plus de clients.",
     "pendingMessage": "Votre commerce est en attente d'approbation.",
     "pendingHint": "Vous pouvez commencer à ajouter des produits en attendant.",
     "noProducts": "Aucun produit pour l'instant.",
@@ -196,12 +197,12 @@
     "copyLink": "Copier le lien",
     "copied": "Lien copié !",
     "twitter": "Twitter/X",
-    "shareText": "Regardez mon registre sur KadoLakay ! {url}"
+    "shareText": "Regardez mon registre sur Bayou ! {url}"
   },
   "auth": {
-    "loginTitle": "Connexion à KadoLakay",
+    "loginTitle": "Connexion à Bayou",
     "loginSubtitle": "Connectez-vous avec Google ou votre email.",
-    "signupTitle": "Créez votre compte KadoLakay",
+    "signupTitle": "Créez votre compte Bayou",
     "signupSubtitle": "Commencez à créer votre registre de cadeaux aujourd'hui.",
     "continueWithGoogle": "Continuer avec Google",
     "continueWithEmail": "Continuer avec email",
@@ -209,7 +210,10 @@
     "checkEmail": "Vérifiez votre email",
     "checkEmailDesc": "Nous avons envoyé un lien de connexion à votre email. Cliquez dessus pour vous connecter.",
     "noAccount": "Pas encore de compte ?",
-    "hasAccount": "Déjà un compte ?"
+    "hasAccount": "Déjà un compte ?",
+    "loginFailed": "La connexion a échoué. Réessayez. Si vous avez déjà un compte, utilisez votre méthode de connexion habituelle.",
+    "googleUnavailable": "La connexion Google est temporairement indisponible. Réessayez plus tard.",
+    "emailUnavailable": "La connexion par e-mail n’est pas encore disponible. Utilisez Google."
   },
   "error": {
     "description": "Quelque chose s'est mal passé. Veuillez réessayer.",

@@ -2,28 +2,38 @@
 
 import { useState } from "react";
 import { signIn } from "next-auth/react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 
-export function LoginForm() {
+export function LoginForm({availability, initialError = false}: {availability: {google: boolean; email: boolean}; initialError?: boolean}) {
+  const locale = useLocale();
+  const [error, setError] = useState(initialError);
   const t = useTranslations("auth");
   const [email, setEmail] = useState("");
   const [emailSent, setEmailSent] = useState(false);
   const [loading, setLoading] = useState(false);
 
   async function handleGoogleSignIn() {
-    setLoading(true);
-    await signIn("google", { callbackUrl: "/dashboard" });
+    if (!availability.google || loading) return;
+    setError(false); setLoading(true);
+    try {
+      await signIn("google", { redirectTo: `/${locale}/dashboard` });
+    } catch { setError(true); }
+    finally { setLoading(false); }
   }
 
   async function handleEmailSignIn(e: React.FormEvent) {
     e.preventDefault();
-    setLoading(true);
-    await signIn("resend", { email, redirect: false });
-    setEmailSent(true);
-    setLoading(false);
+    if (!availability.email || loading) return;
+    setError(false); setLoading(true);
+    try {
+      const result = await signIn("resend", { email: email.trim(), redirect: false, redirectTo: `/${locale}/dashboard` });
+      if (!result?.ok || result.error) setError(true);
+      else setEmailSent(true);
+    } catch { setError(true); }
+    finally { setLoading(false); }
   }
 
   if (emailSent) {
@@ -57,13 +67,15 @@ export function LoginForm() {
   return (
     <Card>
       <CardContent className="p-6 space-y-4">
+        {error && <p role="alert" tabIndex={-1} className="rounded-lg border border-red-300 p-3 text-sm text-red-300">{t("loginFailed")}</p>}
+        {!availability.google && <p role="status" className="text-sm text-gray-700">{t("googleUnavailable")}</p>}
         {/* Google */}
         <Button
           variant="outline"
           size="lg"
           className="w-full"
           onClick={handleGoogleSignIn}
-          disabled={loading}
+          disabled={loading || !availability.google}
         >
           <svg className="h-5 w-5" viewBox="0 0 24 24">
             <path
@@ -96,10 +108,15 @@ export function LoginForm() {
           </div>
         </div>
 
+        {!availability.email && <p className="text-sm text-gray-700">{t("emailUnavailable")}</p>}
         {/* Email */}
         <form onSubmit={handleEmailSignIn} className="space-y-3">
           <Input
             type="email"
+            aria-label={t("emailPlaceholder")}
+            autoComplete="email"
+            maxLength={254}
+            disabled={!availability.email || loading}
             placeholder={t("emailPlaceholder")}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
@@ -109,7 +126,7 @@ export function LoginForm() {
             type="submit"
             size="lg"
             className="w-full"
-            disabled={loading || !email}
+            disabled={loading || !email.trim() || !availability.email}
           >
             {loading ? "..." : t("continueWithEmail")}
           </Button>

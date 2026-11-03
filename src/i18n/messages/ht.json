@@ -1,6 +1,6 @@
 {
   "common": {
-    "appName": "KadoLakay",
+    "appName": "Bayou",
     "tagline": "Kado pou tout okazyon, lakay ou.",
     "signIn": "Konekte",
     "signUp": "Kreye kont",
@@ -44,8 +44,8 @@
     "featureShareDesc": "Pataje rejis ou sou WhatsApp, Facebook, ak lòt rezo sosyal nan yon sèl klik.",
     "featureLocal": "Biznis lokal",
     "featureLocalDesc": "Sipòte biznis ayisyen yo. Ajoute pwodwi lokal nan rejis ou.",
-    "featurePayment": "Pèman fasil",
-    "featurePaymentDesc": "Aksepte kado avèk MonCash, Natcash, kat kredi, ak PayPal.",
+    "featurePayment": "Peman ap prepare",
+    "featurePaymentDesc": "Peman sou entènèt poko disponib. Metòd peman yo ap parèt apre nou verifye machann yo ak sèvis peman yo.",
     "howItWorksTitle": "Kijan sa mache?",
     "step1Title": "Kreye rejis ou",
     "step1Desc": "Chwazi si se pou bebe, maryaj, oswa anivesè. Ajoute atik ou vle yo.",
@@ -58,7 +58,8 @@
     "statLanguages": "lang",
     "statPayments": "fason pou peye",
     "statFree": "pou kreye yon rejis",
-    "finalTitle": "Rejis ou pare nan de minit"
+    "finalTitle": "Rejis ou pare nan de minit",
+    "exampleRegistry": "Egzanp yon rejis"
   },
   "registry": {
     "create": "Kreye yon rejis",
@@ -152,7 +153,7 @@
   },
   "business": {
     "signup": "Enskri biznis ou",
-    "signupDesc": "Mete biznis ou sou KadoLakay epi rive jwenn plis kliyan.",
+    "signupDesc": "Mete biznis ou sou Bayou epi rive jwenn plis kliyan.",
     "pendingMessage": "Biznis ou ap tann apwobasyon.",
     "pendingHint": "Ou ka kòmanse ajoute pwodwi pandan wap tann.",
     "noProducts": "Pa gen pwodwi ankò.",
@@ -196,12 +197,12 @@
     "copyLink": "Kopye lyen",
     "copied": "Lyen kopye!",
     "twitter": "Twitter/X",
-    "shareText": "Gade rejis mwen sou KadoLakay! {url}"
+    "shareText": "Gade rejis mwen sou Bayou! {url}"
   },
   "auth": {
-    "loginTitle": "Konekte sou KadoLakay",
+    "loginTitle": "Konekte sou Bayou",
     "loginSubtitle": "Konekte avèk kont Google ou oswa imèl ou.",
-    "signupTitle": "Kreye kont ou sou KadoLakay",
+    "signupTitle": "Kreye kont ou sou Bayou",
     "signupSubtitle": "Kòmanse kreye rejis kado ou jodi a.",
     "continueWithGoogle": "Kontinye ak Google",
     "continueWithEmail": "Kontinye ak imèl",
@@ -209,7 +210,10 @@
     "checkEmail": "Tcheke imèl ou",
     "checkEmailDesc": "Nou voye yon lyen koneksyon nan imèl ou. Klike sou li pou konekte.",
     "noAccount": "Ou pa gen kont?",
-    "hasAccount": "Ou gen kont deja?"
+    "hasAccount": "Ou gen kont deja?",
+    "loginFailed": "Nou pa t kapab konekte w. Eseye ankò. Si ou deja gen yon kont, sèvi ak menm metòd ou te itilize a.",
+    "googleUnavailable": "Koneksyon ak Google pa disponib pou kounye a. Eseye ankò pita.",
+    "emailUnavailable": "Koneksyon pa imèl poko disponib. Sèvi ak Google."
   },
   "error": {
     "description": "Yon bagay pa t ale byen. Tanpri eseye ankò.",

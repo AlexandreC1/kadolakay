@@ -8,9 +8,9 @@ describe("parseTheme", () => {
     expect(parseTheme("system")).toBe("system");
   });
 
-  it("falls back to dark for missing or unknown values", () => {
-    expect(parseTheme(undefined)).toBe("dark");
-    expect(parseTheme("neon")).toBe("dark");
-    expect(parseTheme('"><script>')).toBe("dark");
+  it("falls back to system for missing or unknown values", () => {
+    expect(parseTheme(undefined)).toBe("system");
+    expect(parseTheme("neon")).toBe("system");
+    expect(parseTheme('"><script>')).toBe("system");
   });
 });

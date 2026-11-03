@@ -3,9 +3,10 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: {
-    default: "KadoLakay · Kado pou tout okazyon, lakay ou",
-    template: "%s | KadoLakay",
+    default: "Bayou · Kado pou tout okazyon, lakay ou",
+    template: "%s | Bayou",
   },
+  icons:{icon:{url:"/icon.svg",type:"image/svg+xml"}},
   description:
     "Kreye rejis kado pou fèt bebe, maryaj, ak anivesè. Pataje ak fanmi ak zanmi ou toupatou nan mond lan.",
   metadataBase: new URL(
