@@ -20,7 +20,7 @@ export function MobileNav({ user, theme }: MobileNavProps) {
   const t = useTranslations();
 
   return (
-    <div className="md:hidden">
+    <div className="xl:hidden">
       <button
         onClick={() => setOpen(!open)}
         className="p-2 text-gray-600 hover:text-gray-900"

@@ -34,7 +34,7 @@ function HeaderContent({
         </Link>
 
         {/* Desktop Nav */}
-        <nav className="hidden md:flex items-center gap-6">
+        <nav className="hidden xl:flex items-center gap-6">
             <Link href="/gifts" className="py-2 text-sm font-medium text-gray-700">{t("giftFinder.nav")}</Link>
           <Link
             href="/create"
@@ -56,7 +56,7 @@ function HeaderContent({
             <ThemeSwitcher initial={theme} />
           </div>
           <LocaleSwitcher />
-          <div className="hidden md:block">
+          <div className="hidden xl:block">
             {user ? (
               <UserMenu user={user} />
             ) : (
