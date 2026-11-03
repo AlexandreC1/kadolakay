@@ -51,7 +51,7 @@ Status keys: `[ ]` open, `[~]` in progress (add branch name), `[x]` merged (add 
 
 ### ws5 Merchant and admin
 
-- [ ] **T5.1 Refund records** Admin and merchant can record a refund done outside the app (who, when, provider reference, amount). Never auto-restock.
+- [x] **T5.1 Refund records** (Claude: merchant or admin records an accepted request as refunded with method and reference; buyer sees it; migration `20261102130000_refund_records`) Admin and merchant can record a refund done outside the app (who, when, provider reference, amount). Never auto-restock.
 - [ ] **T5.2 Merchant order list** Paid orders only by default, buyer email hidden when anonymous.
 - [ ] **T5.3 Admin step-up UX** Clear message and link to `/security` when a step-up is needed, in all three locales.
 

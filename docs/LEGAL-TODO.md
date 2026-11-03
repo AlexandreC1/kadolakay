@@ -17,6 +17,6 @@ The Privacy, Terms and Contact pages (`src/lib/legal-copy.ts`, version `2026-11-
 
 ## Known gaps in account deletion
 
-- Uploaded images in object storage are not deleted yet (only their links are removed from scrubbed lists).
+- Uploaded photos are deleted from storage after the account deletion commits, but only when no remaining row still uses them (a product photo copied into someone else's list stays). Cleanup failures are logged as `upload_cleanup`, not retried.
 - Guest purchases made while signed out are not linked to the account, so they are not scrubbed.
 - Merchants with order history must be closed by support.

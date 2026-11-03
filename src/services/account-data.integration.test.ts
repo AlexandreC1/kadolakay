@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { randomUUID } from "node:crypto";
 import { db } from "@/lib/db";
 import { resolveSessionClaims } from "@/lib/session-claims";
@@ -153,5 +153,54 @@ describe.skipIf(!run)("account export and deletion on PostgreSQL", () => {
     await deleteAccount(owner.id, owner.email);
     expect(await db.business.count({ where: { id: business.id } })).toBe(0);
     expect(await db.product.count({ where: { businessId: business.id } })).toBe(0);
+  });
+
+  it("deletes the person's photos from storage only when nothing else still uses them", async () => {
+    vi.stubEnv("S3_PUBLIC_URL", "https://cdn.example.invalid");
+    try {
+      const photo = (ctx: string, n: number) =>
+        `https://cdn.example.invalid/uploads/${ctx}/clfixture${n}/1793627682000-${String(n).padStart(24, "0")}.webp`;
+      const owner = await person("BUSINESS_OWNER");
+      await db.user.update({ where: { id: owner.id }, data: { image: "https://lh3.googleusercontent.com/a/profile" } });
+      const ownList = await db.registry.create({
+        data: {
+          slug: `fixture-${randomUUID()}`, userId: owner.id, type: "BIRTHDAY", title: "Photos", coverImage: photo("registry", 1),
+          items: { create: [{ title: "Lamp", imageUrl: photo("registry", 2) }] },
+        },
+      });
+      const shopPhoto = photo("product", 3);
+      const business = await db.business.create({
+        data: { ownerId: owner.id, name: "Photo Shop", slug: `shop-${randomUUID()}`, category: "gifts", logoUrl: photo("business", 4), products: { create: { name: "Vase", imageUrl: shopPhoto } } },
+      });
+      businesses.push(business.id);
+      // Someone else's list copied the product photo, so it must survive.
+      const friend = await person();
+      await db.registry.create({
+        data: { slug: `fixture-${randomUUID()}`, userId: friend.id, type: "WEDDING", title: "Friend list", items: { create: [{ title: "Vase", imageUrl: shopPhoto }] } },
+      });
+      const removed: string[] = [];
+      await deleteAccount(owner.id, owner.email, { removeUpload: async (key) => void removed.push(key) });
+      expect(await db.registry.findUnique({ where: { id: ownList.id } })).toBeNull();
+      expect(removed.sort()).toEqual(
+        [photo("registry", 1), photo("registry", 2), photo("business", 4)].map((u) => u.replace("https://cdn.example.invalid/", "")).sort(),
+      );
+      expect(removed.some((k) => k.includes("clfixture3"))).toBe(false);
+      expect(removed.some((k) => k.includes("googleusercontent"))).toBe(false);
+    } finally {
+      vi.unstubAllEnvs();
+    }
+  });
+  it("never fails a committed deletion when storage cleanup fails", async () => {
+    vi.stubEnv("S3_PUBLIC_URL", "https://cdn.example.invalid");
+    try {
+      const owner = await person();
+      await db.registry.create({
+        data: { slug: `fixture-${randomUUID()}`, userId: owner.id, type: "BIRTHDAY", title: "x", coverImage: "https://cdn.example.invalid/uploads/registry/clfail/1793627682000-0123456789abcdef01234567.png" },
+      });
+      await deleteAccount(owner.id, owner.email, { removeUpload: async () => { throw new Error("storage down"); } });
+      expect((await db.user.findUniqueOrThrow({ where: { id: owner.id } })).email).toBe(deletedEmail(owner.id));
+    } finally {
+      vi.unstubAllEnvs();
+    }
   });
 });

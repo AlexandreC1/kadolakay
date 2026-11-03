@@ -5,6 +5,8 @@ import { parseEntityId } from "@/lib/validators/entity-id";
 import { decryptField } from "@/lib/security-crypto";
 import { auditOperation } from "./operation-audit";
 import { deliverySchema } from "./order-contact";
+import { deleteFile, storageConfigured, storageKeyFromUrl } from "@/lib/storage";
+import { recordOperationalEvent } from "@/lib/operational-events";
 
 export const ACCOUNT_EXPORT_VERSION = 1;
 
@@ -198,10 +200,14 @@ export async function exportAccountData(actorId: string) {
  * still being prepared, while a refund request is open, and for merchants with order
  * history: those need support to close out first.
  */
-export async function deleteAccount(actorId: string, confirmation: unknown) {
+export async function deleteAccount(
+  actorId: string,
+  confirmation: unknown,
+  options: { removeUpload?: (key: string) => Promise<void> } = {},
+) {
   const id = parseEntityId(actorId);
   const typed = z.string().trim().toLowerCase().max(320).parse(confirmation);
-  await db.$transaction(async (tx) => {
+  const uploads = await db.$transaction(async (tx) => {
     await tx.$queryRaw`SELECT id FROM users WHERE id = ${id} FOR UPDATE`;
     const user = await tx.user.findUnique({
       where: { id },
@@ -231,6 +237,8 @@ export async function deleteAccount(actorId: string, confirmation: unknown) {
       if (order.status !== "PENDING" && !finished) throw new AccountDeletionBlocked("ACTIVE_ORDERS");
     }
 
+    // Photo links are collected before anything is changed, so deleted rows are included.
+    const uploads = await uploadedImageUrls(tx, id);
     if (user.business) await removeBusinessOrBlock(tx, user.business.id);
     await removeOrArchiveLists(tx, id);
 
@@ -275,7 +283,77 @@ export async function deleteAccount(actorId: string, confirmation: unknown) {
       },
     });
     await auditOperation(tx, id, "ACCOUNT_DELETED", "USER", id, "ACTIVE", "DELETED");
+    return uploads;
   });
+  // Storage is cleaned only after the deletion committed, and never fails it.
+  await removeUnreferencedUploads(uploads, options.removeUpload);
+}
+
+/** Every photo link held by this person's profile, lists, business and products. */
+async function uploadedImageUrls(tx: Prisma.TransactionClient, userId: string) {
+  const user = await tx.user.findUnique({
+    where: { id: userId },
+    select: {
+      image: true,
+      registries: { select: { coverImage: true, ogImageUrl: true, items: { select: { imageUrl: true } } } },
+      business: {
+        select: {
+          logoUrl: true,
+          coverUrl: true,
+          products: { select: { imageUrl: true, media: { select: { url: true } } } },
+        },
+      },
+    },
+  });
+  if (!user) return [];
+  return [
+    user.image,
+    ...user.registries.flatMap((r) => [r.coverImage, r.ogImageUrl, ...r.items.map((i) => i.imageUrl)]),
+    user.business?.logoUrl,
+    user.business?.coverUrl,
+    ...(user.business?.products.flatMap((p) => [p.imageUrl, ...p.media.map((m) => m.url)]) ?? []),
+  ].filter((url): url is string => Boolean(url));
+}
+
+/**
+ * Deletes stored photos that nothing in the database points to any more.
+ *
+ * A product photo can be copied into other people's lists, and a gifted item keeps its row,
+ * so a file is removed only when no remaining row references its exact URL. Only keys this
+ * app minted are touched (storageKeyFromUrl). Best effort: failures are counted, not thrown.
+ */
+export async function removeUnreferencedUploads(
+  urls: string[],
+  removeUpload: (key: string) => Promise<void> = deleteFile,
+) {
+  const result = { deleted: 0, kept: 0, failed: 0 };
+  const candidates = [...new Set(urls)]
+    .map((url) => ({ url, key: storageKeyFromUrl(url) }))
+    .filter((c): c is { url: string; key: string } => Boolean(c.key));
+  if (!candidates.length || (removeUpload === deleteFile && !storageConfigured())) return result;
+  for (const { url, key } of candidates) {
+    try {
+      const references = await Promise.all([
+        db.user.count({ where: { image: url } }),
+        db.registry.count({ where: { OR: [{ coverImage: url }, { ogImageUrl: url }] } }),
+        db.registryItem.count({ where: { imageUrl: url } }),
+        db.business.count({ where: { OR: [{ logoUrl: url }, { coverUrl: url }] } }),
+        db.product.count({ where: { imageUrl: url } }),
+        db.productMedia.count({ where: { url } }),
+      ]);
+      if (references.some((n) => n > 0)) {
+        result.kept++;
+        continue;
+      }
+      await removeUpload(key);
+      result.deleted++;
+    } catch {
+      result.failed++;
+    }
+  }
+  if (result.failed) recordOperationalEvent("upload_cleanup", { outcome: "failed", count: result.failed });
+  if (result.deleted) recordOperationalEvent("upload_cleanup", { outcome: "ok", count: result.deleted });
+  return result;
 }
 
 async function removeBusinessOrBlock(tx: Prisma.TransactionClient, businessId: string) {

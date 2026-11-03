@@ -42,6 +42,8 @@ The owner's running site (2026-11-02 screenshot) shows the Bayou name and mint c
 - Transactional emails in the recipient's language.
 - Admin authenticator lockout: 10 wrong codes per hour pauses step-up for 15 minutes (additive migration `20261102120000_mfa_lockout`).
 - Workstream ownership map and CI check.
+- Refund records: after accepting a request, the merchant (or an admin) records how the money was sent back and the reference; buyers see it as the merchant's record. Payment, order and stock are unchanged (migration `20261102130000_refund_records`).
+- Account deletion now also deletes the person's uploaded photos from storage when nothing else uses them.
 
 ## Broken or risky
 
