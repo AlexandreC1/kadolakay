@@ -53,6 +53,7 @@ export function MobileNav({ user, theme }: MobileNavProps) {
       {open && (
         <div className="absolute top-16 left-0 right-0 bg-surface/95 backdrop-blur-xl border-b border-gray-200 shadow-2xl z-50">
           <nav className="flex flex-col p-4 space-y-3">
+            <Link href="/gifts" onClick={()=>setOpen(false)} className="py-2 text-sm font-medium text-gray-700">{t("giftFinder.nav")}</Link>
             <div className="sm:hidden">
               <ThemeSwitcher initial={theme} />
             </div>

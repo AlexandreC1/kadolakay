@@ -22,6 +22,7 @@ describe("unconfigured Upstash", () => {
     expect(unconfiguredResult("auth", prod).ok).toBe(false);
     expect(unconfiguredResult("magicLink", prod).ok).toBe(false);
     expect(unconfiguredResult("checkout", prod).ok).toBe(false);
+    expect(unconfiguredResult("registryMutation", prod).ok).toBe(false);
     expect(unconfiguredResult("webhook", prod).ok).toBe(true);
     expect(unconfiguredResult("general", prod).ok).toBe(true);
   });

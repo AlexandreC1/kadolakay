@@ -268,5 +268,43 @@
     "dark": "Dark",
     "light": "Light",
     "system": "System"
+  },
+  "giftFinder": {
+    "nav": "Find a gift",
+    "title": "A gift within your budget.",
+    "intro": "Browse available gifts from approved merchants, then add your choices to a registry.",
+    "search": "Product or merchant",
+    "occasion": "Occasion",
+    "budget": "Maximum per gift",
+    "currency": "Currency",
+    "optional": "No maximum",
+    "filter": "Find gifts",
+    "method": "Prices are matched in the selected currency, without conversion. Occasion matches use product names and categories. Adding a gift does not reserve stock.",
+    "target": "Add to this registry",
+    "needRegistry": "Create a registry or sign in to select gifts.",
+    "create": "Create a registry",
+    "already": "Already in this registry",
+    "loading": "Loading gifts…",
+    "empty": "No matching gifts. Try a higher budget or choose all occasions.",
+    "more": "Load more",
+    "selected": "{count} of 50 selected",
+    "clear": "Clear selection",
+    "saving": "Adding gifts…",
+    "add": "Add {count} gifts",
+    "saved": "{added} added. {existing} already in your registry.",
+    "selectTitle": "Choose gifts from merchants",
+    "close": "Close",
+    "ALL": "All occasions",
+    "BABY_SHOWER": "New baby",
+    "WEDDING": "Wedding",
+    "BIRTHDAY": "Birthday",
+    "errors": {
+      "forbidden": "This registry is unavailable or you no longer have permission to edit it.",
+      "unavailable": "A selected gift is no longer available. Refresh your results and try again. Nothing was added.",
+      "limit": "A registry can contain up to 500 gifts. Remove some before adding more.",
+      "invalid": "Check the budget and selection. Use up to two decimal places and select at most 50 gifts.",
+      "rate": "Too many requests. Wait a minute and try again.",
+      "failed": "We could not complete the request. Your selection is kept. Please retry."
+    }
   }
 }

@@ -29,6 +29,7 @@ function makeLimiter(label: string, limit: number, window: Window) {
 export const LIMITS = {
   // POST sign-in / callback per IP. Session/CSRF GETs are NOT limited (they fire on every page).
   auth: [10, "1 m"],
+  registryMutation: [20, "1 m"],
   // Magic-link emails per address.
   magicLink: [3, "15 m"],
   webhook: [100, "1 m"],
@@ -45,7 +46,7 @@ const limiters = Object.fromEntries(
 export type RateLimitResult = { ok: boolean; remaining: number; reset: number; limit: number };
 
 let warned = false;
-const STRICT_KINDS: readonly LimiterKind[] = ["auth", "magicLink", "checkout"];
+const STRICT_KINDS: readonly LimiterKind[] = ["auth", "magicLink", "checkout", "registryMutation"];
 
 export function unconfiguredResult(kind: LimiterKind, env: NodeJS.ProcessEnv = process.env): RateLimitResult {
   const failClosed =

@@ -1,4 +1,5 @@
 "use client";
+import {ProductPicker} from "@/components/registry/ProductPicker";
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
@@ -24,6 +25,7 @@ interface RegistryEditFormProps {
     amazonWishlistUrl: string | null;
     items: Array<{
       id: string;
+      productId: string | null;
       title: string;
       priceHTG: unknown;
       priceUSD: unknown;
@@ -39,6 +41,7 @@ interface RegistryEditFormProps {
 
 export function RegistryEditForm({ registry }: RegistryEditFormProps) {
   const t = useTranslations();
+  const [showProducts, setShowProducts] = useState(false);
   const [showAddItem, setShowAddItem] = useState(false);
   const [pending, setPending] = useState(false);
 
@@ -145,6 +148,8 @@ export function RegistryEditForm({ registry }: RegistryEditFormProps) {
         </CardContent>
       </Card>
 
+      {showProducts && <ProductPicker registryId={registry.id} existingIds={registry.items.flatMap(item=>item.productId?[item.productId]:[])} onClose={()=>setShowProducts(false)}/>}
+      <Button variant="outline" onClick={()=>setShowProducts(true)}>{t("giftFinder.selectTitle")}</Button>
       {/* Items section */}
       <div>
         <div className="flex items-center justify-between mb-4">

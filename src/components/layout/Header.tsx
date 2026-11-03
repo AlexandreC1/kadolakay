@@ -35,6 +35,7 @@ function HeaderContent({
 
         {/* Desktop Nav */}
         <nav className="hidden md:flex items-center gap-6">
+            <Link href="/gifts" className="py-2 text-sm font-medium text-gray-700">{t("giftFinder.nav")}</Link>
           <Link
             href="/create"
             className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"

@@ -268,5 +268,43 @@
     "dark": "Sombre",
     "light": "Clair",
     "system": "Système"
+  },
+  "giftFinder": {
+    "nav": "Trouver un cadeau",
+    "title": "Un cadeau selon votre budget.",
+    "intro": "Découvrez les cadeaux disponibles chez les commerçants approuvés et ajoutez vos choix à un registre.",
+    "search": "Produit ou commerce",
+    "occasion": "Occasion",
+    "budget": "Maximum par cadeau",
+    "currency": "Devise",
+    "optional": "Sans maximum",
+    "filter": "Trouver des cadeaux",
+    "method": "Les prix sont filtrés dans la devise choisie, sans conversion. Les occasions correspondent aux noms et catégories des produits. Ajouter un cadeau ne réserve pas le stock.",
+    "target": "Ajouter à ce registre",
+    "needRegistry": "Créez un registre ou connectez-vous pour sélectionner des cadeaux.",
+    "create": "Créer un registre",
+    "already": "Déjà dans ce registre",
+    "loading": "Chargement des cadeaux…",
+    "empty": "Aucun cadeau trouvé. Essayez un budget plus élevé ou toutes les occasions.",
+    "more": "Afficher plus",
+    "selected": "{count} sur 50 sélectionnés",
+    "clear": "Effacer la sélection",
+    "saving": "Ajout en cours…",
+    "add": "Ajouter {count} cadeaux",
+    "saved": "{added} ajoutés. {existing} déjà dans votre registre.",
+    "selectTitle": "Choisir des cadeaux des commerçants",
+    "close": "Fermer",
+    "ALL": "Toutes les occasions",
+    "BABY_SHOWER": "Naissance",
+    "WEDDING": "Mariage",
+    "BIRTHDAY": "Anniversaire",
+    "errors": {
+      "forbidden": "Ce registre est indisponible ou vous ne pouvez plus le modifier.",
+      "unavailable": "Un cadeau sélectionné n’est plus disponible. Actualisez les résultats. Aucun cadeau n’a été ajouté.",
+      "limit": "Un registre peut contenir 500 cadeaux. Retirez-en avant d’en ajouter.",
+      "invalid": "Vérifiez le budget et la sélection : deux décimales et 50 cadeaux maximum.",
+      "rate": "Trop de demandes. Patientez une minute et réessayez.",
+      "failed": "La demande a échoué. Votre sélection est conservée. Réessayez."
+    }
   }
 }

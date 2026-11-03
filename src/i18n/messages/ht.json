@@ -268,5 +268,43 @@
     "dark": "Fènwa",
     "light": "Klè",
     "system": "Sistèm"
+  },
+  "giftFinder": {
+    "nav": "Chèche yon kado",
+    "title": "Yon kado selon bidjè ou.",
+    "intro": "Dekouvri kado ki disponib lakay machann nou apwouve yo epi ajoute chwa ou yo nan yon rejis.",
+    "search": "Pwodwi oswa biznis",
+    "occasion": "Okazyon",
+    "budget": "Pri maksimòm pou chak kado",
+    "currency": "Lajan",
+    "optional": "San limit pri",
+    "filter": "Chèche kado",
+    "method": "Nou sèvi ak pri nan lajan ou chwazi a, san konvèsyon. Nou chèche okazyon nan non ak kategori pwodwi yo. Ajoute yon kado pa rezève estòk la.",
+    "target": "Ajoute nan rejis sa a",
+    "needRegistry": "Kreye yon rejis oswa konekte pou chwazi kado.",
+    "create": "Kreye yon rejis",
+    "already": "Li deja nan rejis sa a",
+    "loading": "N ap chaje kado yo…",
+    "empty": "Nou pa jwenn kado. Eseye yon bidjè ki pi wo oswa tout okazyon yo.",
+    "more": "Wè plis",
+    "selected": "{count} sou 50 chwazi",
+    "clear": "Efase seleksyon an",
+    "saving": "N ap ajoute kado yo…",
+    "add": "Ajoute {count} kado",
+    "saved": "Nou ajoute {added}. Gen {existing} ki te deja nan rejis ou.",
+    "selectTitle": "Chwazi kado nan men machann",
+    "close": "Fèmen",
+    "ALL": "Tout okazyon",
+    "BABY_SHOWER": "Nouvo bebe",
+    "WEDDING": "Maryaj",
+    "BIRTHDAY": "Anivèsè",
+    "errors": {
+      "forbidden": "Rejis sa a pa disponib oswa ou pa gen dwa modifye li ankò.",
+      "unavailable": "Yon kado ou chwazi pa disponib ankò. Rafrechi rezilta yo. Nou pa ajoute okenn kado.",
+      "limit": "Yon rejis ka gen 500 kado. Retire kèk anvan ou ajoute lòt.",
+      "invalid": "Verifye bidjè a ak seleksyon an : de desimal ak 50 kado maksimòm.",
+      "rate": "Twòp demann. Tann yon minit epi eseye ankò.",
+      "failed": "Demann nan pa pase. Nou kenbe seleksyon ou a. Eseye ankò."
+    }
   }
 }
