@@ -6,6 +6,7 @@ import {
   transitionFulfillment,
   requestOrderResolution,
   decideOrderResolution,
+  recordRefundSent,
 } from "./order-operations";
 import { changeAccount } from "./backoffice";
 import { editBusinessProfile, replaceProductMedia } from "./merchant-workspace";
@@ -254,6 +255,50 @@ describe.skipIf(!run)("merchant operations and account governance", () => {
     expect(
       (await db.order.findUniqueOrThrow({ where: { id: f.order.id } })).status,
     ).toBe("PAID");
+  });
+  it("records a refund the merchant sent, only after acceptance, without touching payment or stock", async () => {
+    const f = await fixture(),
+      admin = await user("ADMIN");
+    const { id } = await requestOrderResolution(f.buyer.id, {
+      orderId: f.order.id,
+      businessId: f.businesses[0].id,
+      kind: "REFUND",
+      reason: "Item arrived damaged in this test",
+    });
+    const record = { requestId: id, method: "MONCASH", reference: "MC-123456" };
+    // Not before the merchant accepts the request.
+    await expect(recordRefundSent(f.merchants[0].id, record)).rejects.toThrow("REFUND_NOT_ACCEPTED");
+    await decideOrderResolution(f.merchants[0].id, { requestId: id, state: "ACCEPTED" });
+    // Another merchant, missing references and markup are refused.
+    await expect(recordRefundSent(f.merchants[1].id, record)).rejects.toThrow("REQUEST_UNAVAILABLE");
+    await expect(recordRefundSent(f.merchants[0].id, { ...record, reference: "" })).rejects.toThrow();
+    await expect(recordRefundSent(f.merchants[0].id, { ...record, reference: "<script>" })).rejects.toThrow();
+    const stockBefore = (await db.product.findUniqueOrThrow({ where: { id: f.products[0].id } })).stockQuantity;
+    await Promise.all([recordRefundSent(f.merchants[0].id, record), recordRefundSent(f.merchants[0].id, record)]);
+    const saved = await db.refundRequest.findUniqueOrThrow({ where: { id } });
+    expect(saved).toMatchObject({ state: "REFUNDED", refundMethod: "MONCASH", refundReference: "MC-123456", refundRecordedBy: f.merchants[0].id });
+    expect(saved.refundedAt).not.toBeNull();
+    // A different second record is refused; the first stands.
+    await expect(recordRefundSent(f.merchants[0].id, { ...record, reference: "MC-999999" })).rejects.toThrow("REQUEST_ALREADY_DECIDED");
+    expect(await db.operationAuditEvent.count({ where: { targetId: id, action: "REFUND_RECORDED" } })).toBe(1);
+    expect((await db.payment.findUniqueOrThrow({ where: { orderId: f.order.id } })).status).toBe("COMPLETED");
+    expect((await db.order.findUniqueOrThrow({ where: { id: f.order.id } })).status).toBe("PAID");
+    expect((await db.product.findUniqueOrThrow({ where: { id: f.products[0].id } })).stockQuantity).toBe(stockBefore);
+    // An admin can record on the merchant's behalf (cash needs no reference).
+    const second = await requestOrderResolution(f.buyer.id, {
+      orderId: f.order.id,
+      businessId: f.businesses[1].id,
+      kind: "CANCELLATION",
+      reason: "Changed plans in this test",
+    });
+    await decideOrderResolution(admin.id, { requestId: second.id, state: "ACCEPTED", businessId: f.businesses[1].id });
+    await expect(recordRefundSent(f.merchants[0].id, { requestId: second.id, method: "CASH" })).rejects.toThrow("REQUEST_UNAVAILABLE");
+    await recordRefundSent(admin.id, { requestId: second.id, method: "CASH", businessId: f.businesses[1].id });
+    expect((await db.refundRequest.findUniqueOrThrow({ where: { id: second.id } })).refundRecordedBy).toBe(admin.id);
+    // The database itself refuses a REFUNDED row without its evidence.
+    await expect(
+      db.$executeRaw`UPDATE refund_requests SET "refundMethod" = NULL WHERE id = ${id}`,
+    ).rejects.toThrow();
   });
   it("protects the owner, invalidates suspended accounts and audits constrained staff delegation", async () => {
     const owner = await user("SUPERADMIN"),

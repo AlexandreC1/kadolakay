@@ -1,8 +1,10 @@
 import { FoundationForm } from "@/components/shared/FoundationForm";
 import { workspaceCopy } from "@/lib/workspace-copy";
-import { saveFulfillment, saveRequestDecision } from "@/actions/workspaces";
+import { saveFulfillment, saveRefundRecord, saveRequestDecision } from "@/actions/workspaces";
+import { RefundRecordNote, type RefundRecord } from "./RefundRecordNote";
 import {
   fulfillmentTransitions,
+  refundMethods,
   type FulfillmentState,
 } from "@/services/order-operations";
 export function OrderOperationPanel({
@@ -22,7 +24,7 @@ export function OrderOperationPanel({
     method: string;
     instructions: string | null;
   } | null;
-  request: { id: string; state: string; kind: string; reason: string } | null;
+  request: ({ id: string; state: string; kind: string; reason: string } & RefundRecord) | null;
   override?: boolean;
   canFulfill?: boolean;
 }) {
@@ -41,7 +43,34 @@ export function OrderOperationPanel({
           <p>
             {c[request.state as "REQUESTED"] || request.state}: {request.reason}
           </p>
-          <p className="foundation-note">{c.refundNotice}</p>
+          <RefundRecordNote locale={locale} request={request} />
+          {request.state !== "REFUNDED" && <p className="foundation-note">{c.refundNotice}</p>}
+          {request.state === "ACCEPTED" && (
+            <FoundationForm action={saveRefundRecord} locale={locale} label={c.recordRefund}>
+              <input type="hidden" name="requestId" value={request.id} />
+              {override && <input type="hidden" name="businessId" value={businessId} />}
+              <p className="foundation-note">{c.recordRefundHint}</p>
+              <label htmlFor={`refund-method-${request.id}`}>{c.refundMethod}</label>
+              <select id={`refund-method-${request.id}`} name="method" defaultValue="MONCASH">
+                {refundMethods.map((m) => (
+                  <option value={m} key={m}>
+                    {c[m]}
+                  </option>
+                ))}
+              </select>
+              <label htmlFor={`refund-reference-${request.id}`}>{c.refundReference}</label>
+              <input
+                id={`refund-reference-${request.id}`}
+                name="reference"
+                maxLength={100}
+                autoComplete="off"
+                aria-describedby={`refund-reference-hint-${request.id}`}
+              />
+              <p className="foundation-note" id={`refund-reference-hint-${request.id}`}>
+                {c.refundReferenceHint}
+              </p>
+            </FoundationForm>
+          )}
           {request.state === "REQUESTED" && (
             <FoundationForm
               action={saveRequestDecision}

@@ -1,4 +1,5 @@
 import { OrderContact } from "@/components/business/OrderContact";
+import { RefundRecordNote } from "@/components/business/RefundRecordNote";
 import { readOrderContact } from "@/services/order-contact";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
@@ -60,6 +61,9 @@ export default async function PurchasePage({
           state: true,
           kind: true,
           reason: true,
+          refundMethod: true,
+          refundReference: true,
+          refundedAt: true,
         },
       },
     },
@@ -128,7 +132,10 @@ export default async function PurchasePage({
                   {c.refunds}: {c[request.state as "REQUESTED"]}
                 </p>
                 <p>{request.reason}</p>
-                <p className="foundation-note">{c.refundNotice}</p>
+                <RefundRecordNote locale={locale} request={request} />
+                {request.state !== "REFUNDED" && (
+                  <p className="foundation-note">{c.refundNotice}</p>
+                )}
               </>
             ) : (
               order.payment?.status === "COMPLETED" && (

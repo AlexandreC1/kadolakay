@@ -68,7 +68,7 @@ export async function merchantOrders(actorId: string, after?: string) {
       },
       refundRequests: {
         where: { businessId: business.id },
-        select: { id: true, state: true, kind: true, reason: true },
+        select: { id: true, state: true, kind: true, reason: true, refundMethod: true, refundReference: true, refundedAt: true },
         take: 1,
       },
     },
