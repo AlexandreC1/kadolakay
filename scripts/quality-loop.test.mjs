@@ -70,6 +70,6 @@ test('secret formats are redacted and inherited provider credentials excluded',(
 });
 test('snapshot includes untracked source while ignoring dependency/generated trees',async()=>{
   const cwd=await mkdtemp(path.join(os.tmpdir(),'bayou-snapshot-'));
-  try {await mkdir(path.join(cwd,'node_modules'));await writeFile(path.join(cwd,'node_modules','ignored'),'x');await writeFile(path.join(cwd,'new.ts'),'x');assert.deepEqual(Object.keys(await snapshot(cwd)),['new.ts']);}
+  try {await mkdir(path.join(cwd,'node_modules'));await writeFile(path.join(cwd,'node_modules','ignored'),'x');await writeFile(path.join(cwd,'tsconfig.tsbuildinfo'),'generated');await writeFile(path.join(cwd,'next-env.d.ts'),'generated');await writeFile(path.join(cwd,'new.ts'),'x');assert.deepEqual(Object.keys(await snapshot(cwd)),['new.ts']);}
   finally{await rm(cwd,{recursive:true,force:true});}
 });

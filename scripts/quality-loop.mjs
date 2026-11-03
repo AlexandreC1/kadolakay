@@ -28,7 +28,7 @@ export function safeEnv(env=process.env) {
 export async function snapshot(cwd, prefix='') {
   const result = {};
   for (const entry of await readdir(path.join(cwd,prefix),{withFileTypes:true})) {
-    if (ignored.has(entry.name)) continue;
+    if (ignored.has(entry.name) || entry.name === 'next-env.d.ts' || entry.name.endsWith('.tsbuildinfo')) continue;
     const name = prefix ? `${prefix}/${entry.name}` : entry.name;
     const full = path.join(cwd,name);
     if ((await lstat(full)).isSymbolicLink()) throw new Error(`Symlink requires manual review: ${name}`);
@@ -84,9 +84,9 @@ export async function cycle({gates,runGate,repair,verify,maxRounds=3,onRound=asy
     const failure=results.find(r=>r.code!==0);
     if(failure.cancelled)return {status:'cancelled',rounds};
     if(failure.timedOut)return {status:'timeout',rounds};
-    if(!repair||round===maxRounds)return {status:'checks-failed',rounds};
     if(failure.name==='audit')return {status:'dependency-review-required',rounds};
     if(['runner-tests','generate'].includes(failure.name))return {status:'setup-review-required',rounds};
+    if(!repair||round===maxRounds)return {status:'checks-failed',rounds};
     const fingerprint=hash(failure.name+failure.output.replace(/\d+(?:\.\d+)?(?:ms|s)\b/g,''));
     if(seen.has(fingerprint))return {status:'repeated-failure',rounds};
     seen.add(fingerprint);
