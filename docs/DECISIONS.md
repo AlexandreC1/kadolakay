@@ -156,3 +156,7 @@ Owner rejected the floating play/pause control and scattering full features acro
 ## October 31 implementation decisions
 
 Private basket modes and deliberate privacy are now persisted. Name/event discovery is explicit opt-in, separate from link access/publication. Admin roles never confer ownership, SUPERADMIN remains operator-only, and privilege step-up binds to a device for15 minutes. TOTP setup requires fresh sign-in and same-device confirmation; provider tokens and delivery contact use context-bound AES256GCM. Merchant operations are seller-scoped and do not fabricate settlement or refund transfers. Campaigns use fixed styles and Haiti dates; bounded deterministic recommendations avoid paid AI dependencies. Code-only approval does not authorize live payments, infrastructure spending, merging or production deployment. Details and remaining gates:OFFLINE-APPROVAL.md.
+
+## November 4: scoped dependency remediation under review
+
+Test the narrowly scoped glob/minimatch overrides in an isolated worktree; do not force npm's suggested breaking downgrades and do not waive the moderate audit gate. The candidate reduced full audit findings from 20 to 15, while npm's production-only audit reported zero. Unit, disposable PostgreSQL, production build and HTTP checks passed. Remaining minimatch 3.1.5 audit findings need reconciliation between npm's reported range and the updated upstream advisory before release.
