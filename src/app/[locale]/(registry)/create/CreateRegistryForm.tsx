@@ -6,7 +6,6 @@ import { createRegistry } from "@/actions/registry";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
-import { RegistryTypeIcon } from "@/components/shared/RegistryTypeIcon";
 
 const registryTypes = [
   { value: "BABY_SHOWER" },
@@ -39,30 +38,26 @@ export function CreateRegistryForm() {
   return (
     <form action={handleSubmit} className="space-y-6">
       {/* Type selection */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-3">
-          {t("registry.registryTypes")}
-        </label>
-        <div className="grid grid-cols-3 gap-3">
+      <fieldset>
+        <legend className="sr-only">{t("registry.registryTypes")}</legend>
+        <div className="flex flex-wrap gap-3">
           {registryTypes.map((type) => (
             <button
               key={type.value}
               type="button"
               onClick={() => setSelectedType(type.value)}
-              className={`flex flex-col items-center gap-2 rounded-xl border-2 p-4 transition-all ${
+              aria-pressed={selectedType === type.value}
+              className={`min-h-11 rounded-full border px-5 py-3 text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 ${
                 selectedType === type.value
-                  ? "border-brand-500 bg-brand-500/15 ring-2 ring-brand-500/30"
-                  : "border-gray-200 bg-surface hover:border-gray-300"
+                  ? "border-gray-900 bg-gray-900 text-gray-50"
+                  : "border-gray-300 bg-surface text-gray-900 hover:bg-surface-2"
               }`}
             >
-              <RegistryTypeIcon type={type.value} className="h-8 w-8 text-brand-300" />
-              <span className="text-sm font-medium text-gray-700">
-                {typeLabels[type.value]}
-              </span>
+              {typeLabels[type.value]}
             </button>
           ))}
         </div>
-      </div>
+      </fieldset>
 
       {selectedType && (
         <>
