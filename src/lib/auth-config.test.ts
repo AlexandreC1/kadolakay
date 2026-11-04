@@ -4,7 +4,7 @@ import { authErrorKey, getAuthAvailability, safeAuthRedirect } from "./auth-conf
 describe("auth configuration", () => {
   it("does not offer incomplete providers or expose credentials", () => {
     expect(getAuthAvailability({ AUTH_GOOGLE_ID: "client" })).toEqual({ social: [], email: false });
-    const result = getAuthAvailability({ DATABASE_URL: "postgresql://local", AUTH_SECRET: "secret", AUTH_GOOGLE_ID: "id", AUTH_GOOGLE_SECRET: "private", AUTH_GITHUB_ID: "id", AUTH_GITHUB_SECRET: "private" });
+    const result = getAuthAvailability({ DATABASE_URL: "postgresql://local", AUTH_SECRET: "secret", AUTH_GOOGLE_ID: "1234-abc.apps.googleusercontent.com", AUTH_GOOGLE_SECRET: "private-secret-value", AUTH_GITHUB_ID: "id", AUTH_GITHUB_SECRET: "private" });
     expect(result).toEqual({ social: ["google", "github"], email: false });
     expect(JSON.stringify(result)).not.toContain("private");
   });
@@ -12,6 +12,13 @@ describe("auth configuration", () => {
     expect(getAuthAvailability({DATABASE_URL: "local", AUTH_SECRET: "secret", AUTH_RESEND_KEY: "key"}).email).toBe(false);
     expect(getAuthAvailability({DATABASE_URL: "local", AUTH_SECRET: "secret", AUTH_RESEND_KEY: "key", AUTH_RESEND_FROM: "hello@example.com"}).email).toBe(true);
     expect(getAuthAvailability({DATABASE_URL: "local", AUTH_SECRET: "secret", AUTH_GOOGLE_ID: "  ", AUTH_GOOGLE_SECRET: "key"}).social).toEqual([]);
+  });
+  it("treats template placeholders and malformed Google client IDs as missing", () => {
+    const base = { DATABASE_URL: "local", AUTH_SECRET: "secret" };
+    for (const [id, secret] of [["undefined", "undefined"], ["your-google-client-id", "your-secret-value-here"], ["not-a-google-id", "long-enough-secret"], ["1234-abc.apps.googleusercontent.com", "short"]]) {
+      expect(getAuthAvailability({ ...base, AUTH_GOOGLE_ID: id, AUTH_GOOGLE_SECRET: secret }).social).toEqual([]);
+    }
+    expect(getAuthAvailability({ ...base, AUTH_RESEND_KEY: "re_key", AUTH_RESEND_FROM: "changeme" }).email).toBe(false);
   });
 });
 

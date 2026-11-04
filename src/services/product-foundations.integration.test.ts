@@ -255,6 +255,11 @@ describe.skipIf(!run)("product foundation database rules", () => {
         .sort(),
     ).toEqual(["Exact", "HTG only", "Over"]);
     expect(htg.every((p) => !Object.hasOwn(p, "patenteNumber"))).toBe(true);
+    const named = await discoverGifts({ budget: "100.00", currency: "HTG", occasion: "ANY", q: "htg ONLY" });
+    expect(named.filter((p) => p.businessId === business.id).map((p) => p.name)).toEqual(["HTG only"]);
+    // Wildcards in the visitor's text are literal: "%" matches nothing here.
+    const literal = await discoverGifts({ budget: "100.00", currency: "HTG", occasion: "ANY", q: "%" });
+    expect(literal.some((p) => p.businessId === business.id)).toBe(false);
     await db.business.update({
       where: { id: business.id },
       data: { status: "SUSPENDED" },

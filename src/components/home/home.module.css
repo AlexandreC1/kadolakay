@@ -602,7 +602,7 @@
     display: none;
   }
   .rowProgress {
-    width: 96px;
+    width: 64px;
   }
   .rowProgress > span {
     display: none;
