@@ -1,0 +1,197 @@
+/*
+ * App shell: a translucent top bar, and on phones a bottom tab bar.
+ * Material: the canvas at 80% with a blur, so content passes softly beneath.
+ */
+.bar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: color-mix(in srgb, var(--brand-canvas) 80%, transparent);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  backdrop-filter: saturate(180%) blur(20px);
+  border-bottom: 1px solid color-mix(in srgb, var(--brand-ink) 9%, transparent);
+}
+.inner {
+  max-width: 1440px;
+  height: 64px;
+  margin: 0 auto;
+  padding: 0 clamp(16px, 3vw, 40px);
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 16px;
+}
+.brand {
+  justify-self: start;
+  display: inline-flex;
+  border-radius: 10px;
+}
+.brand :global(.brand-mark) {
+  width: 26px;
+  height: 30px;
+}
+.brand :global(.brand-word) {
+  font-size: 22px;
+  letter-spacing: -0.8px;
+}
+.center {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.nav {
+  display: flex;
+  gap: 2px;
+  padding: 4px;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--brand-ink) 6%, transparent);
+}
+.nav a {
+  display: inline-flex;
+  align-items: center;
+  height: 36px;
+  padding: 0 16px;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--brand-secondary);
+  transition: background-color 200ms cubic-bezier(0.23, 1, 0.32, 1), color 150ms ease, box-shadow 200ms ease;
+}
+@media (hover: hover) and (pointer: fine) {
+  .nav a:hover {
+    color: var(--brand-ink);
+  }
+}
+.nav a[aria-current="page"] {
+  background: var(--brand-surface);
+  color: var(--brand-ink);
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--brand-ink) 14%, transparent), 0 0 0 0.5px color-mix(in srgb, var(--brand-ink) 10%, transparent);
+}
+.explore :global(.explore-navigation) > button {
+  height: 36px;
+  min-height: 36px;
+  padding: 0 12px;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--brand-secondary);
+}
+.actions {
+  justify-self: end;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.newList {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 38px;
+  padding: 0 16px;
+  border-radius: 999px;
+  background: var(--brand-action);
+  color: var(--brand-on-action);
+  font-weight: 700;
+  font-size: 0.88rem;
+  white-space: nowrap;
+  transition: background-color 150ms ease, transform 160ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+.newList:hover {
+  background: var(--brand-action-hover);
+}
+.newList:active {
+  transform: scale(0.97);
+}
+.signIn {
+  display: inline-flex;
+  align-items: center;
+  height: 38px;
+  padding: 0 4px;
+  font-weight: 700;
+  font-size: 0.88rem;
+  color: var(--brand-ink);
+  white-space: nowrap;
+}
+.narrowOnly {
+  display: none;
+}
+
+/* Phone tab bar */
+.tabBar {
+  display: none;
+}
+
+@media (max-width: 960px) {
+  .inner {
+    grid-template-columns: 1fr auto;
+    height: 56px;
+  }
+  .center,
+  .wideOnly {
+    display: none;
+  }
+  .narrowOnly {
+    display: block;
+  }
+  .tabBar {
+    position: fixed;
+    inset: auto 0 0 0;
+    z-index: 60;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    padding: 6px 8px calc(6px + env(safe-area-inset-bottom));
+    background: color-mix(in srgb, var(--brand-canvas) 92%, transparent);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    backdrop-filter: saturate(180%) blur(20px);
+    border-top: 1px solid color-mix(in srgb, var(--brand-ink) 9%, transparent);
+  }
+  .tabBar a {
+    display: grid;
+    justify-items: center;
+    gap: 3px;
+    padding: 4px 0;
+    min-height: 48px;
+    border-radius: 12px;
+    color: var(--brand-muted);
+    transition: color 150ms ease;
+  }
+  .tabBar a[aria-current="page"] {
+    color: var(--brand-ink);
+  }
+  .tabBar a[aria-current="page"] .tabIcon {
+    background: color-mix(in srgb, var(--brand-accent) 40%, transparent);
+  }
+  .tabIcon {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 28px;
+    border-radius: 999px;
+    transition: background-color 200ms cubic-bezier(0.23, 1, 0.32, 1), transform 160ms cubic-bezier(0.23, 1, 0.32, 1);
+  }
+  .tabBar a:active .tabIcon {
+    transform: scale(0.92);
+  }
+  .tabLabel {
+    font-size: 0.7rem;
+    font-weight: 650;
+    line-height: 1.1;
+    text-align: center;
+  }
+  .tabNew .tabIcon {
+    width: 48px;
+    height: 32px;
+    background: var(--brand-action);
+    color: var(--brand-on-action);
+  }
+  .tabNew {
+    color: var(--brand-ink) !important;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .nav a,
+  .newList,
+  .tabIcon {
+    transition: none;
+  }
+}

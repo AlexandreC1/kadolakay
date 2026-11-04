@@ -13,3 +13,49 @@ export function nativeGiftCopy(locale: string) {
   };
   return copy[locale as keyof typeof copy] || copy.en;
 }
+
+const giftPageContent = {
+  en: {
+    back: "Back",
+    fromShop: "From",
+    photos: "Gift photos",
+    showPhoto: (n: number) => `Show photo ${n}`,
+    policy: "Delivery and pickup",
+    addTitle: "Add it to one of your lists",
+    addIntro: "Guests will see it on your list, with this shop's name.",
+    guestTitle: "Planning a celebration?",
+    guestIntro: "Sign in to put this gift on your list. To give it to someone, open their list.",
+    findList: "Find a list",
+    moreFromShop: "More from this shop",
+    seeShop: "See the shop",
+  },
+  fr: {
+    back: "Retour",
+    fromShop: "Chez",
+    photos: "Photos du cadeau",
+    showPhoto: (n: number) => `Afficher la photo ${n}`,
+    policy: "Livraison et retrait",
+    addTitle: "L’ajouter à une de vos listes",
+    addIntro: "Vos proches le verront sur votre liste, avec le nom de ce commerce.",
+    guestTitle: "Vous préparez une fête ?",
+    guestIntro: "Connectez-vous pour mettre ce cadeau sur votre liste. Pour l’offrir à quelqu’un, ouvrez sa liste.",
+    findList: "Trouver une liste",
+    moreFromShop: "Autres cadeaux de ce commerce",
+    seeShop: "Voir le commerce",
+  },
+  ht: {
+    back: "Retounen",
+    fromShop: "Nan",
+    photos: "Foto kado a",
+    showPhoto: (n: number) => `Montre foto ${n}`,
+    policy: "Livrezon ak retrè",
+    addTitle: "Mete l nan youn nan lis ou yo",
+    addIntro: "Moun pa w yo ap wè l sou lis ou, ak non boutik sa a.",
+    guestTitle: "W ap prepare yon fèt?",
+    guestIntro: "Konekte pou mete kado sa a sou lis ou. Pou ofri l bay yon moun, louvri lis li.",
+    findList: "Jwenn yon lis",
+    moreFromShop: "Lòt kado nan boutik sa a",
+    seeShop: "Gade boutik la",
+  },
+};
+export function giftPageCopy(locale: string) { return giftPageContent[locale as keyof typeof giftPageContent] || giftPageContent.en; }

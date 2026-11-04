@@ -14,3 +14,55 @@ export function availabilityCaption(locale: string, available: number, requested
   if (locale === "ht") return `${available} disponib sou ${requested}`;
   return `${available} of ${requested} available`;
 }
+
+const listContent = {
+  en: {
+    countdown: (days: number) => (days > 1 ? `In ${days} days` : days === 1 ? "Tomorrow" : days === 0 ? "Today" : "The celebration has passed"),
+    owner: (name: string) => `List by ${name}`,
+    summary: (given: number, requested: number) => `${given} of ${requested} gifts given`,
+    remaining: (n: number) => (n === 1 ? "1 gift still needed" : `${n} gifts still needed`),
+    heldNote: (n: number) => (n === 1 ? "1 gift is being paid for right now." : `${n} gifts are being paid for right now.`),
+    notice: "Online payment is not open yet. To give a gift, buy it from the shop shown, or arrange it with the family.",
+    giveDirectly: "Arrange with the family",
+    viewGift: "See this gift",
+    share: "Share this list",
+    fromShop: "From",
+    weave: (given: number, requested: number) => `Progress: ${given} of ${requested} gifts given`,
+    left: (n: number, of: number) => (of > 1 ? `${n} of ${of} still needed` : n > 0 ? "Still needed" : "Given"),
+  },
+  fr: {
+    countdown: (days: number) => (days > 1 ? `Dans ${days} jours` : days === 1 ? "Demain" : days === 0 ? "Aujourd’hui" : "La fête est passée"),
+    owner: (name: string) => `Liste de ${name}`,
+    summary: (given: number, requested: number) => `${given} cadeau${given > 1 ? "x" : ""} offert${given > 1 ? "s" : ""} sur ${requested}`,
+    remaining: (n: number) => (n <= 1 ? `${n} cadeau encore attendu` : `${n} cadeaux encore attendus`),
+    heldNote: (n: number) => (n === 1 ? "1 cadeau est en cours de paiement." : `${n} cadeaux sont en cours de paiement.`),
+    notice: "Le paiement en ligne n’est pas encore ouvert. Pour offrir un cadeau, achetez-le chez le commerce indiqué, ou organisez-vous avec la famille.",
+    giveDirectly: "À offrir en accord avec la famille",
+    viewGift: "Voir ce cadeau",
+    share: "Partager cette liste",
+    fromShop: "Chez",
+    weave: (given: number, requested: number) => `Avancement : ${given} sur ${requested} cadeaux offerts`,
+    left: (n: number, of: number) => (of > 1 ? `Encore ${n} sur ${of}` : n > 0 ? "Encore attendu" : "Offert"),
+  },
+  ht: {
+    countdown: (days: number) => (days > 1 ? `Nan ${days} jou` : days === 1 ? "Demen" : days === 0 ? "Jodi a" : "Fèt la pase deja"),
+    owner: (name: string) => `Lis ${name}`,
+    summary: (given: number, requested: number) => `${given} kado ofri sou ${requested}`,
+    remaining: (n: number) => `${n} kado yo toujou bezwen`,
+    heldNote: (n: number) => `${n} kado ap peye kounye a.`,
+    notice: "Peman sou entènèt poko louvri. Pou ofri yon kado, achte l nan boutik ki endike a, oswa fè aranjman ak fanmi an.",
+    giveDirectly: "Fè aranjman ak fanmi an",
+    viewGift: "Gade kado sa a",
+    share: "Pataje lis sa a",
+    fromShop: "Nan",
+    weave: (given: number, requested: number) => `Pwogrè: ${given} sou ${requested} kado ofri`,
+    left: (n: number, of: number) => (of > 1 ? `Toujou ${n} sou ${of}` : n > 0 ? "Toujou bezwen" : "Ofri deja"),
+  },
+};
+export function listCopy(locale: string) { return listContent[locale as keyof typeof listContent] || listContent.en; }
+
+/** Whole days from today (in the given zone-free calendar sense) until the event. */
+export function daysUntil(date: Date, now = new Date()) {
+  const day = (d: Date) => Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate());
+  return Math.round((day(date) - day(now)) / 86400000);
+}

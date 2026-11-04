@@ -1,0 +1,6 @@
+/* Phones: leave room for the fixed tab bar under every page. */
+@media (max-width: 960px) {
+  body {
+    padding-bottom: calc(68px + env(safe-area-inset-bottom));
+  }
+}

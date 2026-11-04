@@ -184,3 +184,39 @@ export const getPublicProducts = unstable_cache(
   ["public-products-v1"],
   { revalidate: 60, tags: ["public-catalog"] },
 );
+/** Home shelf: the newest in-stock gifts from approved shops. Public fields only. */
+export const listShelfProducts = unstable_cache(
+  async () => {
+    const products = await db.product.findMany({
+      where: {
+        inStock: true,
+        business: { status: "APPROVED", owner: { suspendedAt: null } },
+      },
+      select: {
+        id: true,
+        name: true,
+        priceHTG: true,
+        priceUSD: true,
+        imageUrl: true,
+        stockQuantity: true,
+        reservedStock: true,
+        business: { select: { name: true, slug: true, city: true } },
+      },
+      orderBy: [{ createdAt: "desc" }, { id: "asc" }],
+      take: 24,
+    });
+    return products
+      .filter((p) => p.stockQuantity === null || p.stockQuantity > p.reservedStock)
+      .slice(0, 12)
+      .map((p) => ({
+        id: p.id,
+        name: p.name,
+        priceHTG: p.priceHTG === null ? null : Number(p.priceHTG),
+        priceUSD: p.priceUSD === null ? null : Number(p.priceUSD),
+        imageUrl: safeImage(p.imageUrl),
+        shop: p.business,
+      }));
+  },
+  ["home-shelf-v1"],
+  { revalidate: 60, tags: ["public-catalog"] },
+);

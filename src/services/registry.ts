@@ -171,6 +171,7 @@ export async function findPublicRegistry(slug: string, grant?: string) {
           status: true,
           source: true,
           externalUrl: true,
+          productId: true,
           business: { select: { name: true, slug: true } },
         },
       },

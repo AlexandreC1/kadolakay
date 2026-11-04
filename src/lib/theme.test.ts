@@ -46,6 +46,10 @@ describe("visitor theme preference", () => {
     for (const [fg,bg] of [["--brand-ink","--brand-canvas"],["--brand-muted","--brand-surface"],["--brand-on-action","--brand-action"],["--brand-error","--brand-error-surface"],["--brand-warning","--brand-warning-surface"],["--brand-success","--brand-success-surface"]]) {
       const a=luminance(values[fg]), b=luminance(values[bg]); expect((Math.max(a,b)+.05)/(Math.min(a,b)+.05),`${mode}: ${fg} on ${bg}`).toBeGreaterThanOrEqual(4.5);
     }
+    // WCAG 1.4.11: a button's fill and a control's border must stand out from the page by 3:1.
+    for (const [fg,bg] of [["--brand-action","--brand-canvas"],["--brand-action","--brand-surface"],["--brand-line-strong","--brand-canvas"],["--brand-line-strong","--brand-surface"]]) {
+      const a=luminance(values[fg]), b=luminance(values[bg]); expect((Math.max(a,b)+.05)/(Math.min(a,b)+.05),`${mode}: ${fg} against ${bg}`).toBeGreaterThanOrEqual(3);
+    }
     }
   });
 });

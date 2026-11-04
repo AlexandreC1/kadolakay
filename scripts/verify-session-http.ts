@@ -173,13 +173,14 @@ async function main() {
       const response = await request(path);
       const html = await response.text();
       assert.equal(response.status, 200);
-      assert(html.includes('class="home-entry"'));
-      assert(html.includes(`aria-label="Bayou · ${home}"`));
+      // The app home: a screen title with live list search, section tabs and the phone tab bar.
+      assert(html.includes('id="home-heading"'));
+      assert(html.includes(`aria-label="Bayou, ${home}"`));
       assert(!html.includes("background-motion-control"));
       assert(!html.includes("lakou-finder"));
       assert(!html.includes("lakou-occasions"));
       passed(
-        `focused homepage and explicit Home navigation without floating playback at ${path}`,
+        `app home with explicit Home navigation and no floating playback at ${path}`,
       );
     }
     for (const [path, title] of [

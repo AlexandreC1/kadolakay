@@ -1,14 +1,20 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import { GravityStarsBackground } from "@/components/animate-ui/backgrounds/gravity-stars";
 
+const HOME = /^\/(?:ht|fr|en)?\/?$/;
+
 export function AppBackground() {
+  const pathname = usePathname();
   const [paused, setPaused] = useState(false);
   useEffect(() => {
     const timer = window.setTimeout(() => setPaused(true), 4000);
     return () => window.clearTimeout(timer);
   }, []);
+  // Only the home page keeps the stars, so working pages stay calm and readable.
+  if (!HOME.test(pathname)) return null;
   // A bounded introduction needs no persistent playback control. The renderer
   // also honors reduced motion and stops when hidden, with no network assets.
   return (
