@@ -288,12 +288,28 @@
     "signOutEverywhereDescription": "Déconnectez tous les navigateurs, y compris celui-ci. Vous devrez vous reconnecter sur chaque appareil.",
     "signOutEverywhere": "Se déconnecter partout",
     "signingOut": "Déconnexion…",
-    "signOutEverywhereFailed": "La déconnexion de tous les appareils a échoué. Veuillez réessayer."
+    "signOutEverywhereFailed": "La déconnexion de tous les appareils a échoué. Veuillez réessayer.",
+    "yourData": "Vos données",
+    "exportDescription": "Téléchargez une copie de votre profil, de vos listes et de vos achats au format JSON. Les mots de passe et secrets de connexion ne sont jamais inclus.",
+    "exportButton": "Télécharger mes données",
+    "deleteTitle": "Supprimer mon compte",
+    "deleteDescription": "Cela supprime votre profil, vos moyens de connexion et les listes qui n’ont reçu aucun cadeau. Les listes ayant reçu des cadeaux sont archivées sans vos textes personnels, et vos achats restent chez les commerces sans vos coordonnées. Cette action est définitive.",
+    "deleteConfirmLabel": "Saisissez votre adresse e-mail pour confirmer",
+    "deleteButton": "Supprimer mon compte",
+    "deleting": "Suppression…",
+    "deleteInvalid": "Saisissez votre adresse e-mail pour confirmer.",
+    "deleteMismatch": "Cela ne correspond pas à votre adresse e-mail.",
+    "deleteUnavailable": "Impossible de supprimer votre compte pour le moment. Réessayez dans une minute.",
+    "deleteBlocked_ADMIN_ACCOUNT": "Un compte administrateur ne peut pas être supprimé ici. Demandez d’abord à un autre administrateur de retirer votre rôle.",
+    "deleteBlocked_ACTIVE_ORDERS": "Un de vos achats est encore en préparation ou en livraison. Vous pourrez supprimer votre compte une fois terminé.",
+    "deleteBlocked_OPEN_REFUNDS": "Vous avez une demande d’annulation ou de remboursement en cours. Vous pourrez supprimer votre compte une fois réglée.",
+    "deleteBlocked_MERCHANT_RECORDS": "Votre commerce a un historique de commandes qui doit être conservé. Contactez-nous pour fermer correctement votre compte commerçant."
   },
   "footer": {
     "tagline": "Des cadeaux pour toute occasion, chez vous.",
     "privacy": "Politique de confidentialité",
     "terms": "Conditions d'utilisation",
-    "contact": "Contactez-nous"
+    "contact": "Contactez-nous",
+    "legalNavigation": "Liens légaux"
   }
 }

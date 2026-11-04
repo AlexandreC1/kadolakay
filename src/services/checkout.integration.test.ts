@@ -5,7 +5,7 @@ vi.mock("@/lib/payments/stripe", () => ({ stripeProvider: { createPayment: async
   if (provider.failNext) { provider.failNext = false; throw Object.assign(new Error("Provider request still in progress"), { statusCode: 409 }); }
   return { redirectUrl: "https://checkout.stripe.com/test", providerRef: `cs_test_${params.orderId}` };
 } } }));
-vi.mock("@/lib/email", () => ({ sendGiftNotification: vi.fn(), sendOrderConfirmation: vi.fn() }));
+vi.mock("@/lib/email", async (importOriginal) => ({ ...(await importOriginal<typeof import("@/lib/email")>()), sendGiftNotification: vi.fn(), sendOrderConfirmation: vi.fn() }));
 import { db } from "@/lib/db";
 import { beginCheckout, releaseCheckout, resumeCheckout } from "./checkout";
 import { fulfillOrder } from "@/lib/orders";

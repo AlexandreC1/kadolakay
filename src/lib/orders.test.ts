@@ -12,7 +12,7 @@ vi.mock("./db", () => {
     $transaction: (fn: (value: typeof tx) => Promise<unknown>) => { const run = lock.then(() => fn(tx)); lock = run.catch(() => {}); return run; },
   } };
 });
-vi.mock("./email", () => ({ sendGiftNotification: vi.fn(), sendOrderConfirmation: vi.fn() }));
+vi.mock("./email", async (importOriginal) => ({ ...(await importOriginal<typeof import("./email")>()), sendGiftNotification: vi.fn(), sendOrderConfirmation: vi.fn() }));
 import { fulfillOrder } from "./orders";
 const evidence = { sessionId: "cs_test_1", eventId: "evt_1", amountMinor: 2500, currency: "usd" };
 describe("payment fulfillment", () => {

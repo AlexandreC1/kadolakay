@@ -6,6 +6,7 @@ import {
   pendingMfaSetup,
   confirmMfaEnrollment,
   verifyMfaStepUp,
+  MFA_MAX_FAILURES,
 } from "./mfa";
 import {
   createDeviceSession,
@@ -115,5 +116,48 @@ describe.skipIf(!run)("device sessions and administrator verification", () => {
       verifyMfaStepUp(owner.id, two!.deviceId, recovery[0]),
     ).rejects.toThrow("MFA_CODE_INVALID");
     expect(await pendingMfaSetup(owner.id, one!.deviceId)).toBeNull();
+  });
+  it("locks step-up after repeated wrong codes, keeps it locked, and records it", async () => {
+    const owner = await fixture(),
+      device = (await createDeviceSession(owner.id))!;
+    await beginMfaEnrollment(owner.id, device.deviceId);
+    const pending = (await pendingMfaSetup(owner.id, device.deviceId))!;
+    const now = Math.floor(Date.now() / 1000);
+    const recovery = await confirmMfaEnrollment(owner.id, device.deviceId, totpAt(pending.secret, now));
+    await requireAdminStepUp(owner.id, device.deviceId);
+    const wrong = totpAt(pending.secret, now + 3600);
+    for (let i = 1; i < MFA_MAX_FAILURES; i++)
+      await expect(verifyMfaStepUp(owner.id, device.deviceId, wrong)).rejects.toThrow("MFA_CODE_INVALID");
+    expect((await db.user.findUniqueOrThrow({ where: { id: owner.id } })).mfaFailedAttempts).toBe(MFA_MAX_FAILURES - 1);
+    await expect(verifyMfaStepUp(owner.id, device.deviceId, wrong)).rejects.toThrow("MFA_LOCKED");
+    const locked = await db.user.findUniqueOrThrow({ where: { id: owner.id } });
+    expect(locked.mfaLockedUntil!.getTime()).toBeGreaterThan(Date.now() + 14 * 60_000);
+    // Earlier step-up is withdrawn, and even a valid recovery code is refused while locked.
+    await expect(requireAdminStepUp(owner.id, device.deviceId)).rejects.toThrow("MFA_REQUIRED");
+    await expect(verifyMfaStepUp(owner.id, device.deviceId, recovery[0])).rejects.toThrow("MFA_LOCKED");
+    expect((await db.user.findUniqueOrThrow({ where: { id: owner.id } })).recoveryHashes).toHaveLength(10);
+    expect(await db.operationAuditEvent.count({ where: { targetId: owner.id, action: "MFA_LOCKED" } })).toBe(1);
+    // After the lock expires, a valid code works and clears the counters.
+    await db.user.update({ where: { id: owner.id }, data: { mfaLockedUntil: new Date(Date.now() - 1000) } });
+    await verifyMfaStepUp(owner.id, device.deviceId, recovery[0]);
+    await requireAdminStepUp(owner.id, device.deviceId);
+    const cleared = await db.user.findUniqueOrThrow({ where: { id: owner.id } });
+    expect(cleared).toMatchObject({ mfaFailedAttempts: 0, mfaLockedUntil: null, mfaFailureWindowStart: null });
+  });
+  it("starts a fresh count once the failure window has passed", async () => {
+    const owner = await fixture(),
+      device = (await createDeviceSession(owner.id))!;
+    await beginMfaEnrollment(owner.id, device.deviceId);
+    const pending = (await pendingMfaSetup(owner.id, device.deviceId))!;
+    const now = Math.floor(Date.now() / 1000);
+    await confirmMfaEnrollment(owner.id, device.deviceId, totpAt(pending.secret, now));
+    await db.user.update({
+      where: { id: owner.id },
+      data: { mfaFailedAttempts: MFA_MAX_FAILURES - 1, mfaFailureWindowStart: new Date(Date.now() - 2 * 3600_000) },
+    });
+    await expect(verifyMfaStepUp(owner.id, device.deviceId, totpAt(pending.secret, now + 3600))).rejects.toThrow("MFA_CODE_INVALID");
+    const after = await db.user.findUniqueOrThrow({ where: { id: owner.id } });
+    expect(after.mfaFailedAttempts).toBe(1);
+    expect(after.mfaLockedUntil).toBeNull();
   });
 });

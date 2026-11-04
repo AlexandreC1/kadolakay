@@ -17,6 +17,8 @@ const copy: Record<string, Record<FoundationReason, string>> = {
       "Set a password of at least 10 characters before protecting this list.",
     limited:
       "Too many attempts, or the protection service is unavailable. Wait a minute and try again.",
+    mfaLocked:
+      "Too many wrong codes. Admin verification is paused for 15 minutes. Then use a current authenticator code or a recovery code.",
   },
   fr: {
     contactLocked:
@@ -35,6 +37,8 @@ const copy: Record<string, Record<FoundationReason, string>> = {
       "Définissez un mot de passe d’au moins 10 caractères pour protéger cette liste.",
     limited:
       "Trop de tentatives ou service de protection indisponible. Attendez une minute et réessayez.",
+    mfaLocked:
+      "Trop de codes incorrects. La vérification administrateur est suspendue pendant 15 minutes. Utilisez ensuite un code actuel ou un code de secours.",
   },
   ht: {
     contactLocked:
@@ -52,6 +56,8 @@ const copy: Record<string, Record<FoundationReason, string>> = {
       "Mete yon modpas ki gen omwen 10 karaktè pou pwoteje lis sa a.",
     limited:
       "Twòp tantativ oswa sèvis pwoteksyon an pa disponib. Tann yon minit epi eseye ankò.",
+    mfaLocked:
+      "Twòp kòd ki pa bon. Verifikasyon administratè a kanpe pou 15 minit. Apre sa, sèvi ak yon kòd aktyèl oswa yon kòd sekou.",
   },
 };
 export const foundationFeedback = (locale: string) => copy[locale] || copy.en;
@@ -60,6 +66,7 @@ export function foundationReason(error: unknown): FoundationReason | undefined {
   const codes: Record<string, FoundationReason> = {
     CONTACT_LOCKED: "contactLocked",
     MFA_CODE_INVALID: "codeInvalid",
+    MFA_LOCKED: "mfaLocked",
     MFA_SETUP_UNAVAILABLE: "setupUnavailable",
     REQUEST_UNRESOLVED: "requestPending",
     CANCELLATION_TOO_LATE: "tooLate",

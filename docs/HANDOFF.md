@@ -1,5 +1,23 @@
 # Bayou engineering handoff
 
+## November 2: Claude compliance quick wins (branch claude/compliance-quickwins)
+
+Based on codex/quality-loop d32a2a9 (on codex/offline-completion 9754b15). Added draft Privacy, Terms and Contact pages (ht/fr/en, footer links, support address from SUPPORT_EMAIL only), Settings data export (JSON route, no secrets) and account deletion (tombstone user, scrub or delete lists, anonymize purchases; blocked for admins, active purchases, open refunds and merchants with order history; audited ACCOUNT_DELETED). Fixed rate-limit identity on Netlify functions, where NETLIFY=true is not present at runtime (detect SITE_ID plus SITE_NAME, optional CLIENT_IP_HEADER allowlist, logged fallback). .env.example now lists DIRECT_DATABASE_URL, DATA_ENCRYPTION_KEY, DATA_ENCRYPTION_PREVIOUS_KEYS, SUPPORT_EMAIL, CLIENT_IP_HEADER; release check requires SUPPORT_EMAIL. No migration.
+
+Verification in a Linux sandbox: 345 unit tests and 60 PostgreSQL tests pass (migrations applied with psql to a disposable bayou_release_test), typecheck clean, lint 0 errors / 14 existing warnings, production build passes with `next build --webpack` and mocked Google Fonts (sandbox blocks fonts.googleapis.com; Turbopack build not run there). Production server served /privacy, /terms, /contact in all locales. Not yet checked in a real browser or on Windows. Open owner items: docs/LEGAL-TODO.md.
+
+## November 2 night: refund records and photo cleanup (claude/compliance-quickwins, PR #17)
+
+Refund records: an ACCEPTED cancellation/refund request can be marked REFUNDED by its merchant (order:refund) or by an admin with businessId (admin:order plus step-up), with method MONCASH/NATCASH/BANK_TRANSFER/CARD/CASH/OTHER and a reference (required except cash, plain characters only). Identical repeats are no-ops; a different second record is refused; audited REFUND_RECORDED. Order, payment and stock are untouched. Buyers (signed in and guest tracking) see it labelled as the merchant's record. Migration 20261102130000_refund_records adds four nullable columns, widens the state check to REFUNDED and adds DB checks that a REFUNDED row always has its evidence and other states have none.
+
+Account deletion collects the person's photo URLs before changes and, after commit, deletes each storage object only when no remaining row references that exact URL and the key matches the app's own upload format. Failures are counted in an `upload_cleanup` event and never fail the deletion.
+
+## November 2 evening: Claude follow-up (same branch)
+
+Three more commits on claude/compliance-quickwins. Transactional emails use the list owner's preferredLocale and the order's checkoutLocale (Kreyòl fallback; anonymous buyer label localized). Admin step-up locks for 15 minutes after 10 wrong codes within an hour: counts are committed even though the attempt fails, prior step-up is withdrawn, recovery codes are refused while locked, MFA_LOCKED is audited; additive migration 20261102120000_mfa_lockout. Workstream ownership: .github/ownership.json, scripts/check-ownership.mjs (plain Node), CI job "Workstream Ownership" for ws<N>/* PRs, and a test that every tracked file has an owner. Agent playbook moved into docs/agents/.
+
+Verification in the Linux sandbox: 349 unit, 62 PostgreSQL, 13 quality-loop and 4 ownership tests pass; typecheck clean; lint 0 errors / 14 existing warnings; `next build --webpack` passes with mocked Google Fonts. Not run: Turbopack build, Windows, real browser.
+
 ## November 2 bounded quality loop
 
 Branch codex/quality-loop adds scripts/quality-loop.mjs and docs/QUALITY-LOOP.md. It prepares a committed detached worktree, runs sequential static/unit checks, optionally build/audit, and can invoke the signed-in Codex CLI for at most three source repairs. Do not run it in Claude's live scratch checkout or copy environment files into it. Test/config/schema/instruction hash guards and no-progress/repeated-failure stops retain failures for review. Existing database/HTTP/browser/provider/hosted gates remain required. Local branding restoration in Claude's separate design/brand-system checkout is not included in this branch. See the runner guide for limitations and use.

@@ -23,7 +23,7 @@ export async function guestOrder(id: string, grant: unknown) {
       orderNumber: true,
       deliveryContactEncrypted: true,
       refundRequests: {
-        select: { id: true, businessId: true, state: true, reason: true },
+        select: { id: true, businessId: true, state: true, reason: true, refundMethod: true, refundReference: true, refundedAt: true },
       },
       status: true,
       payment: { select: { status: true, currency: true } },

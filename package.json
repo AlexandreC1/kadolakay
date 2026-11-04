@@ -5,6 +5,8 @@
   "scripts": {
     "quality:loop": "node scripts/quality-loop.mjs",
     "test:quality-loop": "node --test scripts/quality-loop.test.mjs",
+    "test:ownership": "node --test scripts/check-ownership.test.mjs",
+    "ownership:check": "node scripts/check-ownership.mjs",
     "dev": "next dev",
     "auth:setup": "node scripts/setup-google-auth.mjs",
     "admin:bootstrap": "node --import tsx scripts/bootstrap-superadmin.ts",

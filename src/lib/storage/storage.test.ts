@@ -34,3 +34,35 @@ describe("getUploadKey", () => {
     expect(key.endsWith(".bin")).toBe(true);
   });
 });
+
+describe("storage keys from public URLs", async () => {
+  const { storageKeyFromUrl, storageConfigured } = await import("./index");
+  const env = { S3_PUBLIC_URL: "https://cdn.example.org/" };
+  const key = "uploads/registry/clxyz123/1793627682000-0123456789abcdef01234567.webp";
+  it("returns only keys this app minted, under its own public URL", () => {
+    expect(storageKeyFromUrl(`https://cdn.example.org/${key}`, env)).toBe(key);
+    for (const url of [
+      `https://evil.example.org/${key}`,
+      "https://lh3.googleusercontent.com/a/photo",
+      "https://cdn.example.org/uploads/registry/x/../../secret.webp",
+      "https://cdn.example.org/uploads/registry/clxyz123/file.html",
+      "https://cdn.example.org/other/clxyz123/1793627682000-0123456789abcdef01234567.webp",
+      null,
+      "",
+    ])
+      expect(storageKeyFromUrl(url, env)).toBeNull();
+    expect(storageKeyFromUrl(`https://cdn.example.org/${key}`, {})).toBeNull();
+  });
+  it("recognises every key the upload helper produces", async () => {
+    const { getUploadKey } = await import("./index");
+    for (const ctx of ["registry", "product", "business", "avatar"] as const)
+      for (const type of ["image/jpeg", "image/png", "image/webp", "image/gif"]) {
+        const minted = getUploadKey(ctx, "clabc123def", type);
+        expect(storageKeyFromUrl(`https://cdn.example.org/${minted}`, env)).toBe(minted);
+      }
+  });
+  it("reports storage as configured only with every setting", () => {
+    expect(storageConfigured({ S3_BUCKET: "b", S3_ACCESS_KEY_ID: "a", S3_SECRET_ACCESS_KEY: "s", S3_PUBLIC_URL: "https://c" })).toBe(true);
+    expect(storageConfigured({ S3_BUCKET: "b" })).toBe(false);
+  });
+});

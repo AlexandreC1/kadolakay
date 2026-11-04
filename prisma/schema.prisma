@@ -38,6 +38,9 @@ model User {
   suspendedAt           DateTime?
   mfaSecret             String?         @db.Text
   mfaLastCounter        BigInt          @default(-1)
+  mfaFailedAttempts     Int             @default(0)
+  mfaFailureWindowStart DateTime?
+  mfaLockedUntil        DateTime?
   recoveryHashes        String[]        @default([])
   deviceSessions        DeviceSession[]
   mfaEnrollment         MfaEnrollment?
@@ -533,6 +536,11 @@ model RefundRequest {
   reason      String   @db.VarChar(1000)
   amountMinor BigInt
   currency    String   @db.VarChar(3)
+  // Filled only when state is REFUNDED: evidence the merchant recorded, not a provider confirmation.
+  refundMethod     String?   @db.VarChar(20)
+  refundReference  String?   @db.VarChar(100)
+  refundedAt       DateTime?
+  refundRecordedBy String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   order       Order    @relation(fields: [orderId], references: [id], onDelete: Restrict)

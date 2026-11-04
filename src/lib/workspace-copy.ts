@@ -86,6 +86,22 @@ const copy = {
     REQUESTED: "Requested",
     DECLINED: "Declined",
     WITHDRAWN: "Withdrawn",
+    REFUNDED: "Refunded",
+    recordRefund: "Record the refund you sent",
+    recordRefundHint:
+      "After you have paid the buyer back, record how. The buyer sees this record. Bayou does not move or confirm this money.",
+    refundMethod: "How you refunded",
+    refundReference: "Transaction reference",
+    refundReferenceHint: "Required except for cash. Use the reference from your MonCash, Natcash, bank or card receipt.",
+    refundRecorded: "Refund recorded by the merchant",
+    refundRecordedNote:
+      "This record comes from the merchant. Check it against your own MonCash, Natcash, bank or card history.",
+    MONCASH: "MonCash",
+    NATCASH: "Natcash",
+    BANK_TRANSFER: "Bank transfer",
+    CARD: "Card",
+    CASH: "Cash",
+    OTHER: "Other",
     refundNotice:
       "Accepting a request records the merchant’s decision. Money is not refunded until a payment provider confirms it.",
     paidOnly: "Only verified paid orders can move through fulfillment.",
@@ -229,6 +245,22 @@ const copy = {
     REQUESTED: "Demandée",
     DECLINED: "Refusée",
     WITHDRAWN: "Retirée",
+    REFUNDED: "Remboursée",
+    recordRefund: "Enregistrer le remboursement envoyé",
+    recordRefundHint:
+      "Après avoir remboursé l’acheteur, indiquez comment. L’acheteur voit cet enregistrement. Bayou ne transfère ni ne confirme cet argent.",
+    refundMethod: "Moyen de remboursement",
+    refundReference: "Référence de la transaction",
+    refundReferenceHint: "Obligatoire sauf en espèces. Utilisez la référence de votre reçu MonCash, Natcash, bancaire ou de carte.",
+    refundRecorded: "Remboursement enregistré par le commerce",
+    refundRecordedNote:
+      "Cet enregistrement vient du commerce. Vérifiez-le dans votre historique MonCash, Natcash, bancaire ou de carte.",
+    MONCASH: "MonCash",
+    NATCASH: "Natcash",
+    BANK_TRANSFER: "Virement bancaire",
+    CARD: "Carte",
+    CASH: "Espèces",
+    OTHER: "Autre",
     refundNotice:
       "Accepter une demande enregistre la décision du vendeur. Le remboursement effectif nécessite la confirmation du prestataire de paiement.",
     paidOnly:
@@ -372,6 +404,22 @@ const copy = {
     REQUESTED: "Mande",
     DECLINED: "Refize",
     WITHDRAWN: "Retire",
+    REFUNDED: "Ranbouse",
+    recordRefund: "Anrejistre ranbousman ou voye a",
+    recordRefundHint:
+      "Apre ou fin remèt achtè a lajan l, di kijan ou fè l. Achtè a ap wè anrejistreman sa a. Bayou pa deplase ni konfime lajan sa a.",
+    refundMethod: "Kijan ou ranbouse",
+    refundReference: "Referans tranzaksyon an",
+    refundReferenceHint: "Obligatwa sof si se kach. Sèvi ak referans ki sou resi MonCash, Natcash, bank oswa kat ou.",
+    refundRecorded: "Machann nan anrejistre ranbousman an",
+    refundRecordedNote:
+      "Se machann nan ki bay anrejistreman sa a. Verifye l nan istwa MonCash, Natcash, bank oswa kat ou.",
+    MONCASH: "MonCash",
+    NATCASH: "Natcash",
+    BANK_TRANSFER: "Transfè labank",
+    CARD: "Kat",
+    CASH: "Kach",
+    OTHER: "Lòt",
     refundNotice:
       "Aksepte demann lan anrejistre desizyon machann nan. Lajan pa ranbouse toutotan founisè peman an pa konfime sa.",
     paidOnly:

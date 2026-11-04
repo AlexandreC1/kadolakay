@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { getTranslations } from "next-intl/server";
 import { SettingsForm } from "./SettingsForm";
 import { SessionSecurityForm } from "./SessionSecurityForm";
+import { AccountDataPanel } from "./AccountDataPanel";
 
 export default async function SettingsPage() {
   const session = await auth();
@@ -36,6 +37,7 @@ export default async function SettingsPage() {
       </h1>
       <SettingsForm user={user} />
       <SessionSecurityForm />
+      <AccountDataPanel />
     </div>
   );
 }

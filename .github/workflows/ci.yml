@@ -73,7 +73,25 @@ jobs:
         run: npx prisma migrate diff --from-config-datasource --to-schema prisma/schema.prisma --exit-code
       - run: npm test
       - run: npm run test:quality-loop
+      - run: npm run test:ownership
       - run: npm run test:db
+  ownership:
+    name: Workstream Ownership
+    if: github.event_name == 'pull_request' && !contains(github.event.pull_request.labels.*.name, 'ownership-override')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      # Plain Node script: no install needed. Skips branches that are not ws<N>/...
+      - name: Check changed files against .github/ownership.json
+        env:
+          OWNERSHIP_BASE: origin/${{ github.base_ref }}
+          HEAD_REF: ${{ github.head_ref }}
+        run: node scripts/check-ownership.mjs "$HEAD_REF"
   build:
     name: Build
     needs: [lint, typecheck, test, audit]

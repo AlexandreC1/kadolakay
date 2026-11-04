@@ -288,12 +288,28 @@
     "signOutEverywhereDescription": "Sign out of every browser, including this one. You will need to sign in again on each device.",
     "signOutEverywhere": "Sign out everywhere",
     "signingOut": "Signing out…",
-    "signOutEverywhereFailed": "We could not sign you out everywhere. Please try again."
+    "signOutEverywhereFailed": "We could not sign you out everywhere. Please try again.",
+    "yourData": "Your data",
+    "exportDescription": "Download a copy of your profile, lists and purchases as a JSON file. Passwords and sign-in secrets are never included.",
+    "exportButton": "Download my data",
+    "deleteTitle": "Delete my account",
+    "deleteDescription": "This removes your profile, your sign-in methods and lists that never received a gift. Lists that received gifts are archived without your personal text, and your purchases stay with the merchants without your contact details. This cannot be undone.",
+    "deleteConfirmLabel": "Type your email address to confirm",
+    "deleteButton": "Delete my account",
+    "deleting": "Deleting…",
+    "deleteInvalid": "Type your email address to confirm.",
+    "deleteMismatch": "That does not match your email address.",
+    "deleteUnavailable": "We could not delete your account right now. Please try again in a minute.",
+    "deleteBlocked_ADMIN_ACCOUNT": "Administrator accounts cannot be deleted here. Ask another administrator to remove your role first.",
+    "deleteBlocked_ACTIVE_ORDERS": "One of your purchases is still being prepared or delivered. You can delete your account once it is finished.",
+    "deleteBlocked_OPEN_REFUNDS": "You have an open cancellation or refund request. You can delete your account once it is settled.",
+    "deleteBlocked_MERCHANT_RECORDS": "Your business has order history that must be kept. Contact us so we can close your merchant account properly."
   },
   "footer": {
     "tagline": "Gifts for every occasion, from home.",
     "privacy": "Privacy Policy",
     "terms": "Terms of Service",
-    "contact": "Contact us"
+    "contact": "Contact us",
+    "legalNavigation": "Legal links"
   }
 }

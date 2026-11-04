@@ -8,6 +8,12 @@ import { revalidatePath } from "next/cache";
 import { signOut } from "@/lib/auth";
 import { getLocale } from "next-intl/server";
 import { revokeOwnSessions } from "@/services/sessions";
+import { checkRateLimit } from "@/lib/rate-limit";
+import {
+  deleteAccount,
+  AccountDeletionBlocked,
+  type AccountDeletionBlock,
+} from "@/services/account-data";
 
 export async function signOutEverywhere(formData: FormData) {
   parseFormFields(formData, []);
@@ -39,4 +45,31 @@ export async function updateProfile(formData: FormData) {
 
   revalidatePath("/settings");
   revalidatePath("/dashboard");
+}
+
+export type AccountDeletionState = {
+  status: "idle" | "invalid" | "mismatch" | "blocked" | "unavailable";
+  reason?: AccountDeletionBlock;
+};
+
+/** Deletes the signed-in person's account after they retype their email address. */
+export async function deleteMyAccount(
+  _previous: AccountDeletionState,
+  formData: FormData,
+): Promise<AccountDeletionState> {
+  let locale: string;
+  try {
+    const { confirmation } = parseFormFields(formData, ["confirmation"]);
+    if (typeof confirmation !== "string" || !confirmation.trim()) return { status: "invalid" };
+    const actor = await requireActor("account:delete");
+    if (!(await checkRateLimit("auth", `account-delete:${actor.id}`)).ok) return { status: "unavailable" };
+    locale = await getLocale();
+    await deleteAccount(actor.id, confirmation);
+  } catch (error) {
+    if (error instanceof AccountDeletionBlocked) return { status: "blocked", reason: error.reason };
+    if (error instanceof Error && error.message === "CONFIRMATION_MISMATCH") return { status: "mismatch" };
+    return { status: "unavailable" };
+  }
+  await signOut({ redirectTo: `/${locale}?account=deleted` });
+  return { status: "idle" };
 }

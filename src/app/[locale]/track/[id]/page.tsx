@@ -1,4 +1,5 @@
 import { OrderContact } from "@/components/business/OrderContact";
+import { RefundRecordNote } from "@/components/business/RefundRecordNote";
 import { saveGuestDelivery, saveGuestRequest } from "@/actions/tracking";
 import { FoundationForm } from "@/components/shared/FoundationForm";
 import { getLocale } from "next-intl/server";
@@ -88,9 +89,12 @@ export default async function TrackedPurchase({
             <section className="foundation-panel workspace-section" key={b.id}>
               <h2>{b.name}</h2>
               {request ? (
-                <p>
-                  {w.refunds}: {w[request.state as "REQUESTED"]}
-                </p>
+                <>
+                  <p>
+                    {w.refunds}: {w[request.state as "REQUESTED"]}
+                  </p>
+                  <RefundRecordNote locale={locale} request={request} />
+                </>
               ) : (
                 <FoundationForm
                   action={saveGuestRequest}
@@ -110,7 +114,9 @@ export default async function TrackedPurchase({
                   />
                 </FoundationForm>
               )}
-              <p className="foundation-note">{w.refundNotice}</p>
+              {request?.state !== "REFUNDED" && (
+                <p className="foundation-note">{w.refundNotice}</p>
+              )}
             </section>
           );
         })}

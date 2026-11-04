@@ -1,1 +1,4 @@
-.footer { border-top: 1px solid var(--brand-line); padding: 22px max(24px, calc((100vw - 1264px) / 2)); color: var(--brand-muted); font-size: 12px; }
+.footer { border-top: 1px solid var(--brand-line); padding: 22px max(24px, calc((100vw - 1264px) / 2)); color: var(--brand-muted); font-size: 12px; display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: center; justify-content: space-between; }
+.links { display: flex; flex-wrap: wrap; gap: 8px 20px; }
+.links a { color: inherit; text-underline-offset: 4px; min-height: 24px; display: inline-flex; align-items: center; }
+.links a:hover, .links a:focus-visible { color: var(--brand-ocean); text-decoration: underline; }

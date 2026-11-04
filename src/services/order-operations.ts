@@ -294,3 +294,93 @@ export async function decideOrderResolution(actorId: string, input: unknown) {
     // Financial statuses, inventory and provider refunds are deliberately untouched.
   });
 }
+export const refundMethods = [
+  "MONCASH",
+  "NATCASH",
+  "BANK_TRANSFER",
+  "CARD",
+  "CASH",
+  "OTHER",
+] as const;
+export type RefundMethod = (typeof refundMethods)[number];
+/** Plain printable reference text: no markup, no control characters. */
+const refundReferenceSchema = z
+  .string()
+  .trim()
+  .max(100)
+  .regex(/^[\p{L}\p{N} .,:#/_+-]*$/u);
+export const refundRecordSchema = z
+  .strictObject({
+    requestId: entityIdSchema,
+    method: z.enum(refundMethods),
+    reference: refundReferenceSchema.default(""),
+    businessId: entityIdSchema.optional(),
+  })
+  .refine((d) => d.method === "CASH" || d.reference.length >= 3, {
+    path: ["reference"],
+    message: "REFERENCE_REQUIRED",
+  });
+/**
+ * Records that the merchant paid an accepted request back outside Bayou.
+ *
+ * Merchants are the sellers and issue their own refunds (docs/DECISIONS.md), so this is the
+ * merchant's evidence, shown to the buyer as such. It never changes the order, the payment
+ * or stock: a recorded refund is not a provider-confirmed one, and refunds are never restocked.
+ * Admins may record on a merchant's behalf with businessId (admin:order plus step-up).
+ */
+export async function recordRefundSent(actorId: string, input: unknown) {
+  actorId = parseEntityId(actorId);
+  const data = refundRecordSchema.parse(input);
+  await db.$transaction(async (tx) => {
+    await lockActor(
+      tx,
+      actorId,
+      data.businessId ? "admin:order" : "order:refund",
+    );
+    const b = await tx.business.findUnique({
+      where: data.businessId ? { id: data.businessId } : { ownerId: actorId },
+      select: { id: true },
+    });
+    if (!b) throw new Error("REQUEST_UNAVAILABLE");
+    const initial = await tx.refundRequest.findFirst({
+      where: { id: data.requestId, businessId: b.id },
+      select: { orderId: true },
+    });
+    if (!initial) throw new Error("REQUEST_UNAVAILABLE");
+    await tx.$queryRaw`SELECT id FROM orders WHERE id=${initial.orderId} FOR UPDATE`;
+    const request = await tx.refundRequest.findFirst({
+      where: { id: data.requestId, businessId: b.id },
+    });
+    if (!request) throw new Error("REQUEST_UNAVAILABLE");
+    // Same record sent twice (double click, retry) is a no-op; a different one is refused.
+    if (request.state === "REFUNDED") {
+      if (
+        request.refundMethod === data.method &&
+        (request.refundReference || "") === data.reference
+      )
+        return;
+      throw new Error("REQUEST_ALREADY_DECIDED");
+    }
+    if (request.state !== "ACCEPTED") throw new Error("REFUND_NOT_ACCEPTED");
+    await tx.refundRequest.update({
+      where: { id: request.id },
+      data: {
+        state: "REFUNDED",
+        refundMethod: data.method,
+        refundReference: data.reference || null,
+        refundedAt: new Date(),
+        refundRecordedBy: actorId,
+      },
+    });
+    await auditOperation(
+      tx,
+      actorId,
+      "REFUND_RECORDED",
+      "REFUND_REQUEST",
+      request.id,
+      "ACCEPTED",
+      `REFUNDED:${data.method}`,
+    );
+    // Order status, payment status and inventory are deliberately untouched.
+  });
+}

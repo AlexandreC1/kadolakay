@@ -70,3 +70,22 @@ export function getUploadKey(
   const nonce = randomBytes(12).toString("hex");
   return `uploads/${context}/${id}/${Date.now()}-${nonce}.${ext}`;
 }
+
+/** True when uploads can be read and deleted. */
+export function storageConfigured(env: Record<string, string | undefined> = process.env) {
+  return Boolean(env.S3_BUCKET && env.S3_ACCESS_KEY_ID && env.S3_SECRET_ACCESS_KEY && env.S3_PUBLIC_URL);
+}
+
+/** Exactly the key shape getUploadKey mints. Anything else is not ours to delete. */
+const UPLOAD_KEY = /^uploads\/(registry|product|business|avatar)\/[A-Za-z0-9_-]{1,64}\/\d{10,16}-[a-f0-9]{24}\.(jpg|png|webp|gif)$/;
+
+/**
+ * The storage key behind a public URL this app produced, or null for anything else
+ * (Google profile photos, external links, other buckets, malformed or traversal keys).
+ */
+export function storageKeyFromUrl(url: string | null | undefined, env: Record<string, string | undefined> = process.env) {
+  const base = env.S3_PUBLIC_URL?.replace(/\/+$/, "");
+  if (!url || !base || !url.startsWith(`${base}/`)) return null;
+  const key = url.slice(base.length + 1);
+  return UPLOAD_KEY.test(key) ? key : null;
+}

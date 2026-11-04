@@ -13,6 +13,7 @@ const required = [
   "UPSTASH_REDIS_REST_TOKEN",
   "CRON_SECRET",
   "NEXT_PUBLIC_APP_URL",
+  "SUPPORT_EMAIL",
 ];
 if (
   process.env.DATA_ENCRYPTION_KEY &&
@@ -28,6 +29,15 @@ const issues = [...missing.map((name) => `${name}: missing`)];
 for (const name of ["AUTH_SECRET", "CRON_SECRET"])
   if (process.env[name] && process.env[name].length < 32)
     issues.push(`${name}: must contain at least 32 characters`);
+if (
+  process.env.SUPPORT_EMAIL &&
+  !/^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/.test(process.env.SUPPORT_EMAIL.trim())
+)
+  issues.push("SUPPORT_EMAIL: must be a plain email address");
+const ipHeaders = ["x-nf-client-connection-ip", "x-vercel-forwarded-for"];
+const ipHeader = process.env.CLIENT_IP_HEADER?.trim().toLowerCase();
+if (ipHeader && !ipHeaders.includes(ipHeader))
+  issues.push(`CLIENT_IP_HEADER: must be one of ${ipHeaders.join(", ")}`);
 try {
   const url = new URL(process.env.NEXT_PUBLIC_APP_URL);
   if (

@@ -14,6 +14,7 @@ import {
   transitionFulfillment,
   requestOrderResolution,
   decideOrderResolution,
+  recordRefundSent,
 } from "@/services/order-operations";
 import { changeAccount } from "@/services/backoffice";
 import { saveCampaign, setSeasonalEnabled } from "@/services/campaigns";
@@ -140,6 +141,26 @@ export async function saveRequestDecision(
         raw.businessId ? "admin:order" : "order:refund",
       );
     await decideOrderResolution(actor.id, raw);
+    return saved();
+  } catch (e) {
+    return failed(e);
+  }
+}
+export async function saveRefundRecord(
+  _s: FoundationResult,
+  form: FormData,
+): Promise<FoundationResult> {
+  try {
+    const raw = parseFormFields(form, [
+        "requestId",
+        "method",
+        "reference",
+        "businessId",
+      ]),
+      actor = await requireActor(
+        raw.businessId ? "admin:order" : "order:refund",
+      );
+    await recordRefundSent(actor.id, raw);
     return saved();
   } catch (e) {
     return failed(e);

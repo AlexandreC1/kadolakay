@@ -11,6 +11,8 @@ export function isAdministrator(role: Role | undefined): boolean {
 }
 export const permissions = {
   "session:revoke": members,
+  "account:export": members,
+  "account:delete": members,
   "security:verify": members,
   "basket:manage": members,
   "registry:privacy": members,
