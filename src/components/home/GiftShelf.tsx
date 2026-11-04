@@ -23,10 +23,10 @@ export async function GiftShelf({ locale }: { locale: string }) {
           <h2 id="shelf-title">{c.shelfTitle}</h2>
           <p>{c.shelfIntro}</p>
         </div>
-        <nav className={styles.shelfLinks} aria-label={c.shelfTitle}>
-          <Link href="/browse">{c.shelfAll}</Link>
-          <Link href="/discover">{c.shelfIdeas}</Link>
-        </nav>
+        {/* One "see all": shops and budget ideas already have their own shortcuts above. */}
+        <Link href="/discover" className={styles.shelfLinks}>
+          {c.seeAll}
+        </Link>
       </div>
       {failed ? (
         <p className={styles.shelfEmpty} role="status">{c.failed}</p>

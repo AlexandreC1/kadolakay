@@ -2,7 +2,7 @@ import { NextIntlClientProvider, hasLocale } from "next-intl";
 import { getMessages } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { routing } from "@/i18n/routing";
-import { Figtree, Fraunces } from "next/font/google";
+import localFont from "next/font/local";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { cookies } from "next/headers";
@@ -15,15 +15,22 @@ import "../foundations.css";
 import "../transitions.css";
 import "../app-shell.css";
 
-const bodyFont = Figtree({
+// Self-hosted Latin variable files (SIL OFL, licences beside them): no font download at build time.
+const bodyFont = localFont({
+  src: "../fonts/Figtree-Latin.woff2",
+  weight: "300 900",
+  style: "normal",
   variable: "--font-manrope",
-  subsets: ["latin"],
+  display: "swap",
 });
 
-const displayFont = Fraunces({
+const displayFont = localFont({
+  src: [
+    { path: "../fonts/Fraunces-Latin.woff2", weight: "100 900", style: "normal" },
+    { path: "../fonts/Fraunces-Latin-Italic.woff2", weight: "100 900", style: "italic" },
+  ],
   variable: "--font-display",
-  style: ["normal", "italic"],
-  subsets: ["latin"],
+  display: "swap",
 });
 
 export default async function LocaleLayout({

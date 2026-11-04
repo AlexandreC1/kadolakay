@@ -30,6 +30,13 @@ export const discoverySchema = z
       .pipe(z.number().int().min(1).max(12))
       .default(6),
     occasion: z.enum(occasions).default("ANY"),
+    // Optional gift or shop name. Matched as plain text, never as a pattern.
+    q: z
+      .string()
+      .trim()
+      .max(80)
+      .optional()
+      .transform((value) => value || undefined),
   })
   .strict();
 type ParsedDiscoveryInput = z.infer<typeof discoverySchema>;
@@ -37,7 +44,7 @@ export type DiscoveryInput = Pick<
   ParsedDiscoveryInput,
   "budget" | "currency" | "occasion"
 > &
-  Partial<Pick<ParsedDiscoveryInput, "budgetMode" | "maxGifts">>;
+  Partial<Pick<ParsedDiscoveryInput, "budgetMode" | "maxGifts" | "q">>;
 const categories: Record<DiscoveryInput["occasion"], readonly string[]> = {
   ANY: [],
   BIRTHDAY: ["fashion", "clothing", "electronics", "art", "crafts", "beauty"],

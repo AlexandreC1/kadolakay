@@ -36,6 +36,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             clientId: process.env.AUTH_GOOGLE_ID,
             clientSecret: process.env.AUTH_GOOGLE_SECRET,
             authorization: { params: { prompt: "select_account" } },
+            checks: ["pkce", "state"],
           }),
         ]
       : []),
@@ -75,6 +76,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     error: "/login",
   },
   callbacks: {
+    // Google must vouch for the address; an unverified Google email never signs in.
+    signIn({ account, profile }) {
+      if (account?.provider === "google" && profile?.email_verified !== true) return false;
+      return true;
+    },
     redirect({ url, baseUrl }) {
       return safeAuthRedirect(url, baseUrl);
     },

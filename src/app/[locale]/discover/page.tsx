@@ -11,10 +11,11 @@ import { seasonalPresentation } from "@/services/campaigns";
 import { workspaceCopy } from "@/lib/workspace-copy";
 import { fromMinorUnits, toMinorUnits } from "@/services/money";
 import { discoverGifts } from "@/services/discovery";
-import { ViewTransition } from "react";
+import { auth } from "@/lib/auth";
+import { db } from "@/lib/db";
+import { GiftResults } from "@/components/guest/GiftResults";
 import { guestCopy } from "@/lib/guest-copy";
 import { LiveFilterForm } from "@/components/guest/LiveFilterForm";
-import { GiftArt } from "@/components/shared/GiftArt";
 import { PageTransition } from "@/components/shared/PageTransition";
 import guest from "@/components/guest/guest.module.css";
 
@@ -41,6 +42,7 @@ export default async function DiscoverPage({
     occasion: raw.occasion ?? defaultOccasion,
     budgetMode: raw.budgetMode,
     maxGifts: raw.maxGifts,
+    q: typeof raw.q === "string" ? raw.q.slice(0, 80) : raw.q,
   });
   let error: string | undefined;
   let gifts: Awaited<ReturnType<typeof discoverGifts>> = [];
@@ -60,6 +62,20 @@ export default async function DiscoverPage({
     ? parsed.data
     : { budget: "100", currency: "USD", occasion: "ANY" };
   const action = locale === "ht" ? "/discover" : `/${locale}/discover`;
+  // Signed-in visitors can add results to one of their own lists; null means signed out.
+  const session = await auth();
+  const lists = session?.user?.id
+    ? (
+        await db.registry
+          .findMany({
+            where: { userId: session.user.id, status: { not: "ARCHIVED" } },
+            orderBy: { updatedAt: "desc" },
+            take: 50,
+            select: { id: true, slug: true, title: true, items: { where: { productId: { not: null } }, select: { productId: true } } },
+          })
+          .catch(() => [])
+      ).map((r) => ({ id: r.id, slug: r.slug, title: r.title, productIds: r.items.map((i) => i.productId!) }))
+    : null;
   const g = guestCopy(locale);
   const money = (amount: number | string) =>
     new Intl.NumberFormat(locale === "ht" ? "fr-HT" : locale, { style: "currency", currency: input.currency }).format(Number(amount));
@@ -75,6 +91,10 @@ export default async function DiscoverPage({
           </div>
         </header>
         <LiveFilterForm action={action} pendingLabel={g.updating}>
+          <div className={`${guest.field} ${guest.fieldWide}`} style={{ flexBasis: "100%" }}>
+            <label htmlFor="gift-q">{g.searchGifts}</label>
+            <input id="gift-q" name="q" type="search" maxLength={80} defaultValue={typeof raw.q === "string" ? raw.q.slice(0, 80) : ""} />
+          </div>
           <div className={guest.field}>
             <label htmlFor="budget">{budgetLabel}</label>
             <input
@@ -142,21 +162,19 @@ export default async function DiscoverPage({
                 </p>
               )}
             </div>
-            <ul className={guest.tiles}>
-              {gifts.map((gift) => (
-                <ViewTransition key={gift.id} name={`find-gift-${gift.id}`} update="gift-move" enter="gift-in" exit="gift-out" default="none">
-                  <li>
-                    <Link href={`/gifts/${gift.id}`} className={guest.tile} transitionTypes={["nav-forward"]}>
-                      <GiftArt id={gift.id} name={gift.name} imageUrl={gift.imageUrl} square />
-                      <span className={guest.tileShop}>{gift.businessName}</span>
-                      {gift.imageUrl && <span className={guest.tileName}>{gift.name}</span>}
-                      <span className={guest.tilePrice}>{money(gift.amount)}</span>
-                      <span className={guest.tileNote}>{gift.reason === "occasion" ? c.match : c.within}</span>
-                    </Link>
-                  </li>
-                </ViewTransition>
-              ))}
-            </ul>
+            <GiftResults
+              locale={locale}
+              lists={lists}
+              signInHref={`/login?callbackUrl=${encodeURIComponent(`/${locale}/discover`)}`}
+              gifts={gifts.map((gift) => ({
+                id: gift.id,
+                name: gift.name,
+                imageUrl: gift.imageUrl,
+                businessName: gift.businessName,
+                price: money(gift.amount),
+                note: gift.reason === "occasion" ? c.match : c.within,
+              }))}
+            />
           </section>
         ) : (
           <section className={guest.empty}>

@@ -447,17 +447,14 @@
   color: var(--brand-secondary);
 }
 .shelfLinks {
-  display: flex;
-  gap: 22px;
-  font-weight: 650;
-  color: var(--brand-ocean);
-}
-.shelfLinks a {
-  min-height: 40px;
   display: inline-flex;
   align-items: center;
+  min-height: 40px;
+  font-weight: 650;
+  font-size: 0.92rem;
+  color: var(--brand-ocean);
 }
-.shelfLinks a:hover {
+.shelfLinks:hover {
   text-decoration: underline;
   text-underline-offset: 4px;
 }
@@ -602,7 +599,7 @@
     display: none;
   }
   .rowProgress {
-    width: 96px;
+    width: 64px;
   }
   .rowProgress > span {
     display: none;
