@@ -1,5 +1,5 @@
 import { getLocale } from "next-intl/server";
-import { Baby, Cake, ChevronRight, Gift, HeartHandshake, ListChecks, Plus, ShoppingBag, Store, TreePine, Wallet } from "lucide-react";
+import { Baby, Cake, ChevronRight, Gift, HeartHandshake, ListChecks, PackageSearch, ShoppingBag, Store, TreePine, Wallet } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
@@ -31,10 +31,11 @@ export default async function HomePage() {
         .catch(() => [])
     : null;
   const quick = [
-    { href: "/create", icon: Plus, label: c.qaNew, hint: c.qaNewHint, primary: true },
     { href: "/registries", icon: ListChecks, label: c.qaPublic, hint: c.qaPublicHint },
     { href: "/discover", icon: Wallet, label: c.qaBudget, hint: c.qaBudgetHint },
     { href: "/browse", icon: Store, label: c.qaShops, hint: c.qaShopsHint },
+    // "New list" is not repeated here: it is already the main action in the top bar and tab bar.
+    { href: "/track", icon: PackageSearch, label: c.qaTrack, hint: c.qaTrackHint },
   ];
   return (
     <PageTransition>
@@ -47,8 +48,8 @@ export default async function HomePage() {
         </section>
 
         <nav className={styles.quick} aria-label={c.quick}>
-          {quick.map(({ href, icon: Icon, label, hint, primary }, i) => (
-            <Link key={href} href={href} className={styles.quickItem} data-primary={primary || undefined} style={{ ["--i" as string]: i }}>
+          {quick.map(({ href, icon: Icon, label, hint }, i) => (
+            <Link key={href} href={href} className={styles.quickItem} style={{ ["--i" as string]: i }}>
               <span className={styles.quickIcon}>
                 <Icon size={20} strokeWidth={2} aria-hidden="true" />
               </span>
