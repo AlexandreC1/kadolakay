@@ -5,7 +5,6 @@ import { useTranslations } from "next-intl";
 import { createRegistry } from "@/actions/registry";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent } from "@/components/ui/card";
 
 const registryTypes = [
   { value: "BABY_SHOWER" },
