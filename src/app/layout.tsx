@@ -3,8 +3,8 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: {
-    default: "Bayou · Kado pou tout okazyon, lakay ou",
-    template: "%s | Bayou",
+    default: "KDOM · Kado pou tout okazyon, lakay ou",
+    template: "%s | KDOM",
   },
   icons:{icon:{url:"/icon.svg",type:"image/svg+xml"}},
   description:

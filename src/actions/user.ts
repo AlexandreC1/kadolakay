@@ -2,7 +2,7 @@
 
 import { createHash } from "node:crypto";
 import { headers } from "next/headers";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import { auth, revokeUserSessions, signOut } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { log } from "@/lib/log";
@@ -159,6 +159,7 @@ export async function deleteAccount(formData: FormData): Promise<DeleteAccountRe
     });
   });
 
+  if (user.business) updateTag("browse");
   log.info("user.account_deleted", { userId });
   await signOut({ redirectTo: "/" });
 }

@@ -4,7 +4,7 @@ import { ContactForm } from "./ContactForm";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("contact");
-  return { title: `${t("title")} — KadoLakay` };
+  return { title: `${t("title")} — KDOM` };
 }
 
 export default async function ContactPage() {

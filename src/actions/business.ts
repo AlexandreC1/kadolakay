@@ -5,7 +5,7 @@ import { db } from "@/lib/db";
 import { generateUniqueSlug } from "@/lib/slug";
 import { Prisma } from "@prisma/client";
 import { registerBusinessSchema, addProductSchema, updateProductSchema } from "@/lib/validators/business";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import { redirect } from "next/navigation";
 
 export async function registerBusiness(formData: FormData) {
@@ -103,6 +103,7 @@ export async function addProduct(formData: FormData) {
     },
   });
 
+  updateTag("browse");
   revalidatePath("/business/products");
 }
 
@@ -131,6 +132,7 @@ export async function updateProduct(productId: string, formData: FormData) {
   const parsed = updateProductSchema.safeParse(raw);
   if (!parsed.success) throw new Error("Invalid product data");
   await db.product.update({ where: { id: productId }, data: parsed.data });
+  updateTag("browse");
   revalidatePath("/business/products");
 }
 
@@ -138,6 +140,7 @@ export async function updateProduct(productId: string, formData: FormData) {
 export async function deleteProduct(productId: string) {
   await ownedProduct(productId);
   await db.product.update({ where: { id: productId }, data: { deletedAt: new Date(), inStock: false } });
+  updateTag("browse");
   revalidatePath("/business/products");
 }
 

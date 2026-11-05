@@ -8,7 +8,8 @@ import { money, multiply, percentOf, sum, type Currency, type Money } from "@/li
 
 export const MAX_QTY_PER_ITEM = 100;
 export const MAX_ITEMS_PER_ORDER = 50;
-export const PLATFORM_FEE_PERCENT = 5;
+// Fees are not enabled for launch. Introducing them requires an explicit product decision.
+export const PLATFORM_FEE_PERCENT = 0;
 
 export interface PricedItemRow {
   id: string;

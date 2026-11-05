@@ -35,7 +35,7 @@ vi.mock("@/lib/db", () => ({ db: m.db }));
 vi.mock("@/lib/email/outbox", () => ({ enqueueEmail: m.enqueueEmail, enqueueEmailWith: m.enqueueEmailWith }));
 vi.mock("@/lib/rate-limit", () => ({ checkRateLimit: m.rate, getClientIp: () => "1.2.3.4" }));
 vi.mock("next/headers", () => ({ headers: async () => new Headers() }));
-vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
+vi.mock("next/cache", () => ({ revalidatePath: vi.fn(), updateTag: vi.fn() }));
 
 import { deleteAccount, signOutEverywhere, submitContact } from "./user";
 

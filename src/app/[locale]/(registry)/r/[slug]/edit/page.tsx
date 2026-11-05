@@ -39,6 +39,8 @@ export default async function EditRegistryPage({ params }: PageProps) {
       <p className="text-gray-600 mb-8">{registry.title}</p>
 
       <ShareLinkPanel
+        title={registry.title}
+        published={registry.status === "PUBLISHED"}
         registryId={registry.id}
         baseUrl={`${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/r/${registry.slug}`}
         isPublic={registry.isPublic}

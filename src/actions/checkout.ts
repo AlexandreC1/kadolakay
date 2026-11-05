@@ -165,7 +165,7 @@ export async function createOrder(formData: FormData) {
       publicToken: order.publicToken,
       amount: priced.total,
       currency,
-      description: `KadoLakay - ${order.orderNumber}`,
+      description: `KDOM - ${order.orderNumber}`,
       returnUrl,
       cancelUrl,
     });

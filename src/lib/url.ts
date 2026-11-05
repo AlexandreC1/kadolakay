@@ -62,7 +62,7 @@ export const optionalImageUrl = z
   .union([z.literal(""), z.string().trim().max(MAX_URL_LENGTH)])
   .optional()
   .transform((v) => (v ? v : undefined))
-  .refine((v) => v === undefined || isAllowedImageUrl(v), { message: "Image must be uploaded to KadoLakay" });
+  .refine((v) => v === undefined || isAllowedImageUrl(v), { message: "Image must be uploaded to KDOM" });
 
 /** Link an owner hands out: plain for public registries, `?share=` for private ones. */
 export function buildShareUrl(baseUrl: string, isPublic: boolean, token: string): string {

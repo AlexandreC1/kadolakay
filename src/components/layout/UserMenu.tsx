@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useTranslations } from "next-intl";
+import { signOut } from "next-auth/react";
 import { Link } from "@/i18n/navigation";
 
 interface UserMenuProps {
@@ -16,6 +17,7 @@ interface UserMenuProps {
 export function UserMenu({ user }: UserMenuProps) {
   const t = useTranslations();
   const [open, setOpen] = useState(false);
+  const [imageFailed, setImageFailed] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -32,14 +34,15 @@ export function UserMenu({ user }: UserMenuProps) {
     <div className="relative" ref={menuRef}>
       <button
         onClick={() => setOpen(!open)}
-        aria-label="Menu itilizatè"
+        aria-label={t("header.accountMenu")}
         aria-expanded={open}
         className="flex items-center gap-2 rounded-full border border-gray-200 p-1 pr-3 hover:bg-gray-50 transition-colors"
       >
-        {user.image ? (
+        {user.image && !imageFailed ? (
           <img
             src={user.image}
-            alt={user.name ? `${user.name}` : "Foto pwofil"}
+            onError={() => setImageFailed(true)}
+            alt=""
             className="h-8 w-8 rounded-full object-cover"
           />
         ) : (
@@ -103,14 +106,15 @@ export function UserMenu({ user }: UserMenuProps) {
             </>
           )}
           <div className="border-t border-gray-100 my-1" />
-          <form action="/api/auth/signout" method="POST">
+          <div>
             <button
-              type="submit"
+              type="button"
+              onClick={() => void signOut({ callbackUrl: "/" })}
               className="w-full text-left px-4 py-2 text-sm text-red-300 hover:bg-gray-50"
             >
               {t("common.signOut")}
             </button>
-          </form>
+          </div>
         </div>
       )}
     </div>

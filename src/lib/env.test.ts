@@ -26,6 +26,15 @@ describe("env validation", () => {
   it("requires provider secrets only when the provider is enabled", () => {
     expect(validateServerEnv({ ...good, PAYPAL_ENABLED: "true" }).some((p) => p.startsWith("PAYPAL_CLIENT_ID"))).toBe(true);
   });
+  it("does not require payment credentials when providers are disabled", () => {
+    expect(validateServerEnv({ ...good, STRIPE_SECRET_KEY: undefined, STRIPE_WEBHOOK_SECRET: undefined })).toEqual([]);
+  });
+  it("requires Stripe credentials when Stripe is enabled", () => {
+    expect(validateServerEnv({ ...good, STRIPE_ENABLED: "true", STRIPE_SECRET_KEY: undefined }).some((p) => p.startsWith("STRIPE_SECRET_KEY"))).toBe(true);
+  });
+  it("rejects an insecure production URL even when validation bypass is requested", () => {
+    expect(() => assertServerEnv({ ...good, NEXT_PUBLIC_APP_URL: "http://example.test", SKIP_ENV_VALIDATION: "1" })).toThrow(/HTTPS/);
+  });
   it("never prints secret values and only warns outside production", () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
     const env = { ...good, NODE_ENV: "development", AUTH_SECRET: "short-secret-value" } as NodeJS.ProcessEnv;

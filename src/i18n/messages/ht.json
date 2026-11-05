@@ -1,6 +1,6 @@
 {
   "common": {
-    "appName": "Bayou",
+    "appName": "KDOM",
     "tagline": "Kado pou tout okazyon, lakay ou.",
     "signIn": "Konekte",
     "signUp": "Kreye kont",
@@ -153,7 +153,7 @@
   },
   "business": {
     "signup": "Enskri biznis ou",
-    "signupDesc": "Mete biznis ou sou Bayou epi rive jwenn plis kliyan.",
+    "signupDesc": "Mete biznis ou sou KDOM epi rive jwenn plis kliyan.",
     "pendingMessage": "Biznis ou ap tann apwobasyon.",
     "pendingHint": "Ou ka kòmanse ajoute pwodwi pandan wap tann.",
     "noProducts": "Pa gen pwodwi ankò.",
@@ -197,12 +197,12 @@
     "copyLink": "Kopye lyen",
     "copied": "Lyen kopye!",
     "twitter": "Twitter/X",
-    "shareText": "Gade rejis mwen sou Bayou! {url}"
+    "shareText": "Gade rejis mwen sou KDOM! {url}"
   },
   "auth": {
-    "loginTitle": "Konekte sou Bayou",
+    "loginTitle": "Konekte sou KDOM",
     "loginSubtitle": "Konekte avèk kont Google ou oswa imèl ou.",
-    "signupTitle": "Kreye kont ou sou Bayou",
+    "signupTitle": "Kreye kont ou sou KDOM",
     "signupSubtitle": "Kòmanse kreye rejis kado ou jodi a.",
     "continueWithGoogle": "Kontinye ak Google",
     "continueWithEmail": "Kontinye ak imèl",
@@ -306,5 +306,20 @@
       "rate": "Twòp demann. Tann yon minit epi eseye ankò.",
       "failed": "Demann nan pa pase. Nou kenbe seleksyon ou a. Eseye ankò."
     }
+  },
+  "header": {
+    "navigation": "Navigasyon prensipal",
+    "findRegistry": "Jwenn yon rejis",
+    "more": "Plis",
+    "menu": "Louvri meni an",
+    "registerBusiness": "Anrejistre yon biznis",
+    "searchProducts": "Chèche kado",
+    "findIntro": "Louvri yon rejis yon moun pataje avè w.",
+    "registryAddress": "Lyen oswa adrès egzak rejis la",
+    "registryHelp": "Kole lyen KDOM a oswa adrès ki apre /r/ la. Ou poko ka chèche pa non isit la.",
+    "openRegistry": "Louvri rejis la",
+    "invalidRegistry": "Antre adrès yon rejis oswa yon lyen KDOM ki soti sou sit sa a.",
+    "language": "Lang",
+    "accountMenu": "Meni kont lan"
   }
 }

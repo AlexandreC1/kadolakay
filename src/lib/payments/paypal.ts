@@ -78,7 +78,7 @@ export const paypalProvider: PaymentVerifier = {
             experience_context: {
               return_url: input.returnUrl,
               cancel_url: input.cancelUrl,
-              brand_name: "KadoLakay",
+              brand_name: "KDOM",
               user_action: "PAY_NOW",
               shipping_preference: "NO_SHIPPING",
             },

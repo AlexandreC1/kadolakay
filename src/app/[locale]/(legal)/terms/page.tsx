@@ -8,7 +8,7 @@ interface PageProps {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { locale } = await params;
-  return { title: `${terms[pickLocale(locale)].title} — KadoLakay` };
+  return { title: `${terms[pickLocale(locale)].title} — KDOM` };
 }
 
 export default async function Page({ params }: PageProps) {

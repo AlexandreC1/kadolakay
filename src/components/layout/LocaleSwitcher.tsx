@@ -1,6 +1,6 @@
 "use client";
 
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { usePathname, useRouter } from "@/i18n/navigation";
 import { routing, type Locale } from "@/i18n/routing";
 
@@ -12,28 +12,21 @@ const localeLabels: Record<Locale, string> = {
 
 export function LocaleSwitcher() {
   const locale = useLocale() as Locale;
+  const t = useTranslations("header");
   const pathname = usePathname();
   const router = useRouter();
 
   function handleChange(newLocale: Locale) {
-    router.replace(pathname, { locale: newLocale });
+    // Preserve private share tokens, search filters, and page anchors.
+    router.replace(`${pathname}${window.location.search}${window.location.hash}`, { locale: newLocale });
   }
 
   return (
-    <div className="flex items-center gap-1">
-      {routing.locales.map((loc) => (
-        <button
-          key={loc}
-          onClick={() => handleChange(loc)}
-          className={`px-2 py-1 text-xs rounded-full transition-colors ${
-            loc === locale
-              ? "bg-gray-200 text-gray-900 font-medium"
-              : "text-gray-600 hover:bg-gray-100"
-          }`}
-        >
-          {localeLabels[loc]}
-        </button>
-      ))}
-    </div>
+    <label className="inline-flex items-center">
+      <span className="sr-only">{t("language")}</span>
+      <select value={locale} onChange={(event) => handleChange(event.target.value as Locale)} className="min-h-11 max-w-28 rounded-full border border-gray-300 bg-surface px-2 text-sm text-gray-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500">
+        {routing.locales.map((loc) => <option key={loc} value={loc}>{localeLabels[loc]}</option>)}
+      </select>
+    </label>
   );
 }

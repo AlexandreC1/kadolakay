@@ -8,13 +8,13 @@ const row = (o: Partial<PricedItemRow> & { id: string }): PricedItemRow => ({
 const code = (fn: () => unknown) => { try { fn(); } catch (e) { return (e as { code?: string }).code; } return "OK"; };
 
 describe("priceOrder", () => {
-  it("prices in the provider currency with exact decimals and a 5% fee", () => {
+  it("prices in the provider currency with exact decimals and no platform fee", () => {
     const r = priceOrder({
       requestedIds: ["a", "b"], quantities: { a: 3 }, currency: "USD",
       rows: [row({ id: "a", priceUSD: "19.99" }), row({ id: "b", priceUSD: "0.10" })],
     });
     expect(r.total.toFixed(2)).toBe("60.07");
-    expect(r.platformFee.toFixed(2)).toBe("3.00");
+    expect(r.platformFee.toFixed(2)).toBe("0.00");
     expect(r.lines.map((l) => l.quantity)).toEqual([3, 1]);
   });
   it("C2: rejects an item with no price in the charged currency (USD-only item via MonCash)", () => {

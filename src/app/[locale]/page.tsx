@@ -1,19 +1,11 @@
 import { useTranslations } from "next-intl";
 import {
-  Baby, ClipboardList, CreditCard, Gem, Gift, Share2, Smartphone, Sofa, Sparkles, Store, Utensils,
+  ClipboardList, CreditCard, Gift, Link2, ListChecks, Smartphone, Store,
   type LucideIcon,
 } from "lucide-react";
 import { Link } from "@/i18n/navigation";
-import { RegistryTypeIcon } from "@/components/shared/RegistryTypeIcon";
 import { LiveRegistryDemo } from "@/components/hero/LiveRegistryDemo";
 import { FadeIn, Reveal } from "@/components/hero/motion";
-
-const CATEGORY_ICONS: Record<string, LucideIcon> = {
-  furniture: Sofa,
-  baby: Baby,
-  jewelry: Gem,
-  food: Utensils,
-};
 
 const STEP_ICONS: LucideIcon[] = [ClipboardList, Smartphone, Gift];
 
@@ -30,12 +22,6 @@ export default function HomePage() {
 
         <div className="mx-auto grid max-w-7xl items-center gap-16 px-4 py-20 sm:px-6 lg:grid-cols-[1.1fr_1fr] lg:px-8 lg:py-32">
           <div className="text-center lg:text-left">
-            <FadeIn>
-              <span className="mb-8 inline-flex items-center gap-2 rounded-full border border-gray-200 bg-surface/80 px-3 py-1.5 text-xs text-gray-700 backdrop-blur">
-                <Sparkles className="h-3.5 w-3.5 text-brand-300" aria-hidden="true" />
-                {t("landing.eyebrow")}
-              </span>
-            </FadeIn>
             <h1 className="text-5xl leading-[1.02] sm:text-6xl lg:text-7xl">
               <Reveal text={titleLead} />
               {titleAccent && (
@@ -58,22 +44,11 @@ export default function HomePage() {
                 </Link>
                 <Link
                   href="/browse"
-                  className="inline-flex items-center gap-2 rounded-full border border-gray-300 px-6 py-3.5 font-medium text-gray-900 transition hover:bg-surface-2"
+                  className="inline-flex items-center gap-2 rounded-full bg-[var(--brand-accent)] px-6 py-3.5 font-semibold text-[#102e29] transition hover:bg-[var(--brand-action-hover)]"
                 >
                   {t("landing.ctaBrowse")}
                 </Link>
               </div>
-              <dl className="mt-12 flex justify-center gap-10 text-sm lg:justify-start">
-                {[
-                  ["3", t("landing.statLanguages")],
-                  ["0 G", t("landing.statFree")],
-                ].map(([value, label]) => (
-                  <div key={label} className="flex flex-col-reverse">
-                    <dt className="text-gray-500">{label}</dt>
-                    <dd className="font-display text-2xl font-semibold">{value}</dd>
-                  </div>
-                ))}
-              </dl>
             </FadeIn>
           </div>
 
@@ -98,10 +73,7 @@ export default function HomePage() {
                   href="/create"
                   className="group relative block overflow-hidden rounded-3xl border border-gray-200 bg-surface p-8 transition duration-300 hover:-translate-y-1 hover:border-brand-500/50 hover:shadow-lg"
                 >
-                  <span className="grid h-14 w-14 place-items-center rounded-2xl bg-brand-500/15 text-brand-300 transition group-hover:bg-brand-500 group-hover:text-white">
-                    <RegistryTypeIcon type={type} className="h-7 w-7" strokeWidth={1.75} />
-                  </span>
-                  <h3 className="mt-10 font-display text-2xl text-gray-900">{title}</h3>
+                  <h3 className="font-display text-2xl text-gray-900">{title}</h3>
                 </Link>
               </FadeIn>
             ))}
@@ -112,8 +84,8 @@ export default function HomePage() {
       {/* ── Features ─────────────────────────────────────────────── */}
       <section className="border-y border-gray-200 bg-gray-50 py-20 sm:py-28">
         <div className="mx-auto grid max-w-7xl grid-cols-1 gap-5 px-4 sm:grid-cols-2 sm:px-6 lg:grid-cols-4 lg:px-8">
-          <FeatureCard icon={Gift} title={t("landing.featureRegistry")} description={t("landing.featureRegistryDesc")} />
-          <FeatureCard icon={Share2} title={t("landing.featureShare")} description={t("landing.featureShareDesc")} delay={0.08} />
+          <FeatureCard icon={ListChecks} title={t("landing.featureRegistry")} description={t("landing.featureRegistryDesc")} />
+          <FeatureCard icon={Link2} title={t("landing.featureShare")} description={t("landing.featureShareDesc")} delay={0.08} />
           <FeatureCard icon={Store} title={t("landing.featureLocal")} description={t("landing.featureLocalDesc")} delay={0.16} />
           <FeatureCard icon={CreditCard} title={t("landing.featurePayment")} description={t("landing.featurePaymentDesc")} delay={0.24} />
         </div>
@@ -196,10 +168,9 @@ export default function HomePage() {
             </div>
           </FadeIn>
           <div className="grid grid-cols-2 gap-4">
-            {Object.entries(CATEGORY_ICONS).map(([cat, Icon], i) => (
+            {["furniture", "baby", "jewelry", "food"].map((cat, i) => (
               <FadeIn key={cat} delay={i * 0.06}>
                 <div className="group rounded-2xl border border-gray-200 bg-surface p-6 text-center transition hover:-translate-y-0.5 hover:border-brand-500/50">
-                  <Icon className="mx-auto mb-3 h-8 w-8 text-brand-300 transition group-hover:text-gold-400" aria-hidden="true" />
                   <p className="text-sm font-medium text-gray-700">{t(`business.categories.${cat}`)}</p>
                 </div>
               </FadeIn>
@@ -239,9 +210,7 @@ function FeatureCard({ icon: Icon, title, description, delay = 0 }: {
   return (
     <FadeIn delay={delay} className="h-full">
       <div className="h-full rounded-3xl border border-gray-200 bg-surface p-7 transition hover:border-brand-500/40">
-        <div className="grid h-12 w-12 place-items-center rounded-2xl bg-brand-500/15">
-          <Icon className="h-6 w-6 text-brand-300" aria-hidden="true" />
-        </div>
+        <Icon className="h-7 w-7 text-gray-700" strokeWidth={1.5} aria-hidden="true" />
         <h3 className="mt-6 text-lg font-semibold text-gray-900">{title}</h3>
         <p className="mt-2 text-sm leading-relaxed text-gray-500">{description}</p>
       </div>

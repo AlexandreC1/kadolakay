@@ -37,6 +37,7 @@ export async function createRegistry(formData: FormData) {
       slug,
       eventDate: data.eventDate ? new Date(data.eventDate) : null,
       userId: session.user.id,
+      shareToken: randomBytes(24).toString("base64url"),
     },
   });
 

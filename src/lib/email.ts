@@ -17,7 +17,7 @@ function resendClient(): Resend {
   return _resend;
 }
 
-const FROM = () => process.env.AUTH_RESEND_FROM || "KadoLakay <noreply@kadolakay.com>";
+const FROM = () => process.env.AUTH_RESEND_FROM || "KDOM <noreply@kadolakay.com>";
 
 /** Render + send one email. Throws on provider error (outbox retries). */
 export async function deliverEmail<T extends EmailTemplate>(

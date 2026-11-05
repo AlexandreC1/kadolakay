@@ -65,9 +65,9 @@ describe("payments contract", () => {
 });
 
 describe("flags & email keys", () => {
-  it("defaults to current behaviour", () => {
+  it("keeps payment methods disabled until explicitly enabled", () => {
     expect(getFlags({} as NodeJS.ProcessEnv)).toEqual({
-      stripeEnabled: true, paypalEnabled: true, moncashEnabled: true, natcashEnabled: false,
+      stripeEnabled: false, paypalEnabled: false, moncashEnabled: false, natcashEnabled: false,
       emailQueueEnabled: false, maintenanceMode: false,
     });
     expect(getFlags({ NATCASH_ENABLED: "true", EMAIL_QUEUE_ENABLED: "1" } as unknown as NodeJS.ProcessEnv)).toMatchObject({

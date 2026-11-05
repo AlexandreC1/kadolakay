@@ -1,6 +1,6 @@
 {
   "common": {
-    "appName": "Bayou",
+    "appName": "KDOM",
     "tagline": "Des cadeaux pour toute occasion, chez vous.",
     "signIn": "Se connecter",
     "signUp": "Créer un compte",
@@ -153,7 +153,7 @@
   },
   "business": {
     "signup": "Inscrivez votre commerce",
-    "signupDesc": "Mettez votre commerce sur Bayou et touchez plus de clients.",
+    "signupDesc": "Mettez votre commerce sur KDOM et touchez plus de clients.",
     "pendingMessage": "Votre commerce est en attente d'approbation.",
     "pendingHint": "Vous pouvez commencer à ajouter des produits en attendant.",
     "noProducts": "Aucun produit pour l'instant.",
@@ -197,12 +197,12 @@
     "copyLink": "Copier le lien",
     "copied": "Lien copié !",
     "twitter": "Twitter/X",
-    "shareText": "Regardez mon registre sur Bayou ! {url}"
+    "shareText": "Regardez mon registre sur KDOM ! {url}"
   },
   "auth": {
-    "loginTitle": "Connexion à Bayou",
+    "loginTitle": "Connexion à KDOM",
     "loginSubtitle": "Connectez-vous avec Google ou votre email.",
-    "signupTitle": "Créez votre compte Bayou",
+    "signupTitle": "Créez votre compte KDOM",
     "signupSubtitle": "Commencez à créer votre registre de cadeaux aujourd'hui.",
     "continueWithGoogle": "Continuer avec Google",
     "continueWithEmail": "Continuer avec email",
@@ -306,5 +306,20 @@
       "rate": "Trop de demandes. Patientez une minute et réessayez.",
       "failed": "La demande a échoué. Votre sélection est conservée. Réessayez."
     }
+  },
+  "header": {
+    "navigation": "Navigation principale",
+    "findRegistry": "Trouver un registre",
+    "more": "Plus",
+    "menu": "Ouvrir le menu",
+    "registerBusiness": "Inscrire un commerce",
+    "searchProducts": "Rechercher des cadeaux",
+    "findIntro": "Ouvrez un registre partagé avec vous.",
+    "registryAddress": "Lien ou adresse exacte du registre",
+    "registryHelp": "Collez le lien KDOM ou l’adresse après /r/. La recherche par nom n’est pas encore disponible ici.",
+    "openRegistry": "Ouvrir le registre",
+    "invalidRegistry": "Saisissez une adresse de registre ou un lien KDOM de ce site.",
+    "language": "Langue",
+    "accountMenu": "Menu du compte"
   }
 }

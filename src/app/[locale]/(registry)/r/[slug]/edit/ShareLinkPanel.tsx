@@ -1,6 +1,8 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
+import { useLocale } from "next-intl";
+import { QRCodeCanvas } from "qrcode.react";
 import { Button } from "@/components/ui/button";
 import { rotateShareToken } from "@/actions/registry";
 import { buildShareUrl } from "@/lib/url";
@@ -11,10 +13,15 @@ interface ShareLinkPanelProps {
   baseUrl: string;
   isPublic: boolean;
   initialToken: string;
+  title: string;
+  published: boolean;
 }
 
 /** Owner-only panel on the edit page: copy the (private) share link, or rotate it. */
-export function ShareLinkPanel({ registryId, baseUrl, isPublic, initialToken }: ShareLinkPanelProps) {
+export function ShareLinkPanel({ registryId, baseUrl, isPublic, initialToken, title, published }: ShareLinkPanelProps) {
+  const locale = useLocale();
+  const qr = useRef<HTMLCanvasElement>(null);
+  const copyText = locale === "fr" ? { heading: "Code QR du registre", hint: "Scannez ce code pour ouvrir le registre.", download: "Télécharger le code QR", draft: "Publiez le registre pour partager son code QR.", failed: "Le téléchargement a échoué. Réessayez." } : locale === "en" ? { heading: "Registry QR code", hint: "Scan this code to open the registry.", download: "Download QR code", draft: "Publish the registry to share its QR code.", failed: "Download failed. Try again." } : { heading: "Kòd QR rejis la", hint: "Eskane kòd sa a pou ouvri rejis la.", download: "Telechaje kòd QR la", draft: "Pibliye rejis la pou pataje kòd QR li a.", failed: "Telechajman an pa mache. Eseye ankò." };
   const [token, setToken] = useState(initialToken);
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -30,6 +37,29 @@ export function ShareLinkPanel({ registryId, baseUrl, isPublic, initialToken }: 
     } catch {
       setError("Kopi pa mache. Chwazi lyen an epi kopye l. / Copy failed. Select the link and copy it.");
     }
+  }
+
+  function downloadQr() {
+    try {
+      if (!qr.current) throw new Error("QR unavailable");
+      const image = document.createElement("canvas");
+      image.width = 800; image.height = 1060;
+      const ctx = image.getContext("2d");
+      if (!ctx) throw new Error("Canvas unavailable");
+      ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, image.width, image.height);
+      ctx.fillStyle = "#102e29"; ctx.textAlign = "center";
+      ctx.font = "bold 42px sans-serif"; ctx.fillText("KDOM", 400, 85);
+      ctx.font = "bold 32px sans-serif"; ctx.fillText(title, 400, 145, 710);
+      ctx.imageSmoothingEnabled = false;
+      ctx.drawImage(qr.current, 100, 185, 600, 600);
+      ctx.font = "26px sans-serif"; ctx.fillText(copyText.hint, 400, 850, 700);
+      image.toBlob((blob) => {
+        if (!blob) { setError(copyText.failed); return; }
+        const objectUrl = URL.createObjectURL(blob);
+        const link = document.createElement("a"); link.href = objectUrl; link.download = "kdom-registry-qr.png"; link.click();
+        setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
+      }, "image/png");
+    } catch { setError(copyText.failed); }
   }
 
   function rotate() {
@@ -78,7 +108,15 @@ export function ShareLinkPanel({ registryId, baseUrl, isPublic, initialToken }: 
           </Button>
         )}
       </div>
-      {error && <p className="mt-2 text-xs text-red-300">{error}</p>}
+      <div className="mt-6 border-t border-gray-200 pt-5">
+        <h3 className="text-sm font-semibold text-gray-900">{copyText.heading}</h3>
+        {!published && <p className="mt-2 text-sm text-gray-600">{copyText.draft}</p>}
+        <div className="mt-3 flex flex-wrap items-center gap-5">
+          <div className="rounded-lg bg-white p-3"><QRCodeCanvas ref={qr} value={url} size={200} level="M" marginSize={4} aria-label={copyText.heading} /></div>
+          <div><p className="mb-3 text-sm text-gray-600">{copyText.hint}</p><Button type="button" variant="outline" onClick={downloadQr}>{copyText.download}</Button></div>
+        </div>
+      </div>
+      {error && <p role="alert" className="mt-2 text-sm text-red-600">{error}</p>}
     </section>
   );
 }

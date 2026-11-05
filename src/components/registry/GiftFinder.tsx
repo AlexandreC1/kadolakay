@@ -11,16 +11,18 @@ export function GiftFinder({
   registries = [],
   registryId,
   existingIds = [],
+  initialSearch = "",
 }: {
   registries?: Registry[];
   registryId?: string;
   existingIds?: string[];
+  initialSearch?: string;
 }) {
   const t = useTranslations("giftFinder");
   const router = useRouter();
   const [target, setTarget] = useState(registryId ?? registries[0]?.id ?? "");
   const [filters, setFilters] = useState({
-    q: "",
+    q: initialSearch,
     currency: "HTG",
     budget: "",
     occasion: "ALL",
