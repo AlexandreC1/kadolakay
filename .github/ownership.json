@@ -43,7 +43,8 @@
       "src/app/api/auth/**",
       "src/app/[[]locale]/(auth)/**",
       "next.config.ts",
-      "src/types/next-auth.d.ts"
+      "src/types/next-auth.d.ts",
+      "src/lib/auth-provider-config.ts"
     ],
     "ws3": [
       "src/lib/validators/**",
@@ -62,7 +63,10 @@
       "src/app/api/og/**",
       "src/app/[[]locale]/(business)/business/products/**",
       "src/app/[[]locale]/(business)/business/signup/**",
-      "src/components/shared/ImageUpload.tsx"
+      "src/components/shared/ImageUpload.tsx",
+      "src/actions/registry-selection.ts",
+      "src/services/registry-selection.ts",
+      "src/lib/find-registry-link.ts"
     ],
     "ws4": [
       "src/lib/email.ts",
@@ -102,7 +106,15 @@
       "src/components/shared/ShareButtons.tsx",
       "src/components/shared/ShareModal.tsx",
       "src/i18n/*.ts",
-      "public/**"
+      "public/**",
+      "src/app/[[]locale]/find/**",
+      "src/app/[[]locale]/gifts/**",
+      "src/app/fonts/**",
+      "src/app/icon.svg",
+      "src/components/animate-ui/**",
+      "src/components/registry/GiftFinder.tsx",
+      "src/components/theme/**",
+      "src/lib/gravity-budget.ts"
     ],
     "ws7": [
       "src/lib/db.ts",
@@ -114,7 +126,9 @@
       "src/app/[[]locale]/(business)/browse/**",
       "src/app/api/products/**",
       "src/components/registry/ProductPicker.tsx",
-      "docs/cache-tags.md"
+      "docs/cache-tags.md",
+      "src/app/api/gifts/**",
+      "src/lib/gift-discovery.ts"
     ],
     "ws8": [
       "src/app/api/health/**",

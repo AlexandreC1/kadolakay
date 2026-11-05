@@ -12,6 +12,9 @@ Last reviewed: 2026-11-05. Maintained in `codex/two-gift-features`.
 - [x] Changes through `c06a237` are pushed to `codex/two-gift-features`. They are not confirmed merged to the main branch or deployed to production.
 - [ ] Run the complete test suite, production build, lint and end-to-end tests against the final release commit and record results here.
 
+- [x] 2026-11-05: Clean checkout on Vitest 4.1.12: 45 test files and 239 tests passed; TypeScript, targeted lint and a local optimized build passed. Runtime deployment configuration and provider accounts were not tested.
+- [x] 2026-11-05: Updated the vulnerable test-runner dependency chain; npm audit reports zero critical and zero high findings, with 12 moderate findings remaining (five included when omitting dev dependencies).
+
 ## Payments and merchant business rules
 
 - [x] Payment provider flags default to off and live checkout is guarded until merchant settlement exists. Sandbox checkout requires explicit enabling and test configuration.
@@ -33,7 +36,8 @@ Last reviewed: 2026-11-05. Maintained in `codex/two-gift-features`.
 - [ ] Review every server action and API endpoint for authentication, authorization, strict input validation, rate limiting and safe error messages. Test user, merchant and admin access boundaries.
 - [ ] Review and rotate legacy private share tokens without breaking existing links unexpectedly; give owners a migration process.
 - [ ] Tighten CSP and test XSS, CSRF, file upload, SSRF, secret handling, session and account recovery paths.
-- [ ] Investigate and resolve applicable dependency findings. The last npm install reported 17 findings, including two critical; applicability has not been established.
+- [x] Updated Vitest and its coverage package from 3.x to 4.1.12, removing the two critical test-runner findings from the npm audit.
+- [ ] Investigate and resolve the remaining 12 moderate npm audit findings, including the five present with dev dependencies omitted.
 - [ ] Verify production Upstash and trusted proxy configuration; test outage behavior without disabling security checks.
 - [ ] Confirm superadmin provisioning and recovery, audit logs, least-privilege access, backups, retention and incident response.
 - [ ] Have privacy policy, terms and merchant agreements reviewed for the actual operations and jurisdictions.
@@ -42,7 +46,8 @@ Last reviewed: 2026-11-05. Maintained in `codex/two-gift-features`.
 
 - [x] PostgreSQL/Prisma schema includes indexes, payment uniqueness constraints and transaction logic.
 - [x] Business catalog tag invalidation was added for product changes, moderation and business-owner account deletion.
-- [ ] Verify cache freshness end-to-end for product updates and merchant suspension, including the separately CDN-cached product API. Never cache private registries, sessions or payment state publicly.
+- [x] Disabled shared caching for the product browse API and added a response-header test, so its CDN cannot serve a stale cached response after merchant suspension. This increases database reads.
+- [ ] Verify cache freshness end-to-end for product updates and merchant suspension across the rest of the catalog. Never cache private registries, sessions or payment state publicly.
 - [ ] Confirm production PostgreSQL, connection pooling, migration status, capacity limits, encrypted backups and a successful restore drill.
 - [ ] Measure actual query plans with realistic data and address slow catalog searches and growing tables.
 - [ ] Replace or supplement daily job scheduling with reliable, appropriately frequent reconciliation and retry handling inside the budget. Test alerts and recovery.
