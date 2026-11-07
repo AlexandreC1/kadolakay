@@ -21,6 +21,8 @@ export interface State {
   orders: Order[];
   /** Lists this person opened as a guest, most recent first. */
   visited: string[];
+  /** First-use setup, as User.onboardingCompletedAt / onboardingDeferredAt on the server. */
+  onboarding: "new" | "deferred" | "done";
   seq: number;
 }
 
@@ -34,6 +36,8 @@ export type Action =
   | { type: "setTheme"; theme: ThemeChoice }
   | { type: "setCurrency"; currency: "HTG" | "USD" }
   | { type: "visit"; slug: string }
+  | { type: "saveProfile"; name: string; locale: Locale }
+  | { type: "finishOnboarding"; skipped: boolean }
   | { type: "createList"; draft: ListDraft }
   | { type: "updateList"; slug: string; patch: Partial<ListDraft> }
   | { type: "publishList"; slug: string }
@@ -52,7 +56,7 @@ export function initialState(locale: Locale = "fr"): State {
     user: null, locale, theme: "system", currency: "HTG",
     registries: structuredClone(registries), businesses: structuredClone(businesses),
     products: structuredClone(products), orders: structuredClone(orders),
-    visited: ["maryaj-jean-rose"], seq: 1,
+    visited: ["maryaj-jean-rose"], onboarding: "new", seq: 1,
   };
 }
 
@@ -85,7 +89,18 @@ export function canPayInApp(gift: Gift) {
 export function reducer(state: State, action: Action): State {
   switch (action.type) {
     case "signIn":
-      return { ...state, user: action.as === "merchant" ? demoMerchant : demoUser };
+      // The demo shop owner is an existing account, so only the family demo meets the first-use setup.
+      return { ...state, user: action.as === "merchant" ? demoMerchant : demoUser, onboarding: action.as === "merchant" ? "done" : state.onboarding };
+    case "saveProfile": {
+      // A blank name keeps the current one, as on the web: a gift giver may prefer not to show one.
+      if (!state.user) return state;
+      const name = action.name.trim().slice(0, 100);
+      return { ...state, locale: action.locale, user: { ...state.user, name: name || state.user.name } };
+    }
+    case "finishOnboarding":
+      // Completion is one-way; skipping later never undoes it.
+      if (!state.user || state.onboarding === "done") return state;
+      return { ...state, onboarding: action.skipped ? "deferred" : "done" };
     case "signOut":
       return { ...state, user: null };
     case "setLocale":

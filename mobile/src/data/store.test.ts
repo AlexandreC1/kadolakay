@@ -104,3 +104,29 @@ describe("finding lists", () => {
     expect(searchLists(s, "Tonton")).toEqual([]);
   });
 });
+
+describe("first-use setup", () => {
+  it("saves name and language, and keeps the current name when left blank", () => {
+    const s = reducer(host(), { type: "saveProfile", name: "  Marie J.  ", locale: "ht" });
+    expect(s.user!.name).toBe("Marie J.");
+    expect(s.locale).toBe("ht");
+    expect(reducer(s, { type: "saveProfile", name: "   ", locale: "fr" }).user!.name).toBe("Marie J.");
+    expect(reducer(s, { type: "saveProfile", name: "x".repeat(150), locale: "fr" }).user!.name).toHaveLength(100);
+  });
+
+  it("is deferred by Skip, completed by a choice, and never undone", () => {
+    const s = host();
+    expect(s.onboarding).toBe("new");
+    const deferred = reducer(s, { type: "finishOnboarding", skipped: true });
+    expect(deferred.onboarding).toBe("deferred");
+    const done = reducer(deferred, { type: "finishOnboarding", skipped: false });
+    expect(done.onboarding).toBe("done");
+    expect(reducer(done, { type: "finishOnboarding", skipped: true }).onboarding).toBe("done");
+  });
+
+  it("needs a signed-in person", () => {
+    const s = initialState();
+    expect(reducer(s, { type: "finishOnboarding", skipped: false })).toBe(s);
+    expect(reducer(s, { type: "saveProfile", name: "A", locale: "en" })).toBe(s);
+  });
+});

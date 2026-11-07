@@ -85,6 +85,18 @@ export default function Home() {
             ))}
           </Reveal>
 
+          {state.user && state.onboarding === "deferred" ? (
+            <Reveal index={1}>
+              <Card onPress={() => router.push("/welcome")} label={k.t.onboarding.resume} style={styles.emptyCard}>
+                <View style={{ flex: 1, gap: 2 }}>
+                  <T variant="bodyStrong">{k.t.onboarding.resume}</T>
+                  <T variant="caption" color="muted">{k.t.onboarding.resumeText}</T>
+                </View>
+                <T variant="label" color="accentInk">{k.welcome.getStarted}</T>
+              </Card>
+            </Reveal>
+          ) : null}
+
           {state.user ? (
             <Reveal index={1}>
               <Section title={k.home.yourLists} action={mine.length ? k.home.seeAll : undefined} onAction={() => router.push("/lists")}>

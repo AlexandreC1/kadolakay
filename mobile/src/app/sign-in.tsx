@@ -19,7 +19,7 @@ import { T } from "@/ui/Text";
 export default function SignIn() {
   const c = useColors();
   const router = useRouter();
-  const { dispatch } = useStore();
+  const { state, dispatch } = useStore();
   const k = useCopy();
   const [email, setEmail] = useState("");
   const [error, setError] = useState<string>();
@@ -27,7 +27,8 @@ export default function SignIn() {
 
   const demo = (as: "host" | "merchant") => {
     dispatch({ type: "signIn", as });
-    router.replace(as === "merchant" ? "/business" : "/welcome");
+    // First sign-in meets the setup once; a skipped setup is offered again from Home, never replayed.
+    router.replace(as === "merchant" ? "/business" : state.onboarding === "new" ? "/welcome" : "/");
   };
 
   return (

@@ -1,5 +1,5 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { CalendarBlank, Export, LockSimple, MapPin, PencilSimple, Plus, Star, Trash, WarningCircle } from "phosphor-react-native";
+import { CalendarBlank, CaretRight, CheckCircle, CircleIcon as Circle, Export, LockSimple, MapPin, PencilSimple, Plus, Star, Trash, WarningCircle } from "phosphor-react-native";
 import { useEffect, useMemo, useState } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 import Animated, { FadeIn, FadeOut, LinearTransition } from "react-native-reanimated";
@@ -15,6 +15,7 @@ import { Button } from "@/ui/Button";
 import { Chip } from "@/ui/Chip";
 import { GiftRow, progressOf } from "@/ui/domain";
 import { RoundButton, Screen } from "@/ui/Screen";
+import { Tap } from "@/ui/Tap";
 import { T } from "@/ui/Text";
 import { useToast } from "@/ui/Toast";
 import { strandsFor, WovenProgress } from "@/ui/WovenProgress";
@@ -77,13 +78,13 @@ export default function ListPage() {
               <T variant="body" style={{ fontFamily: "Fraunces_400Regular_Italic", fontSize: 17, lineHeight: 25 }}>{list.description}</T>
             </View>
           ) : null}
-          <Card style={{ gap: space.sm }}>
+          {requested > 0 ? <Card style={{ gap: space.sm }}>
             <WovenProgress strands={strandsFor(list.items)} label={k.list.weave(given, requested)} />
             <T variant="bodyStrong">{k.list.summary(given, requested)}</T>
             <T variant="caption" color="muted">
               {[requested - given > 0 ? `${k.list.remaining(requested - given)}.` : null, held > 0 ? k.list.heldNote(held) : null].filter(Boolean).join(" ")}
             </T>
-          </Card>
+          </Card> : null}
         </View>
       }
       footer={owner ? (
@@ -98,6 +99,12 @@ export default function ListPage() {
         {owner ? (
           <>
             {list.status === "DRAFT" ? <Banner icon={LockSimple} tone="warning">{k.t.list.draftBanner}</Banner> : null}
+            {list.status === "DRAFT" || list.items.length === 0 ? <Checklist steps={[
+              { label: k.t.onboarding.stepName, done: true },
+              { label: k.t.onboarding.stepGift, done: list.items.length > 0, go: () => router.push({ pathname: "/add-gifts/[slug]", params: { slug: list.slug } }) },
+              { label: k.t.onboarding.stepPublish, done: list.status === "PUBLISHED", go: () => { dispatch({ type: "publishList", slug: list.slug }); toast(k.t.list.published); } },
+              { label: k.t.onboarding.stepShare, done: false, go: share },
+            ]} title={k.t.onboarding.checklist} /> : null}
             <View style={styles.ownerActions}>
               <Button small kind="secondary" icon={Plus} label={k.t.list.addGifts} onPress={() => router.push({ pathname: "/add-gifts/[slug]", params: { slug: list.slug } })} />
               <Button small kind="secondary" icon={PencilSimple} label={k.t.common.edit} onPress={() => router.push({ pathname: "/r/[slug]/edit", params: { slug: list.slug } })} />
@@ -139,6 +146,24 @@ export default function ListPage() {
   );
 }
 
+/** Next steps derived from the list itself, as the onboarding brief asks: nothing is ticked that did not happen. */
+function Checklist({ title, steps }: { title: string; steps: { label: string; done: boolean; go?: () => void }[] }) {
+  const c = useColors();
+  return (
+    <Card style={{ gap: 2 }}>
+      <T variant="label" color="secondary" style={{ marginBottom: space.xs }}>{title}</T>
+      {steps.map((s, i) => (
+        <Tap key={s.label} disabled={s.done || !s.go} onPress={s.go} accessibilityLabel={s.label} accessibilityState={{ checked: s.done }} accessibilityRole="checkbox"
+          scaleTo={0.99} style={styles.check}>
+          {s.done ? <CheckCircle size={22} color={c.success} weight="fill" /> : <Circle size={22} color={c.lineStrong} />}
+          <T variant="body" style={[{ flex: 1 }, s.done && { color: c.muted, textDecorationLine: "line-through" }]}>{`${i + 1}. ${s.label}`}</T>
+          {!s.done && s.go ? <CaretRight size={16} color={c.muted} /> : null}
+        </Tap>
+      ))}
+    </Card>
+  );
+}
+
 function Fact({ icon: Icon, text }: { icon: typeof MapPin; text: string }) {
   const c = useColors();
   return <View style={styles.fact}><Icon size={15} color={c.muted} /><T variant="label" color="muted">{text}</T></View>;
@@ -153,5 +178,6 @@ const styles = StyleSheet.create({
   ownerActions: { flexDirection: "row", flexWrap: "wrap", gap: space.xs },
   bleed: { marginHorizontal: -space.md },
   chips: { paddingHorizontal: space.md, gap: space.xs },
+  check: { flexDirection: "row", alignItems: "center", gap: space.sm, minHeight: 44 },
   menu: { flexDirection: "row", flexWrap: "wrap", gap: space.xs, paddingLeft: space.sm },
 });

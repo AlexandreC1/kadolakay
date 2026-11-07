@@ -2,6 +2,7 @@ import { formatEventDate } from "@web/event-date";
 import { guestCopy } from "@web/guest-copy";
 import { homeCopy } from "@web/home-copy";
 import { occasionLabel } from "@web/occasions";
+import { onboardingCopy } from "@web/onboarding-copy";
 import { shellCopy } from "@web/shell-copy";
 import { listCopy, wishlistCopy } from "@web/wishlist-copy";
 import { useMemo } from "react";
@@ -21,6 +22,7 @@ export function copyFor(locale: Locale) {
     list: listCopy(locale),
     wishlist: wishlistCopy(locale),
     guest: guestCopy(locale),
+    welcome: onboardingCopy(locale),
     shell: shellCopy(locale),
     occasion: (type: string) => occasionLabel(type, locale),
     date: (iso: string) => formatEventDate(`${iso}T00:00:00Z`, locale),

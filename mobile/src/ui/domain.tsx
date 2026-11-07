@@ -32,9 +32,9 @@ export function ListCard({ list, compact }: { list: Registry; compact?: boolean 
         {list.status === "DRAFT" ? <Pill label={k.t.common.draft} tone="warning" /> : null}
       </View>
       <T variant="displaySmall" numberOfLines={2}>{list.title}</T>
-      <WovenProgress strands={strandsFor(list.items)} label={k.list.weave(given, requested)} />
+      {requested > 0 ? <WovenProgress strands={strandsFor(list.items)} label={k.list.weave(given, requested)} /> : null}
       <View style={styles.cardFoot}>
-        <T variant="label" color="secondary">{k.home.listProgress(given, requested)}</T>
+        <T variant="label" color="secondary">{requested > 0 ? k.home.listProgress(given, requested) : k.t.common.gifts(0)}</T>
         {list.place && !compact ? (
           <View style={styles.inline}><MapPin size={14} color={c.muted} /><T variant="caption" color="muted">{list.place}</T></View>
         ) : null}
