@@ -162,6 +162,7 @@
       "src/app/[[]locale]/demo/**",
       "src/app/[[]locale]/(legal)/**",
       "src/components/**",
+      "mobile/**",
       "src/assets/**",
       "src/i18n/**",
       "src/lib/*-copy.ts",
