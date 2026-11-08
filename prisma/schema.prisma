@@ -54,6 +54,8 @@ model User {
   orders       Order[]
   business     Business?
   premiumGrant PremiumGrant?
+  mobileSessions MobileSession[]
+  giftPledges    GiftPledge[]
 
   @@map("users")
 }
@@ -164,6 +166,8 @@ model Registry {
   visibility       String         @default("PUBLIC") @db.VarChar(20)
   searchable       Boolean        @default(false)
   palette          String         @default("mint") @db.VarChar(20)
+  /// Where the celebration happens, shown to guests. Free text, optional.
+  place            String?        @db.VarChar(80)
 
   ogImageUrl String?
 
@@ -177,7 +181,8 @@ model Registry {
   updatedAt DateTime @updatedAt
 
   user  User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  items RegistryItem[]
+  items   RegistryItem[]
+  pledges GiftPledge[]
 
   @@index([userId])
   @@index([slug])
@@ -229,6 +234,7 @@ model RegistryItem {
   registry   Registry    @relation(fields: [registryId], references: [id], onDelete: Cascade)
   business   Business?   @relation(fields: [businessId], references: [id])
   orderItems OrderItem[]
+  pledges    GiftPledge[]
 
   @@index([registryId])
   @@index([businessId])
@@ -574,4 +580,58 @@ model SiteSettings {
   seasonalEnabled Boolean @default(true)
 
   @@map("site_settings")
+}
+
+/// A signed-in session on the mobile app. Only a SHA-256 of the bearer token is stored.
+/// Copies the account's sessionVersion so "sign out everywhere" on the web ends it too.
+model MobileSession {
+  id             String    @id @default(cuid())
+  userId         String
+  tokenHash      String    @unique @db.Char(64)
+  label          String    @default("Bayou app") @db.VarChar(80)
+  sessionVersion Int
+  createdAt      DateTime  @default(now())
+  lastUsedAt     DateTime  @default(now())
+  expiresAt      DateTime
+  revokedAt      DateTime?
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, expiresAt])
+  @@map("mobile_sessions")
+}
+
+/// One-time 6-digit sign-in code sent by email to the mobile app. Only a keyed hash is stored.
+model EmailSignInCode {
+  id         String    @id @default(cuid())
+  email      String    @db.VarChar(254)
+  codeHash   String    @db.Char(64)
+  attempts   Int       @default(0)
+  expiresAt  DateTime
+  consumedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@index([email, createdAt])
+  @@map("email_sign_in_codes")
+}
+
+/// "I'll give this": a signed-in guest promises to bring a gift. No money moves through Bayou.
+/// Active pledges are counted in the item's fulfilledQty so every progress view agrees.
+model GiftPledge {
+  id          String       @id @default(cuid())
+  itemId      String
+  registryId  String
+  userId      String
+  quantity    Int
+  isAnonymous Boolean      @default(false)
+  message     String?      @db.VarChar(500)
+  createdAt   DateTime     @default(now())
+  cancelledAt DateTime?
+  item        RegistryItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  registry    Registry     @relation(fields: [registryId], references: [id], onDelete: Cascade)
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([itemId])
+  @@index([registryId])
+  @@index([userId, createdAt])
+  @@map("gift_pledges")
 }

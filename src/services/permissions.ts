@@ -31,6 +31,7 @@ export const permissions = {
   "onboarding:profile": members,
   "onboarding:finish": members,
   "registry:create": members,
+  "gift:pledge": members,
   "registry:update": members,
   "registry:publish": members,
   "registry:archive": members,
