@@ -17,10 +17,10 @@ const languages: { key: Locale; label: string }[] = [{ key: "ht", label: "Kreyò
 export default function Account() {
   const c = useColors();
   const router = useRouter();
-  const { state, dispatch } = useStore();
+  const { state, dispatch, actions } = useStore();
   const k = useCopy();
   const user = state.user;
-  const bought = user ? state.orders.filter((o) => o.buyerId === user.id).length : 0;
+  const promised = state.pledges.length;
   const web = (path: string) => void Linking.openURL(`${WEB_URL}/${state.locale}${path}`);
 
   return (
@@ -47,8 +47,8 @@ export default function Account() {
 
         {user ? (
           <Group>
-            <Row icon={Package} label={k.t.account.purchases} value={bought ? String(bought) : undefined} onPress={() => router.push("/purchases")} />
-            {user.businessSlug ? (
+            <Row icon={Package} label={k.t.account.purchases} value={promised ? String(promised) : undefined} onPress={() => router.push("/purchases")} />
+            {user.business ? (
               <Row icon={Storefront} label={k.t.account.myShop} onPress={() => router.push("/business")} last />
             ) : (
               <Row icon={Storefront} label={k.t.account.sell} hint={k.t.account.sellHint} onPress={() => router.push("/business")} last />
@@ -59,7 +59,11 @@ export default function Account() {
         <Section title={k.t.account.preferences}>
           <Card style={{ gap: space.md }}>
             <Pref label={k.t.account.language}>
-              <Segmented label={k.t.account.language} value={state.locale} onChange={(l) => dispatch({ type: "setLocale", locale: l })} options={languages} />
+              <Segmented label={k.t.account.language} value={state.locale} onChange={(l) => {
+                // Saved to the account too, so emails and the web use the same language.
+                dispatch({ type: "setLocale", locale: l });
+                if (user) void actions.saveProfile(user.name, l).catch(() => {});
+              }} options={languages} />
             </Pref>
             <Pref label={k.t.account.appearance}>
               <Segmented<ThemeChoice> label={k.t.account.appearance} value={state.theme} onChange={(t) => dispatch({ type: "setTheme", theme: t })}
@@ -76,11 +80,10 @@ export default function Account() {
           {user ? <Row icon={ShieldCheck} label={k.t.account.security} onPress={() => web("/security")} /> : null}
           <Row icon={Scales} label={k.t.account.legal} onPress={() => web("/terms")} />
           <Row icon={ChatCircleText} label={k.t.account.help} onPress={() => web("/contact")} last={!user} />
-          {user ? <Row icon={SignOut} label={k.t.account.signOut} danger onPress={() => dispatch({ type: "signOut" })} last /> : null}
+          {user ? <Row icon={SignOut} label={k.t.account.signOut} danger onPress={() => void actions.signOut()} last /> : null}
         </Group>
 
         <View style={{ gap: 4, alignItems: "center" }}>
-          <T variant="caption" color="muted" style={{ textAlign: "center" }}>{k.t.common.demoNote}</T>
           <T variant="caption" color="muted">{k.t.account.version(APP_VERSION)}</T>
         </View>
       </View>

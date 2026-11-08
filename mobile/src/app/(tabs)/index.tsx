@@ -1,14 +1,16 @@
 import { useRouter } from "expo-router";
 import { Gift, ListChecks, Package, Plus, Storefront, Wallet } from "phosphor-react-native";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ScrollView, StyleSheet, useWindowDimensions, View } from "react-native";
 import Animated, { FadeIn, FadeOut, LinearTransition } from "react-native-reanimated";
 import { occasionTypes } from "@web/occasions";
 import { useCopy } from "@/copy";
 import { useColors, useStore } from "@/data/StoreProvider";
-import { businessOf, findList, myLists, searchLists } from "@/data/store";
+import { businessOf, findList, myLists } from "@/data/store";
+import type { Registry } from "@/data/types";
 import { space, radius } from "@/theme/tokens";
 import { Card, Reveal, Section } from "@/ui/bits";
+import { Button } from "@/ui/Button";
 import { Chip } from "@/ui/Chip";
 import { occasionIcons } from "@/ui/icons";
 import { SearchField } from "@/ui/Field";
@@ -20,15 +22,29 @@ import { T } from "@/ui/Text";
 export default function Home() {
   const c = useColors();
   const router = useRouter();
-  const { state } = useStore();
+  const { state, actions } = useStore();
   const k = useCopy();
   const { width } = useWindowDimensions();
   const [query, setQuery] = useState("");
-  const results = useMemo(() => searchLists(state, query), [state, query]);
+  const [found, setFound] = useState<{ q: string; slugs: string[] }>({ q: "", slugs: [] });
+  const q = query.trim();
+  // Ask the server a beat after typing stops: a name finds lists their owners made findable,
+  // a pasted link finds that list.
+  useEffect(() => {
+    if (q.length < 2) return;
+    const id = setTimeout(() => {
+      actions.search(q).then((slugs) => setFound({ q, slugs })).catch(() => setFound({ q, slugs: [] }));
+    }, 300);
+    return () => clearTimeout(id);
+  }, [q, actions]);
+  const searching = q.length >= 2 && found.q !== q;
+  const results = useMemo(() => (found.q === q ? found.slugs.map((s) => findList(state, s)).filter((l): l is Registry => !!l) : []), [found, q, state]);
   const mine = myLists(state);
   const opened = state.visited.map((s) => findList(state, s)).filter((l) => l && l.ownerId !== state.user?.id && l.status === "PUBLISHED");
   const shelf = state.products.filter((p) => p.stockQuantity !== 0).slice(0, 8);
-  const title = state.user ? k.t.home.greeting(state.user.name) : k.home.appTitle;
+  // A person who skipped their name gets the plain title, not "Hello," with nothing after it.
+  const named = !!state.user?.name.trim();
+  const title = named ? k.t.home.greeting(state.user!.name) : k.home.appTitle;
 
   const shortcuts = [
     { icon: ListChecks, label: k.home.qaPublic, hint: k.home.qaPublicHint, go: () => router.push("/lists") },
@@ -49,7 +65,7 @@ export default function Home() {
             <T variant="heading">Bayou</T>
           </View>
           <T variant="largeTitle" accessibilityRole="header">{title}</T>
-          {state.user ? <T color="muted">{k.home.appTitle}</T> : null}
+          {named ? <T color="muted">{k.home.appTitle}</T> : null}
         </View>
       }
     >
@@ -60,7 +76,7 @@ export default function Home() {
 
       {query.trim() ? (
         <Animated.View layout={LinearTransition} entering={FadeIn.duration(180)} style={styles.results} accessibilityLiveRegion="polite">
-          {results.length ? (
+          {searching ? <T color="muted">{k.t.common.loading}</T> : results.length ? (
             <>
               <T variant="overline" color="muted">{(query.includes("/r/") ? k.home.finderExact : k.home.finderPublic).toUpperCase()}</T>
               {results.map((l, i) => (
@@ -85,7 +101,7 @@ export default function Home() {
             ))}
           </Reveal>
 
-          {state.user && state.onboarding === "deferred" ? (
+          {state.user?.onboarding === "deferred" ? (
             <Reveal index={1}>
               <Card onPress={() => router.push("/welcome")} label={k.t.onboarding.resume} style={styles.emptyCard}>
                 <View style={{ flex: 1, gap: 2 }}>
@@ -155,7 +171,7 @@ export default function Home() {
             </Section>
           </Reveal>
 
-          {!state.user?.businessSlug ? (
+          {!state.user?.business ? (
             <Reveal index={5}>
               <Card onPress={() => router.push(state.user ? "/business" : "/sign-in")} label={k.home.merchantTitle} style={[styles.merchant, { backgroundColor: c.accentSoft, borderColor: "transparent" }]}>
                 <Storefront size={28} color={c.accentInk} />
@@ -167,7 +183,12 @@ export default function Home() {
             </Reveal>
           ) : null}
 
-          <T variant="caption" color="muted" style={{ textAlign: "center" }}>{k.t.common.demoNote}</T>
+          {state.booted && !state.catalogLoaded ? (
+            <Card style={{ gap: space.sm }}>
+              <T color="secondary">{k.t.errors.OFFLINE}</T>
+              <Button small kind="secondary" label={k.t.common.retry} onPress={() => void actions.refreshCatalog().catch(() => {})} />
+            </Card>
+          ) : null}
         </View>
       )}
     </Screen>

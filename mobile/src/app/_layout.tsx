@@ -9,7 +9,7 @@ import { DarkTheme, DefaultTheme, SplashScreen, Stack, ThemeProvider } from "exp
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { StoreProvider, useColors, useScheme } from "@/data/StoreProvider";
+import { StoreProvider, useColors, useScheme, useStore } from "@/data/StoreProvider";
 import { ToastProvider } from "@/ui/Toast";
 
 void SplashScreen.preventAutoHideAsync();
@@ -18,8 +18,8 @@ export default function RootLayout() {
   const [loaded, error] = useFonts({
     Figtree_400Regular, Figtree_500Medium, Figtree_600SemiBold, Figtree_700Bold, Fraunces_600SemiBold, Fraunces_400Regular_Italic,
   });
-  useEffect(() => { if (loaded || error) void SplashScreen.hideAsync(); }, [loaded, error]);
   // Fonts are bundled, so this only waits for a moment on first launch; on failure the system font is used.
+  // The splash stays up until the saved session is checked too (see Themed).
   if (!loaded && !error) return null;
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
@@ -33,6 +33,13 @@ export default function RootLayout() {
 const sheet = { presentation: "formSheet", sheetGrabberVisible: true, sheetCornerRadius: 28 } as const;
 
 function Themed() {
+  const { state } = useStore();
+  // Hide the splash once the session is known, or after a few seconds offline.
+  useEffect(() => {
+    if (state.booted) { void SplashScreen.hideAsync(); return; }
+    const id = setTimeout(() => void SplashScreen.hideAsync(), 5000);
+    return () => clearTimeout(id);
+  }, [state.booted]);
   const scheme = useScheme();
   const c = useColors();
   const base = scheme === "dark" ? DarkTheme : DefaultTheme;

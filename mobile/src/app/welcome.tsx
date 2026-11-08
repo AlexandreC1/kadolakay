@@ -29,7 +29,7 @@ export default function Welcome() {
   const c = useColors();
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { state, dispatch } = useStore();
+  const { state, actions } = useStore();
   const k = useCopy();
   const [step, setStep] = useState<1 | 2>(1);
   const [name, setName] = useState(state.user?.name ?? "");
@@ -37,13 +37,14 @@ export default function Welcome() {
   // Step 1 previews the language being chosen, so people can read it before confirming.
   const w = copyFor(step === 1 ? language : state.locale).welcome;
 
+  // Saving never blocks the next step: the choices are applied locally at once and sent along.
   const saveProfile = () => {
-    dispatch({ type: "saveProfile", name, locale: language });
+    void actions.saveProfile(name, language).catch(() => {});
     haptic();
     setStep(2);
   };
-  const finish = (to: Parameters<typeof router.replace>[0], skipped = false) => {
-    dispatch({ type: "finishOnboarding", skipped });
+  const finish = (to: Parameters<typeof router.replace>[0], choice: Parameters<typeof actions.finishOnboarding>[0]) => {
+    void actions.finishOnboarding(choice).catch(() => {});
     router.replace(to);
   };
 
@@ -83,7 +84,7 @@ export default function Welcome() {
                 const Icon = occasionIcons[o];
                 return (
                   <Animated.View key={o} entering={FadeIn.delay(60 + i * 40)}>
-                    <Tap accessibilityLabel={k.occasion(o)} onPress={() => finish({ pathname: "/create", params: { type: o } })}
+                    <Tap accessibilityLabel={k.occasion(o)} onPress={() => finish({ pathname: "/create", params: { type: o } }, o)}
                       style={[styles.occasion, { backgroundColor: c.surface, borderColor: c.line }]}>
                       <View style={[styles.icon, { backgroundColor: c.accentSoft }]}><Icon size={24} color={c.accentInk} /></View>
                       <T variant="bodyStrong" style={{ flex: 1 }}>{k.occasion(o)}</T>
@@ -106,8 +107,8 @@ export default function Welcome() {
           </>
         ) : (
           <View style={styles.pair}>
-            <Button kind="secondary" label={w.explore} style={{ flex: 1 }} onPress={() => finish({ pathname: "/gifts", params: { tab: "shops" } })} />
-            <Button kind="quiet" label={w.skip} style={{ flex: 1 }} onPress={() => finish("/lists", true)} />
+            <Button kind="secondary" label={w.explore} style={{ flex: 1 }} onPress={() => finish({ pathname: "/gifts", params: { tab: "shops" } }, "EXPLORE")} />
+            <Button kind="quiet" label={w.skip} style={{ flex: 1 }} onPress={() => finish("/lists", "SKIP")} />
           </View>
         )}
       </View>

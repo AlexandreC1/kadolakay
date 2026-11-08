@@ -202,6 +202,13 @@ export async function searchLists(q: string, baseUrl: string) {
   return lists.filter((l): l is NonNullable<typeof l> => !!l);
 }
 
+/** Lists their owners made findable, optionally one occasion, alphabetical. */
+export async function publicLists(type: string | null) {
+  const page = await searchPublicRegistries({ q: "", type: type && (occasionTypes as readonly string[]).includes(type) ? type : "" });
+  const lists = await Promise.all(page.items.map((r) => viewList(r.slug, null)));
+  return lists.filter((l): l is NonNullable<typeof l> => !!l);
+}
+
 /* ---------------- Catalog ---------------- */
 
 /** Approved shops and their in-stock products, public fields only. Small enough for a pilot to send whole. */
@@ -211,7 +218,7 @@ export async function catalog() {
     orderBy: [{ name: "asc" }, { id: "asc" }],
     take: 200,
     select: {
-      slug: true, ownerId: true, name: true, category: true, city: true, department: true, description: true, phone: true, whatsapp: true,
+      slug: true, name: true, category: true, city: true, department: true, description: true, phone: true, whatsapp: true,
       fulfillmentPolicy: true, status: true, createdAt: true, logoUrl: true,
       products: {
         where: { inStock: true },

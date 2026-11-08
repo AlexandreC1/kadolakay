@@ -5,9 +5,9 @@ import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, useWindowDimens
 import Animated, { FadeIn, SlideInLeft, SlideInRight, SlideOutLeft, SlideOutRight, ZoomIn } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { isOccasion, occasionTypes, type Occasion } from "@web/occasions";
-import { useCopy } from "@/copy";
+import { errorText, useCopy } from "@/copy";
 import { useColors, useStore } from "@/data/StoreProvider";
-import { findList, MAX_BATCH, nextListSlug } from "@/data/store";
+import { findList, MAX_BATCH } from "@/data/store";
 import type { Visibility } from "@/data/types";
 import { hit, radius, space } from "@/theme/tokens";
 import { Banner, Card, Steps, Stepper } from "@/ui/bits";
@@ -34,7 +34,7 @@ export default function Create() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
-  const { state, dispatch } = useStore();
+  const { state, actions } = useStore();
   const k = useCopy();
   const preset = isOccasion(params.type) ? params.type : null;
   const [step, setStep] = useState(preset ? 1 : 0);
@@ -51,6 +51,8 @@ export default function Create() {
   const [idea, setIdea] = useState({ title: "", price: "", qty: 1 });
   const [errors, setErrors] = useState<{ title?: string; date?: string }>({});
   const [created, setCreated] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [failure, setFailure] = useState<string>();
 
   const go = (to: number) => { setDir(to > step ? 1 : -1); haptic(); setStep(to); };
   const close = () => (router.canGoBack() ? router.back() : router.replace("/"));
@@ -76,15 +78,27 @@ export default function Create() {
     if (!e.title && !e.date) go(2);
   };
 
-  const finish = () => {
-    if (!type) return;
-    const slug = nextListSlug(state, title);
-    dispatch({ type: "createList", draft: { type, title, eventDate: date || undefined, place: place.trim() || undefined, description: note.trim() || undefined, visibility } });
-    if (picked.length) dispatch({ type: "addProducts", slug, productIds: picked });
-    ideas.forEach((i) => dispatch({ type: "addCustom", slug, title: i.title, priceHTG: i.priceHTG, quantity: i.quantity }));
-    setCreated(slug);
-    haptic("success");
-    go(3);
+  const finish = async () => {
+    if (!type || busy) return;
+    setBusy(true); setFailure(undefined);
+    try {
+      const slug = await actions.createList(
+        { type, title: title.trim(), eventDate: date || undefined, place: place.trim() || undefined, description: note.trim() || undefined, visibility },
+        { productIds: picked, ideas },
+      );
+      setCreated(slug);
+      haptic("success");
+      go(3);
+    } catch (e) {
+      setFailure(errorText(k.t, e));
+    } finally { setBusy(false); }
+  };
+  const publishAndShare = async () => {
+    if (!created) return;
+    setBusy(true); setFailure(undefined);
+    try { await actions.publish(created); router.replace({ pathname: "/share/[slug]", params: { slug: created } }); }
+    catch (e) { setFailure(errorText(k.t, e)); }
+    finally { setBusy(false); }
   };
 
   const addIdea = () => {
@@ -201,10 +215,11 @@ export default function Create() {
 
   const footer = step === 0 ? null
     : step === 1 ? <Button full label={k.t.common.continue} onPress={checkDetails} />
-    : step === 2 ? <Button full label={k.t.create.createWith(count)} onPress={finish} />
+    : step === 2 ? <Button full label={k.t.create.createWith(count)} onPress={finish} busy={busy} />
     : (
       <>
-        <Button full label={k.t.list.publish} onPress={() => { dispatch({ type: "publishList", slug: created! }); router.replace({ pathname: "/share/[slug]", params: { slug: created! } }); }} />
+        {/* Publishing needs at least one gift, as on the web. */}
+        <Button full label={k.t.list.publish} onPress={publishAndShare} busy={busy} disabled={!createdList?.items.length} />
         <Button full kind="secondary" label={k.t.create.openList} onPress={() => router.replace({ pathname: "/r/[slug]", params: { slug: created! } })} />
       </>
     );
@@ -230,6 +245,7 @@ export default function Create() {
       </ScrollView>
       {footer ? (
         <View style={[styles.footer, { paddingBottom: insets.bottom + space.sm, borderColor: c.line }]}>
+          {failure ? <T variant="caption" color="error" style={{ textAlign: "center" }} accessibilityLiveRegion="polite">{failure}</T> : null}
           {step === 2 && count ? <T variant="caption" color="muted" style={{ textAlign: "center" }}>{k.t.create.selected(count)}</T> : null}
           {footer}
         </View>

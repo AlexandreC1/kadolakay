@@ -3,7 +3,7 @@ import { CaretRight, CheckCircle, Package, ShieldCheck, Storefront, Truck, Warni
 import { ScrollView, StyleSheet, View } from "react-native";
 import { useCopy } from "@/copy";
 import { useColors, useStore } from "@/data/StoreProvider";
-import { availableOf, businessOf, canPayInApp, findList, myLists, productsOf } from "@/data/store";
+import { availableOf, businessOf, findList, myLists, productsOf } from "@/data/store";
 import { space } from "@/theme/tokens";
 import { Card, Empty, Pill, Reveal, Section } from "@/ui/bits";
 import { Button } from "@/ui/Button";
@@ -24,7 +24,7 @@ export default function GiftPage() {
   const shop = businessOf(state, product.businessSlug);
   const list = slug ? findList(state, slug) : undefined;
   const gift = list?.items.find((g) => g.id === item);
-  const guestCanGive = !!list && !!gift && list.ownerId !== state.user?.id && list.status === "PUBLISHED" && canPayInApp(gift) && availableOf(gift).available > 0;
+  const guestCanGive = !!list && !!gift && !list.owner && list.status === "PUBLISHED" && availableOf(gift).available > 0;
   const onMyLists = myLists(state).filter((l) => l.items.some((g) => g.productId === product.id));
   const price = k.money(state.currency === "USD" ? product.priceUSD : product.priceHTG, state.currency);
   const other = k.money(state.currency === "USD" ? product.priceHTG : product.priceUSD, state.currency === "USD" ? "HTG" : "USD");

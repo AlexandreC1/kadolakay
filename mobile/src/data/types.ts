@@ -1,12 +1,10 @@
 import type { Occasion } from "@web/occasions";
 
-/** Shapes mirror prisma/schema.prisma so the demo store can be swapped for the API. */
+/** Shapes returned by /api/mobile/v1 (src/services/mobile-api.ts on the server). */
 export type Locale = "fr" | "en" | "ht";
 export type ThemeChoice = "light" | "dark" | "system";
 export type Visibility = "PUBLIC" | "LINK" | "PRIVATE";
 export type ItemSource = "CUSTOM" | "LOCAL_BUSINESS" | "EXTERNAL";
-export type OrderStatus = "PAID" | "CONFIRMED" | "SHIPPED" | "DELIVERED" | "CANCELLED";
-export type PaymentMethod = "MONCASH" | "NATCASH" | "CARD";
 
 export interface Gift {
   id: string;
@@ -15,14 +13,27 @@ export interface Gift {
   priceHTG?: number;
   priceUSD?: number;
   quantity: number;
+  /** Units given or promised. */
   fulfilledQty: number;
-  /** Units held by a checkout that has not been paid yet. */
+  /** Units held by an unpaid checkout. */
   reservedQty: number;
   source: ItemSource;
   businessSlug?: string;
   productId?: string;
-  /** Marked by the host as the most wanted. */
+  /** 1 when the family marked it most wanted. */
   priority: number;
+  imageUrl?: string;
+}
+
+/** Who promised a gift, shown to the list's owner only. Anonymous guests have no name. */
+export interface OwnerPledge {
+  id: string;
+  itemId: string;
+  quantity: number;
+  isAnonymous: boolean;
+  message: string | null;
+  createdAt: string;
+  name: string | null;
 }
 
 export interface Registry {
@@ -39,11 +50,12 @@ export interface Registry {
   visibility: Visibility;
   items: Gift[];
   createdAt: string;
+  owner?: boolean;
+  pledges?: OwnerPledge[];
 }
 
 export interface Business {
   slug: string;
-  ownerId: string;
   name: string;
   category: string;
   city: string;
@@ -52,8 +64,9 @@ export interface Business {
   phone?: string;
   whatsapp?: string;
   fulfillmentPolicy: string;
-  status: "PENDING_REVIEW" | "APPROVED";
+  status: string;
   since: string;
+  productCount?: number;
 }
 
 export interface Product {
@@ -63,32 +76,41 @@ export interface Product {
   description: string;
   priceHTG: number;
   priceUSD: number;
-  /** Unsold units. Null means the shop has not confirmed stock. */
+  /** Units left. Null means the shop has not confirmed stock. */
   stockQuantity: number | null;
   category: string;
+  imageUrl?: string;
 }
 
-export interface OrderLine { giftId: string; title: string; quantity: number; priceHTG: number; priceUSD: number }
-
-export interface Order {
+/** A gift this person promised to bring. */
+export interface Pledge {
   id: string;
-  orderNumber: string;
-  registrySlug: string;
-  businessSlug: string;
-  buyerId?: string;
-  buyerName: string;
-  isAnonymous: boolean;
-  giftMessage?: string;
-  lines: OrderLine[];
-  currency: "HTG" | "USD";
-  method: PaymentMethod;
-  status: OrderStatus;
+  quantity: number;
+  message?: string;
+  anonymous: boolean;
   createdAt: string;
+  gift: { id: string; title: string; priceHTG?: number; priceUSD?: number; productId?: string; businessSlug?: string };
+  list: { slug: string; title: string; ownerName: string };
 }
 
 export interface User {
   id: string;
   name: string;
   email: string;
-  businessSlug?: string;
+  locale: Locale;
+  role: string;
+  onboarding: "new" | "deferred" | "done";
+  business: { slug: string; status: string } | null;
+}
+
+export interface ShopProduct {
+  id: string; name: string; description: string; priceHTG: number; priceUSD: number; stockQuantity: number | null; inStock: boolean; category: string | null;
+}
+
+export interface Shop {
+  slug: string;
+  name: string;
+  status: string;
+  products: ShopProduct[];
+  pledges: { id: string; quantity: number; title: string; list: string; place: string | null; createdAt: string }[];
 }

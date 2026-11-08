@@ -11,7 +11,7 @@ import {
 } from "@/services/mobile-auth";
 import { PledgeError, cancelPledge, listOwnPledges, pledgeGift } from "@/services/pledges";
 import {
-  addGifts, catalog, createList, listMine, myShop, publishList, removeGift, searchLists, setMostWanted, setStock, updateList, viewList,
+  addGifts, catalog, createList, listMine, myShop, publicLists, publishList, removeGift, searchLists, setMostWanted, setStock, updateList, viewList,
 } from "@/services/mobile-api";
 import { db } from "@/lib/db";
 
@@ -128,6 +128,8 @@ async function handle(req: Request, ctx: Ctx) {
       const q = new URL(req.url).searchParams.get("q") ?? "";
       return json({ lists: await searchLists(q, base()) });
     }
+    case req.method === "GET" && a === "lists" && b === "public" && !c:
+      return json({ lists: await publicLists(new URL(req.url).searchParams.get("type")) });
     case req.method === "POST" && a === "lists" && !b: {
       const s = await requireMobileActor(token, "registry:create");
       return json(await createList(s.user.id, await body(req)), 201);

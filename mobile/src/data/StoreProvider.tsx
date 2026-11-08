@@ -1,11 +1,15 @@
 import { getLocales } from "expo-localization";
-import { createContext, type Dispatch, type ReactNode, useContext, useMemo, useReducer } from "react";
+import { createContext, type Dispatch, type ReactNode, useContext, useEffect, useMemo, useReducer, useState } from "react";
 import { useColorScheme } from "react-native";
 import { palette, type Colors } from "@/theme/tokens";
+import { type Actions, makeActions } from "./actions";
 import { type Action, initialState, reducer, type State } from "./store";
 import type { Locale } from "./types";
 
-const StoreContext = createContext<{ state: State; dispatch: Dispatch<Action> } | null>(null);
+/** The app has one store; actions read its latest committed state from here. */
+let latest: State | null = null;
+
+const StoreContext = createContext<{ state: State; dispatch: Dispatch<Action>; actions: Actions } | null>(null);
 
 function deviceLocale(): Locale {
   const code = getLocales()[0]?.languageCode;
@@ -14,7 +18,11 @@ function deviceLocale(): Locale {
 
 export function StoreProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(reducer, undefined, () => initialState(deviceLocale()));
-  const value = useMemo(() => ({ state, dispatch }), [state]);
+  // Actions read the latest state without re-creating themselves on every change.
+  useEffect(() => { latest = state; }, [state]);
+  const [actions] = useState(() => makeActions(dispatch, () => latest ?? initialState()));
+  useEffect(() => { void actions.boot(); }, [actions]);
+  const value = useMemo(() => ({ state, dispatch, actions }), [state, actions]);
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>;
 }
 

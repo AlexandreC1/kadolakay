@@ -1,89 +1,83 @@
 import { Redirect, useRouter } from "expo-router";
-import { CaretRight, ClockCountdown, Package, Receipt, Storefront, TrendUp, WarningCircle } from "phosphor-react-native";
-import { useState } from "react";
-import { StyleSheet, useWindowDimensions, View } from "react-native";
-import Animated, { FadeIn, LinearTransition } from "react-native-reanimated";
+import { ClockCountdown, Gift, Package, Storefront, WarningCircle } from "phosphor-react-native";
+import { useEffect, useState } from "react";
+import { Linking, RefreshControl, StyleSheet, useWindowDimensions, View } from "react-native";
 import { useCopy } from "@/copy";
+import { WEB_URL } from "@/config";
 import { useColors, useStore } from "@/data/StoreProvider";
-import { businessOf, findList, productsOf } from "@/data/store";
 import { radius, space } from "@/theme/tokens";
-import { Banner, Card, Empty, Group, Pill, Reveal, Row, Section } from "@/ui/bits";
+import { Banner, Card, Empty, Group, Reveal, Row, Section } from "@/ui/bits";
 import { Button } from "@/ui/Button";
 import { Screen } from "@/ui/Screen";
-import { Segmented } from "@/ui/Segmented";
 import { T } from "@/ui/Text";
 
+/**
+ * The shop owner's view while payments are off: their products and stock, and
+ * the guests who promised one of their products (and will buy it from them).
+ */
 export default function ShopDashboard() {
   const c = useColors();
   const router = useRouter();
   const { width } = useWindowDimensions();
-  const { state } = useStore();
+  const { state, actions } = useStore();
   const k = useCopy();
-  const [filter, setFilter] = useState<"open" | "done">("open");
+  const [refreshing, setRefreshing] = useState(false);
+  useEffect(() => { void actions.refreshShop().catch(() => {}); }, [actions]);
   if (!state.user) return <Redirect href="/sign-in" />;
-  const shop = businessOf(state, state.user.businessSlug);
+  const shop = state.shop;
 
-  if (!shop) {
+  if (!state.user.business || !shop) {
     return (
       <Screen back title={k.t.account.sell}>
         <Empty icon={Storefront} title={k.home.merchantTitle} text={k.home.merchantText}>
-          <Banner icon={ClockCountdown}>{k.t.merchant.pending}</Banner>
+          {state.user.business ? <Banner icon={ClockCountdown}>{k.t.merchant.pending}</Banner> : null}
+          <Button kind="secondary" label={k.home.merchantTitle} onPress={() => void Linking.openURL(`${WEB_URL}/${state.locale}/business/signup`)} />
         </Empty>
       </Screen>
     );
   }
 
-  const orders = state.orders.filter((o) => o.businessSlug === shop.slug);
-  const products = productsOf(state, shop.slug);
-  const month = new Date().toISOString().slice(0, 7);
-  const sales = orders.filter((o) => o.createdAt.startsWith(month) && o.status !== "CANCELLED")
-    .reduce((s, o) => s + o.lines.reduce((t, l) => t + l.quantity * l.priceHTG, 0), 0);
+  const low = shop.products.filter((p) => p.stockQuantity !== null && p.stockQuantity <= 2).length;
+  const promised = shop.pledges.reduce((s, p) => s + p.quantity, 0);
   const stats = [
-    { icon: Receipt, label: k.t.merchant.newOrders, value: String(orders.filter((o) => o.status === "PAID").length) },
-    { icon: Package, label: k.t.merchant.toPrepare, value: String(orders.filter((o) => o.status === "CONFIRMED").length) },
-    { icon: WarningCircle, label: k.t.merchant.lowStock, value: String(products.filter((p) => p.stockQuantity !== null && p.stockQuantity <= 2).length) },
-    { icon: TrendUp, label: k.t.merchant.month, value: k.money(sales, "HTG") },
+    { icon: Gift, label: k.t.merchant.promised, value: String(promised) },
+    { icon: Package, label: k.t.merchant.products, value: String(shop.products.length) },
+    { icon: WarningCircle, label: k.t.merchant.lowStock, value: String(low) },
   ];
-  const shown = orders.filter((o) => (filter === "open" ? o.status !== "DELIVERED" && o.status !== "CANCELLED" : o.status === "DELIVERED" || o.status === "CANCELLED"));
-  const tileW = (Math.min(width, 640) - space.md * 2 - space.sm) / 2;
+  const tileW = (Math.min(width, 640) - space.md * 2 - space.sm * 2) / 3;
+  const refresh = async () => { setRefreshing(true); await actions.refreshShop().catch(() => {}); setRefreshing(false); };
 
   return (
-    <Screen back title={shop.name} eyebrow={k.t.merchant.title.toUpperCase()}>
+    <Screen back title={shop.name} eyebrow={k.t.merchant.title.toUpperCase()} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refresh} />}>
       <View style={{ gap: space.xl }}>
+        {shop.status !== "APPROVED" ? <Banner icon={ClockCountdown}>{k.t.merchant.pending}</Banner> : null}
         <View style={styles.stats}>
           {stats.map((s, i) => (
             <Reveal key={s.label} index={i}>
-              <View style={[styles.stat, { width: tileW, backgroundColor: i === 0 && s.value !== "0" ? c.accentSoft : c.surface, borderColor: c.line }]}
+              <View style={[styles.stat, { width: tileW, backgroundColor: i === 0 && promised ? c.accentSoft : c.surface, borderColor: c.line }]}
                 accessible accessibilityLabel={`${s.label}: ${s.value}`}>
                 <s.icon size={22} color={c.accentInk} />
-                <T variant="title" numberOfLines={1} adjustsFontSizeToFit>{s.value}</T>
-                <T variant="caption" color="muted">{s.label}</T>
+                <T variant="title">{s.value}</T>
+                <T variant="caption" color="muted" numberOfLines={2}>{s.label}</T>
               </View>
             </Reveal>
           ))}
         </View>
 
-        <Section title={k.t.merchant.orders}>
-          <Segmented label={k.t.merchant.orders} value={filter} onChange={setFilter} options={[{ key: "open", label: k.t.merchant.filters.open }, { key: "done", label: k.t.merchant.filters.done }]} />
-          {shown.length === 0 ? <Empty icon={Receipt} text={k.t.merchant.none} /> : shown.map((o) => (
-            <Animated.View key={o.id} layout={LinearTransition} entering={FadeIn}>
-              <Card onPress={() => router.push({ pathname: "/business/order/[id]", params: { id: o.id } })} label={`${o.orderNumber}, ${k.t.purchases.status[o.status]}`} style={styles.order}>
-                <View style={{ flex: 1, gap: 2 }}>
-                  <T variant="bodyStrong" numberOfLines={1}>{o.lines.map((l) => `${l.quantity} × ${l.title}`).join(", ")}</T>
-                  <T variant="caption" color="muted" numberOfLines={1}>{`${o.orderNumber} · ${k.t.merchant.orderFor(findList(state, o.registrySlug)?.title ?? "")}`}</T>
-                  <Pill label={k.t.purchases.status[o.status]} tone={o.status === "PAID" ? "accent" : o.status === "DELIVERED" ? "success" : "neutral"} />
-                </View>
-                <CaretRight size={18} color={c.muted} />
-              </Card>
-            </Animated.View>
+        <Section title={k.t.merchant.pledges}>
+          <T variant="caption" color="muted">{k.t.merchant.pledgesHint}</T>
+          {shop.pledges.length === 0 ? <Empty icon={Gift} text={k.t.merchant.none} /> : shop.pledges.map((p) => (
+            <Card key={p.id} style={{ gap: 2 }}>
+              <T variant="bodyStrong">{`${p.quantity} × ${p.title}`}</T>
+              <T variant="caption" color="muted">{[k.t.merchant.forList(p.list), p.place, k.date(p.createdAt.slice(0, 10))].filter(Boolean).join(" · ")}</T>
+            </Card>
           ))}
         </Section>
 
         <Group>
-          <Row icon={Package} label={k.t.merchant.products} value={String(products.length)} onPress={() => router.push("/business/products")} />
+          <Row icon={Package} label={k.t.merchant.products} value={String(shop.products.length)} onPress={() => router.push("/business/products")} />
           <Row icon={Storefront} label={k.t.merchant.profile} onPress={() => router.push({ pathname: "/shop/[slug]", params: { slug: shop.slug } })} last />
         </Group>
-        <Button kind="quiet" label={k.t.account.title} onPress={() => router.push("/account")} />
       </View>
     </Screen>
   );
@@ -92,5 +86,4 @@ export default function ShopDashboard() {
 const styles = StyleSheet.create({
   stats: { flexDirection: "row", flexWrap: "wrap", gap: space.sm },
   stat: { borderWidth: 1, borderRadius: radius.lg, padding: space.md, gap: 4, minHeight: 116 },
-  order: { flexDirection: "row", alignItems: "center", gap: space.sm },
 });

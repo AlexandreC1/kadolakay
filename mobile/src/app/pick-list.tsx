@@ -1,7 +1,7 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { CheckCircle, ListChecks, Plus } from "phosphor-react-native";
 import { StyleSheet, View } from "react-native";
-import { useCopy } from "@/copy";
+import { errorText, useCopy } from "@/copy";
 import { useColors, useStore } from "@/data/StoreProvider";
 import { MAX_BATCH, myLists } from "@/data/store";
 import { radius, space } from "@/theme/tokens";
@@ -20,14 +20,16 @@ export default function PickList() {
   const c = useColors();
   const router = useRouter();
   const toast = useToast();
-  const { state, dispatch } = useStore();
+  const { state, actions } = useStore();
   const k = useCopy();
   const lists = myLists(state);
 
-  const add = (slug: string, title: string) => {
-    dispatch({ type: "addProducts", slug, productIds: ids });
-    toast(ids.length === 1 ? k.t.gift.addedTo(title) : k.guest.added(ids.length));
-    router.back();
+  const add = async (slug: string, title: string) => {
+    try {
+      await actions.addProducts(slug, ids);
+      toast(ids.length === 1 ? k.t.gift.addedTo(title) : k.guest.added(ids.length));
+      router.back();
+    } catch (e) { toast(errorText(k.t, e)); }
   };
 
   return (
@@ -42,7 +44,7 @@ export default function PickList() {
             const already = ids.some((id) => l.items.some((g) => g.productId === id));
             const p = progressOf(l);
             return (
-              <Tap key={l.slug} disabled={already} onPress={() => add(l.slug, l.title)} accessibilityLabel={l.title} accessibilityState={{ disabled: already }}
+              <Tap key={l.slug} disabled={already} onPress={() => void add(l.slug, l.title)} accessibilityLabel={l.title} accessibilityState={{ disabled: already }}
                 style={[styles.row, { borderColor: c.line, backgroundColor: c.surface, opacity: already ? 0.55 : 1 }]}>
                 <View style={{ flex: 1, gap: 2 }}>
                   <T variant="displaySmall" style={{ fontSize: 18, lineHeight: 22 }}>{l.title}</T>

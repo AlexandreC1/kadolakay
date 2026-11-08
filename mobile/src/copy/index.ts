@@ -31,6 +31,12 @@ export function copyFor(locale: Locale) {
   };
 }
 
+/** Words for a failed request, from the server's stable error code. */
+export function errorText(t: ReturnType<typeof copyFor>["t"], error: unknown) {
+  const code = error && typeof error === "object" && "code" in error ? String((error as { code: unknown }).code) : "";
+  return t.errors[code] ?? t.errors.generic;
+}
+
 export function useCopy() {
   const { state } = useStore();
   return useMemo(() => copyFor(state.locale), [state.locale]);

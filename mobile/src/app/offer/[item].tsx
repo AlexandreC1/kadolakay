@@ -1,56 +1,63 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { CheckCircle, CreditCard, DeviceMobile, Info } from "phosphor-react-native";
+import { CheckCircle, Info, WhatsappLogo } from "phosphor-react-native";
 import { useState } from "react";
-import { StyleSheet, Switch, View } from "react-native";
-import Animated, { FadeIn, FadeInDown, ZoomIn } from "react-native-reanimated";
-import { useCopy } from "@/copy";
+import { Linking, StyleSheet, Switch, View } from "react-native";
+import Animated, { FadeInDown, ZoomIn } from "react-native-reanimated";
+import { errorText, useCopy } from "@/copy";
 import { useColors, useStore } from "@/data/StoreProvider";
-import { availableOf, businessOf, canPayInApp, findList, orderNumberFor } from "@/data/store";
-import type { PaymentMethod } from "@/data/types";
-import { radius, space } from "@/theme/tokens";
+import { availableOf, businessOf, canPledge, findList } from "@/data/store";
+import { space } from "@/theme/tokens";
 import { Banner, Card, Empty, Stepper } from "@/ui/bits";
 import { Button } from "@/ui/Button";
 import { Field } from "@/ui/Field";
 import { GiftArt } from "@/ui/GiftArt";
-import { Segmented } from "@/ui/Segmented";
 import { SheetScreen } from "@/ui/Sheet";
-import { haptic, Tap } from "@/ui/Tap";
+import { haptic } from "@/ui/Tap";
 import { T } from "@/ui/Text";
 
-const methods: PaymentMethod[] = ["MONCASH", "NATCASH", "CARD"];
-
-export default function OfferSheet() {
+/**
+ * "I'll give this": a guest promises a gift and buys or brings it themselves.
+ * No payment step: money never moves through Bayou while checkout is off.
+ */
+export default function PledgeSheet() {
   const { item, list: slug } = useLocalSearchParams<{ item: string; list: string }>();
   const c = useColors();
   const router = useRouter();
-  const { state, dispatch } = useStore();
+  const { state, actions } = useStore();
   const k = useCopy();
   const list = findList(state, slug);
   const gift = list?.items.find((g) => g.id === item);
   const [qty, setQty] = useState(1);
   const [message, setMessage] = useState("");
-  const [name, setName] = useState(state.user?.name ?? "");
   const [anonymous, setAnonymous] = useState(false);
-  const [method, setMethod] = useState<PaymentMethod>(state.currency === "USD" ? "CARD" : "MONCASH");
-  const [currency, setCurrency] = useState<"HTG" | "USD">(state.currency);
-  const [error, setError] = useState<string | undefined>();
-  const [done, setDone] = useState<{ orderId: string; number: string } | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string>();
+  const [done, setDone] = useState(false);
 
-  if (!list || !gift || !canPayInApp(gift)) {
-    return <SheetScreen title={k.t.offer.title}><Empty icon={Info} text={k.t.list.notFound} /></SheetScreen>;
+  if (!state.user) {
+    return (
+      <SheetScreen title={k.t.offer.title}>
+        <Empty icon={Info} text={k.t.offer.signInFirst}>
+          <Button label={k.t.account.signIn} onPress={() => router.replace("/sign-in")} />
+        </Empty>
+      </SheetScreen>
+    );
+  }
+  if (!list || !gift || (!done && !canPledge(list, gift, state.user.id))) {
+    return <SheetScreen title={k.t.offer.title}><Empty icon={Info} text={k.t.errors.NOT_FOUND} /></SheetScreen>;
   }
   const shop = businessOf(state, gift.businessSlug);
   const q = availableOf(gift);
-  const unit = currency === "USD" ? gift.priceUSD ?? 0 : gift.priceHTG ?? 0;
-  const total = k.money(unit * qty, currency);
+  const unit = state.currency === "USD" ? gift.priceUSD : gift.priceHTG;
+  const digits = (n: string) => n.replace(/[^\d]/g, "");
 
   if (done) {
     return (
       <SheetScreen title={k.t.offer.title} onClose={() => router.back()}
         footer={
           <>
-            {state.user ? <Button full label={k.t.offer.track} onPress={() => router.replace({ pathname: "/purchases/[id]", params: { id: done.orderId } })} /> : null}
-            <Button full kind={state.user ? "secondary" : "primary"} label={k.t.offer.backToList} onPress={() => router.back()} />
+            {shop?.whatsapp ? <Button full icon={WhatsappLogo} label={k.t.offer.contactShop} onPress={() => void Linking.openURL(`https://wa.me/${digits(shop.whatsapp!)}`)} /> : null}
+            <Button full kind={shop?.whatsapp ? "secondary" : "primary"} label={k.t.offer.backToList} onPress={() => router.back()} />
           </>
         }
       >
@@ -60,47 +67,48 @@ export default function OfferSheet() {
           </Animated.View>
           <Animated.View entering={FadeInDown.delay(120)} style={{ gap: space.xs, alignItems: "center" }}>
             <T variant="title" style={{ textAlign: "center" }} accessibilityRole="header">{k.t.offer.successTitle}</T>
-            <T color="muted" style={{ textAlign: "center" }}>{k.t.offer.successText(list.ownerName.split(" ")[0], shop?.name ?? "")}</T>
+            <T color="muted" style={{ textAlign: "center" }}>{k.t.offer.successText(list.ownerName.split(" ")[0] || list.title)}</T>
           </Animated.View>
           <Animated.View entering={FadeInDown.delay(220)} style={{ alignSelf: "stretch" }}>
-            <Card style={styles.receipt}>
-              <T variant="caption" color="muted">{k.t.offer.orderNumber}</T>
-              <T variant="heading" selectable>{done.number}</T>
-              <T variant="caption" color="muted">{`${qty} × ${gift.title} · ${total}`}</T>
+            <Card style={{ gap: 2 }}>
+              <T variant="bodyStrong">{`${qty} × ${gift.title}`}</T>
+              <T variant="caption" color="muted">{shop ? k.t.offer.whereToBuy(shop.name) : k.t.offer.ownIdea}</T>
+              {shop?.fulfillmentPolicy ? <T variant="caption" color="muted">{shop.fulfillmentPolicy}</T> : null}
             </Card>
           </Animated.View>
-          <T variant="caption" color="muted">{k.t.offer.demoPay}</T>
         </View>
       </SheetScreen>
     );
   }
 
-  const pay = () => {
-    if (!name.trim()) { setError(k.t.offer.nameNeeded); return; }
-    const orderId = `o-${state.seq}`;
-    dispatch({ type: "offer", offer: { slug: list.slug, giftId: gift.id, quantity: qty, buyerName: name, anonymous, message, currency, method } });
-    haptic("success");
-    setDone({ orderId, number: orderNumberFor(state.seq) });
+  const promise = async () => {
+    setBusy(true); setError(undefined);
+    try {
+      await actions.pledge(list.slug, gift.id, { quantity: qty, anonymous, message: message.trim() || undefined });
+      haptic("success");
+      setDone(true);
+    } catch (e) {
+      setError(errorText(k.t, e));
+      // Someone else may have just taken it; the list was refreshed with the real numbers.
+      void actions.loadList(list.slug).catch(() => {});
+    } finally { setBusy(false); }
   };
 
   return (
-    <SheetScreen
-      title={k.t.offer.title}
-      subtitle={list.title}
-      footer={
-        <>
-          <Button full label={k.t.offer.pay(total)} onPress={pay} disabled={q.available < 1} />
-          <T variant="caption" color="muted" style={{ textAlign: "center" }}>{k.t.offer.demoPay}</T>
-        </>
-      }
+    <SheetScreen title={k.t.offer.title} subtitle={list.title}
+      footer={<Button full label={k.t.offer.confirm} onPress={promise} busy={busy} disabled={q.available < 1} />}
     >
       <Card style={styles.summary}>
         <GiftArt id={gift.id} name={gift.title} size="thumb" />
         <View style={{ flex: 1 }}>
           <T variant="bodyStrong">{gift.title}</T>
-          <T variant="caption" color="muted">{[shop?.name, k.money(unit, currency)].filter(Boolean).join(" · ")}</T>
+          <T variant="caption" color="muted">
+            {[shop ? k.t.offer.whereToBuy(shop.name) : k.t.offer.ownIdea, unit ? k.money(unit, state.currency) : null].filter(Boolean).join(" · ")}
+          </T>
         </View>
       </Card>
+
+      <Banner icon={Info}>{k.t.offer.how}</Banner>
 
       {q.available > 1 ? (
         <View style={styles.rowBetween}>
@@ -114,50 +122,13 @@ export default function OfferSheet() {
 
       <Field label={k.t.offer.message} placeholder={k.t.offer.messageHint} value={message} onChangeText={setMessage} multiline maxLength={500} />
 
-      <View style={{ gap: space.sm }}>
-        <Field label={k.t.offer.yourName} value={name} onChangeText={(v) => { setName(v); setError(undefined); }} error={error} autoComplete="name" maxLength={100} />
-        <View style={styles.rowBetween}>
-          <T variant="label" style={{ flex: 1 }}>{k.t.offer.anonymous}</T>
-          <Switch value={anonymous} onValueChange={setAnonymous} accessibilityLabel={k.t.offer.anonymous}
-            trackColor={{ true: c.accentInk, false: c.line }} thumbColor={c.surfaceRaised} />
-        </View>
-      </View>
-
-      <View style={{ gap: space.sm }}>
-        <T variant="heading">{k.t.offer.payWith}</T>
-        {methods.map((m) => {
-          const on = method === m;
-          const Icon = m === "CARD" ? CreditCard : DeviceMobile;
-          return (
-            <Tap key={m} accessibilityRole="radio" accessibilityState={{ selected: on }} accessibilityLabel={`${k.t.offer.methods[m]}. ${k.t.offer.methodHint[m]}`}
-              onPress={() => { setMethod(m); if (m === "CARD") setCurrency("USD"); else setCurrency("HTG"); }}
-              style={[styles.method, { borderColor: on ? c.accentInk : c.line, backgroundColor: on ? c.accentSoft : c.surface }]}>
-              <Icon size={24} color={on ? c.accentInk : c.secondary} />
-              <View style={{ flex: 1 }}>
-                <T variant="bodyStrong">{k.t.offer.methods[m]}</T>
-                <T variant="caption" color="muted">{k.t.offer.methodHint[m]}</T>
-              </View>
-              <View style={[styles.radio, { borderColor: on ? c.accentInk : c.lineStrong }]}>
-                {on ? <Animated.View entering={FadeIn.duration(120)} style={[styles.radioDot, { backgroundColor: c.accentInk }]} /> : null}
-              </View>
-            </Tap>
-          );
-        })}
-      </View>
-
       <View style={styles.rowBetween}>
-        <T variant="label" color="secondary">{k.t.offer.currency}</T>
-        <View style={{ width: 160 }}>
-          <Segmented label={k.t.offer.currency} value={currency} onChange={setCurrency} options={[{ key: "HTG", label: "HTG" }, { key: "USD", label: "USD" }]} />
-        </View>
+        <T variant="label" style={{ flex: 1 }}>{k.t.offer.anonymous}</T>
+        <Switch value={anonymous} onValueChange={setAnonymous} accessibilityLabel={k.t.offer.anonymous}
+          trackColor={{ true: c.accentInk, false: c.line }} thumbColor={c.surfaceRaised} />
       </View>
 
-      <Banner icon={Info}>{shop?.fulfillmentPolicy ?? ""}</Banner>
-
-      <View style={[styles.rowBetween, styles.total, { borderColor: c.line }]}>
-        <T variant="heading">{k.t.offer.total}</T>
-        <T variant="title">{total}</T>
-      </View>
+      {error ? <Banner tone="warning" icon={Info}>{error}</Banner> : null}
     </SheetScreen>
   );
 }
@@ -165,10 +136,5 @@ export default function OfferSheet() {
 const styles = StyleSheet.create({
   summary: { flexDirection: "row", alignItems: "center", gap: space.sm },
   rowBetween: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: space.sm },
-  method: { flexDirection: "row", alignItems: "center", gap: space.sm, borderWidth: 1.5, borderRadius: radius.lg, padding: space.md, minHeight: 64 },
-  radio: { width: 22, height: 22, borderRadius: 11, borderWidth: 2, alignItems: "center", justifyContent: "center" },
-  radioDot: { width: 10, height: 10, borderRadius: 5 },
-  total: { borderTopWidth: StyleSheet.hairlineWidth, paddingTop: space.md },
   success: { alignItems: "center", gap: space.lg, paddingTop: space.lg },
-  receipt: { alignItems: "center", gap: 2 },
 });

@@ -2,7 +2,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { CheckCircle } from "phosphor-react-native";
 import { useState } from "react";
 import { StyleSheet, View } from "react-native";
-import { useCopy } from "@/copy";
+import { errorText, useCopy } from "@/copy";
 import { useColors, useStore } from "@/data/StoreProvider";
 import { findList } from "@/data/store";
 import type { Visibility } from "@/data/types";
@@ -19,7 +19,7 @@ export default function EditList() {
   const c = useColors();
   const router = useRouter();
   const toast = useToast();
-  const { state, dispatch } = useStore();
+  const { state, actions } = useStore();
   const k = useCopy();
   const list = findList(state, slug);
   const [title, setTitle] = useState(list?.title ?? "");
@@ -28,19 +28,22 @@ export default function EditList() {
   const [note, setNote] = useState(list?.description ?? "");
   const [visibility, setVisibility] = useState<Visibility>(list?.visibility ?? "LINK");
   const [error, setError] = useState<{ title?: string; date?: string }>({});
-  if (!list || list.ownerId !== state.user?.id) return null;
+  const [busy, setBusy] = useState(false);
+  if (!list || !list.owner) return null;
 
   const save = () => {
     const e = { title: title.trim() ? undefined : k.t.create.nameNeeded, date: !date || /^\d{4}-\d{2}-\d{2}$/.test(date) ? undefined : k.t.create.dateInvalid };
     setError(e);
     if (e.title || e.date) return;
-    dispatch({ type: "updateList", slug: list.slug, patch: { title: title.trim(), eventDate: date || undefined, place: place.trim() || undefined, description: note.trim() || undefined, visibility } });
-    toast(k.t.common.saved);
-    router.back();
+    setBusy(true);
+    actions.updateList(list.slug, { title: title.trim(), eventDate: date, place: place.trim(), description: note.trim(), visibility })
+      .then(() => { toast(k.t.common.saved); router.back(); })
+      .catch((err) => toast(errorText(k.t, err)))
+      .finally(() => setBusy(false));
   };
 
   return (
-    <Screen back title={k.t.list.edit} footer={<Button full label={k.t.common.save} onPress={save} />}>
+    <Screen back title={k.t.list.edit} footer={<Button full label={k.t.common.save} onPress={save} busy={busy} />}>
       <View style={{ gap: space.lg }}>
         <Field label={k.t.create.name} value={title} onChangeText={setTitle} error={error.title} maxLength={100} />
         <Field label={k.t.create.date} optionalLabel={k.t.common.optional} value={date} onChangeText={setDate} placeholder={k.t.create.datePlaceholder} error={error.date} maxLength={10} />

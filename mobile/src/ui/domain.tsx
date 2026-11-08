@@ -3,7 +3,7 @@ import { CheckCircle, CircleIcon as Circle, DotsThree, MapPin, Star, Storefront 
 import { StyleSheet, View } from "react-native";
 import { useCopy } from "@/copy";
 import { useColors, useStore } from "@/data/StoreProvider";
-import { availableOf, businessOf, canPayInApp } from "@/data/store";
+import { availableOf, businessOf } from "@/data/store";
 import type { Business, Gift, Product, Registry } from "@/data/types";
 import { radius, space } from "@/theme/tokens";
 import { Button } from "./Button";
@@ -79,11 +79,10 @@ export function GiftRow({ list, gift, owner, onGive, onMenu }: { list: Registry;
           <View style={styles.inline}><CheckCircle size={18} color={c.success} weight="fill" /><T variant="label" color="success">{k.t.list.given}</T></View>
         ) : owner ? null : q.available <= 0 ? (
           <T variant="caption" color="muted">{k.t.list.bePaid}</T>
-        ) : canPayInApp(gift) && list.status === "PUBLISHED" ? (
+        ) : list.status === "PUBLISHED" ? (
+          // Any gift can be promised, shop or family idea; signed-out guests are asked to sign in first.
           <Button small label={k.t.list.give} onPress={onGive} />
-        ) : (
-          <T variant="label" color="secondary" style={{ maxWidth: 190, textAlign: "right" }}>{k.list.giveDirectly}</T>
-        )}
+        ) : null}
         {owner && onMenu ? (
           <Tap onPress={onMenu} accessibilityLabel={`${k.t.common.edit}: ${gift.title}`} style={[styles.dots, { borderColor: c.line }]}>
             <DotsThree size={20} color={c.ink} weight="bold" />

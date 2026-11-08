@@ -1,132 +1,52 @@
 import { describe, expect, it } from "vitest";
-import { availableOf, findList, initialState, MAX_BATCH, nextListSlug, reducer, searchLists, type State } from "./store";
+import { availableOf, canPledge, findList, initialState, myLists, reducer, slugFromLink } from "./store";
+import type { Registry, User } from "./types";
 
-const host = () => reducer(initialState("fr"), { type: "signIn", as: "host" });
-const merchant = () => reducer(initialState("fr"), { type: "signIn", as: "merchant" });
-const run = (s: State, ...actions: Parameters<typeof reducer>[1][]) => actions.reduce(reducer, s);
-
-describe("lists", () => {
-  it("creates a draft owned by the signed-in person, with a unique link", () => {
-    const s0 = host();
-    const slug = nextListSlug(s0, "Fèt Ti Bebe Marie & Pierre");
-    expect(slug).toBe("fet-ti-bebe-marie-pierre");
-    const s1 = reducer(s0, { type: "createList", draft: { type: "BIRTHDAY", title: "  Fèt Ti Bebe Marie & Pierre ", visibility: "LINK" } });
-    const list = findList(s1, slug)!;
-    expect(list.status).toBe("DRAFT");
-    expect(list.title).toBe("Fèt Ti Bebe Marie & Pierre");
-    expect(list.ownerId).toBe("u-marie");
-    expect(nextListSlug(s1, "Fèt Ti Bebe Marie & Pierre")).toBe("fet-ti-bebe-marie-pierre-2");
-  });
-
-  it("refuses to create a list when signed out or without a name", () => {
-    const s = initialState();
-    expect(reducer(s, { type: "createList", draft: { type: "OTHER", title: "X", visibility: "PUBLIC" } })).toBe(s);
-    const h = host();
-    expect(reducer(h, { type: "createList", draft: { type: "OTHER", title: "   ", visibility: "PUBLIC" } })).toBe(h);
-  });
-
-  it("only lets the owner change a list", () => {
-    const s = merchant();
-    const after = reducer(s, { type: "updateList", slug: "fet-ti-bebe-marie", patch: { title: "Hijacked" } });
-    expect(findList(after, "fet-ti-bebe-marie")!.title).toBe("Fèt Ti Bebe Marie & Pierre");
-  });
-
-  it("adds catalog gifts all or nothing, at most 20, never twice", () => {
-    const s = host();
-    const ok = reducer(s, { type: "addProducts", slug: "50-an-tonton-joel", productIds: ["p-tab", "p-panye"] });
-    expect(findList(ok, "50-an-tonton-joel")!.items).toHaveLength(4);
-    // p-chez is already on the list, so the whole batch is refused.
-    const dup = reducer(s, { type: "addProducts", slug: "50-an-tonton-joel", productIds: ["p-tab", "p-chez"] });
-    expect(dup).toBe(s);
-    // Out of stock refuses the batch too.
-    expect(reducer(s, { type: "addProducts", slug: "50-an-tonton-joel", productIds: ["p-kanape"] })).toBe(s);
-    expect(reducer(s, { type: "addProducts", slug: "50-an-tonton-joel", productIds: Array.from({ length: MAX_BATCH + 1 }, (_, i) => `p-${i}`) })).toBe(s);
-  });
-
-  it("keeps a gift someone already gave when the owner removes it", () => {
-    const s = host();
-    const after = run(s, { type: "removeGift", slug: "fet-ti-bebe-marie", giftId: "g-beso" }, { type: "removeGift", slug: "fet-ti-bebe-marie", giftId: "g-bibwon" });
-    const ids = findList(after, "fet-ti-bebe-marie")!.items.map((g) => g.id);
-    expect(ids).toContain("g-beso");
-    expect(ids).not.toContain("g-bibwon");
-  });
+const user: User = { id: "u1", name: "Marie", email: "m@example.com", locale: "ht", role: "USER", onboarding: "done", business: null };
+const list = (slug: string, over: Partial<Registry> = {}): Registry => ({
+  slug, ownerId: "u2", ownerName: "Rose", type: "WEDDING", status: "PUBLISHED", title: slug, visibility: "PUBLIC", createdAt: "2026-11-01",
+  items: [{ id: `${slug}-g`, title: "Dra", quantity: 3, fulfilledQty: 1, reservedQty: 1, source: "CUSTOM", priority: 0 }],
+  ...over,
 });
 
-describe("giving", () => {
-  const offer = { slug: "fet-ti-bebe-marie", giftId: "g-rad", quantity: 2, buyerName: "Fabiola", anonymous: false, currency: "HTG" as const, method: "MONCASH" as const };
-
-  it("records the order and fills the gift, without going over what is needed", () => {
-    const s = initialState();
-    const after = reducer(s, { type: "offer", offer });
-    const gift = findList(after, "fet-ti-bebe-marie")!.items.find((g) => g.id === "g-rad")!;
-    expect(gift.fulfilledQty).toBe(3);
-    expect(availableOf(gift).available).toBe(0);
-    expect(after.orders[0]).toMatchObject({ registrySlug: "fet-ti-bebe-marie", businessSlug: "ti-bebe-boutik", status: "PAID", buyerName: "Fabiola" });
-    expect(after.orders[0].orderNumber).toMatch(/^BY-[0-9A-Z]{5}$/);
-    // Nothing left to give now.
-    expect(reducer(after, { type: "offer", offer: { ...offer, quantity: 1 } })).toBe(after);
+describe("store", () => {
+  it("takes the account's language when a saved session is restored", () => {
+    const s = reducer(initialState("fr"), { type: "booted", user });
+    expect([s.booted, s.user?.id, s.locale]).toEqual([true, "u1", "ht"]);
   });
 
-  it("refuses custom gifts, held units, drafts and missing names", () => {
-    const s = initialState();
-    expect(reducer(s, { type: "offer", offer: { ...offer, giftId: "g-kouch", quantity: 1 } })).toBe(s);
-    // g-asyet has its only unit held by another payment.
-    expect(reducer(s, { type: "offer", offer: { ...offer, slug: "maryaj-jean-rose", giftId: "g-asyet", quantity: 1 } })).toBe(s);
-    expect(reducer(s, { type: "offer", offer: { ...offer, slug: "50-an-tonton-joel", giftId: "g-chez", quantity: 1 } })).toBe(s);
-    expect(reducer(s, { type: "offer", offer: { ...offer, buyerName: "  " } })).toBe(s);
-  });
-});
-
-describe("shops", () => {
-  it("moves an order one step at a time, only for its own shop", () => {
-    const s = merchant();
-    const skip = reducer(s, { type: "orderStatus", orderId: "o-2", status: "SHIPPED" });
-    expect(skip.orders.find((o) => o.id === "o-2")!.status).toBe("PAID");
-    const step = reducer(s, { type: "orderStatus", orderId: "o-2", status: "CONFIRMED" });
-    expect(step.orders.find((o) => o.id === "o-2")!.status).toBe("CONFIRMED");
-    const other = reducer(s, { type: "orderStatus", orderId: "o-1", status: "DELIVERED" });
-    expect(other.orders.find((o) => o.id === "o-1")!.status).toBe("SHIPPED");
+  it("keeps own lists separate, merges updates, and forgets account data on sign-out", () => {
+    let s = reducer(initialState(), { type: "signedIn", user });
+    s = reducer(s, { type: "mine", lists: [list("mine-1", { ownerId: "u1", owner: true, pledges: [] })] });
+    s = reducer(s, { type: "lists", lists: [list("theirs")] });
+    s = reducer(s, { type: "list", list: list("theirs", { title: "Updated" }) });
+    expect(myLists(s).map((l) => l.slug)).toEqual(["mine-1"]);
+    expect(findList(s, "theirs")?.title).toBe("Updated");
+    s = reducer(s, { type: "signOut" });
+    expect(s.user).toBeNull();
+    expect(findList(s, "mine-1")).toBeUndefined();
+    expect(findList(s, "theirs")).toBeDefined();
   });
 
-  it("edits stock only for its own products", () => {
-    const s = merchant();
-    expect(reducer(s, { type: "setStock", productId: "p-tab", stockQuantity: 7.9 }).products.find((p) => p.id === "p-tab")!.stockQuantity).toBe(7);
-    expect(reducer(s, { type: "setStock", productId: "p-beso", stockQuantity: 0 }).products.find((p) => p.id === "p-beso")!.stockQuantity).toBe(4);
-  });
-});
-
-describe("finding lists", () => {
-  it("matches public names without accents, and shared links even when not searchable", () => {
-    const s = initialState();
-    expect(searchLists(s, "fet ti bebe").map((l) => l.slug)).toEqual(["fet-ti-bebe-marie"]);
-    expect(searchLists(s, "https://bayou.example/ht/r/maryaj-jean-rose").map((l) => l.slug)).toEqual(["maryaj-jean-rose"]);
-    // Drafts never show up.
-    expect(searchLists(s, "Tonton")).toEqual([]);
-  });
-});
-
-describe("first-use setup", () => {
-  it("saves name and language, and keeps the current name when left blank", () => {
-    const s = reducer(host(), { type: "saveProfile", name: "  Marie J.  ", locale: "ht" });
-    expect(s.user!.name).toBe("Marie J.");
-    expect(s.locale).toBe("ht");
-    expect(reducer(s, { type: "saveProfile", name: "   ", locale: "fr" }).user!.name).toBe("Marie J.");
-    expect(reducer(s, { type: "saveProfile", name: "x".repeat(150), locale: "fr" }).user!.name).toHaveLength(100);
+  it("drops a list the server says is gone", () => {
+    let s = reducer(initialState(), { type: "lists", lists: [list("x")] });
+    s = reducer(s, { type: "visit", slug: "x" });
+    s = reducer(s, { type: "gone", slug: "x" });
+    expect([findList(s, "x"), s.visited]).toEqual([undefined, []]);
   });
 
-  it("is deferred by Skip, completed by a choice, and never undone", () => {
-    const s = host();
-    expect(s.onboarding).toBe("new");
-    const deferred = reducer(s, { type: "finishOnboarding", skipped: true });
-    expect(deferred.onboarding).toBe("deferred");
-    const done = reducer(deferred, { type: "finishOnboarding", skipped: false });
-    expect(done.onboarding).toBe("done");
-    expect(reducer(done, { type: "finishOnboarding", skipped: true }).onboarding).toBe("done");
+  it("lets anyone but the owner promise what is still needed on a published list", () => {
+    const l = list("w");
+    const g = l.items[0];
+    expect(availableOf(g).available).toBe(1);
+    expect(canPledge(l, g, "u1")).toBe(true);
+    expect(canPledge({ ...l, owner: true }, g, "u2")).toBe(false);
+    expect(canPledge({ ...l, status: "DRAFT" }, g, "u1")).toBe(false);
+    expect(canPledge(l, { ...g, fulfilledQty: 2 }, "u1")).toBe(false);
   });
 
-  it("needs a signed-in person", () => {
-    const s = initialState();
-    expect(reducer(s, { type: "finishOnboarding", skipped: false })).toBe(s);
-    expect(reducer(s, { type: "saveProfile", name: "A", locale: "en" })).toBe(s);
+  it("reads the list slug out of a pasted link", () => {
+    expect(slugFromLink("https://kadolakay.vercel.app/ht/r/maryaj-jean-rose")).toBe("maryaj-jean-rose");
+    expect(slugFromLink("Maryaj")).toBeNull();
   });
 });

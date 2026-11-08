@@ -1,6 +1,6 @@
 import { useRouter } from "expo-router";
 import { ClockCounterClockwise, ListChecks, Plus } from "phosphor-react-native";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 import Animated, { FadeIn, LinearTransition } from "react-native-reanimated";
 import { occasionTypes, type Occasion } from "@web/occasions";
@@ -20,13 +20,22 @@ import { T } from "@/ui/Text";
 
 export default function Lists() {
   const router = useRouter();
-  const { state } = useStore();
+  const { state, actions } = useStore();
   const k = useCopy();
   const [tab, setTab] = useState<"mine" | "opened">("mine");
   const [occasion, setOccasion] = useState<Occasion | null>(null);
   const mine = myLists(state);
   const opened = state.visited.map((s) => findList(state, s)).filter((l): l is Registry => !!l && l.ownerId !== state.user?.id && l.status === "PUBLISHED");
-  const publicLists = state.registries.filter((r) => r.status === "PUBLISHED" && r.visibility === "PUBLIC" && (!occasion || r.type === occasion));
+  const [publicSlugs, setPublicSlugs] = useState<{ key: string; slugs: string[] } | null>(null);
+  const key = occasion ?? "all";
+  useEffect(() => {
+    let live = true;
+    actions.publicLists(occasion).then((slugs) => live && setPublicSlugs({ key, slugs })).catch(() => live && setPublicSlugs({ key, slugs: [] }));
+    return () => { live = false; };
+  }, [occasion, key, actions]);
+  useEffect(() => { if (state.user) void actions.refreshMine().catch(() => {}); }, [state.user, actions]);
+  const publicLists = (publicSlugs?.key === key ? publicSlugs.slugs : []).map((s) => findList(state, s)).filter((l): l is Registry => !!l);
+  const loadingPublic = publicSlugs?.key !== key;
 
   return (
     <Screen inTabs title={k.t.lists.title}>
@@ -72,7 +81,7 @@ export default function Lists() {
             <Animated.View key={l.slug} layout={LinearTransition} entering={FadeIn}>
               <ListCard list={l} />
             </Animated.View>
-          )) : <T color="muted">{k.home.finderNone}</T>}
+          )) : <T color="muted">{loadingPublic ? k.t.common.loading : k.home.finderNone}</T>}
         </Section>
       </View>
     </Screen>
