@@ -67,7 +67,7 @@
       "src/services/permissions.ts",
       "src/services/backoffice-auth.ts",
       "src/services/device-sessions.ts",
-      "src/services/mfa.ts",
+      "src/services/mfa.ts", "src/services/mobile-auth.ts", "src/lib/mobile-token.ts", "src/lib/google-id-token.ts", "src/app/api/mobile/**",
       "src/services/sessions.ts",
       "src/services/account-data.ts",
       "src/actions/user.ts",
@@ -92,7 +92,7 @@
       "src/services/catalog.ts",
       "src/services/catalog-directory.ts",
       "src/services/discovery.ts",
-      "src/services/onboarding.ts",
+      "src/services/onboarding.ts", "src/services/pledges.ts", "src/services/mobile-api.ts",
       "src/lib/registry-*.ts",
       "src/lib/gift-discovery.ts",
       "src/lib/seasons.ts",
@@ -124,7 +124,7 @@
     ],
     "ws4": [
       "src/lib/email.ts",
-      "src/lib/brand.ts"
+      "src/lib/brand.ts", "src/lib/mobile-email.ts"
     ],
     "ws5": [
       "src/services/order-operations.ts",
