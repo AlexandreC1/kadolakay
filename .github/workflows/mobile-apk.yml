@@ -2,7 +2,7 @@ name: Mobile APK
 # Builds the Expo app in mobile/ into an installable Android APK and publishes it
 # on the "mobile-demo" pre-release, so the download link stays the same:
 # https://github.com/AlexandreC1/kadolakay/releases/download/mobile-demo/bayou.apk
-# The app talks to the server at the BAYOU_WEB_URL repository variable. It is signed
+# The app talks to the server at EXPO_PUBLIC_WEB_URL below. It is signed
 # with the standard debug key: fine for sideloading to testers, not for Google Play
 # (use EAS or an upload key for that, and add its SHA-1 to the Google Android client).
 on:
@@ -16,15 +16,15 @@ concurrency:
 permissions:
   contents: write
 env:
-  # Public values, baked into the app at build time. Set them under
-  # Settings > Secrets and variables > Actions > Variables.
-  EXPO_PUBLIC_WEB_URL: ${{ vars.BAYOU_WEB_URL }}
-  EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID: ${{ vars.BAYOU_GOOGLE_WEB_CLIENT_ID }}
+  # Public values baked into the app at build time. Repository variables of the
+  # same name override them (for example after moving to a custom domain).
+  EXPO_PUBLIC_WEB_URL: ${{ vars.BAYOU_WEB_URL || 'https://kadolakay.vercel.app' }}
+  # The production Web client of the KadoLakay Google project. Google sign-in on
+  # Android also needs the Android client (package app.bayou.mobile + signing SHA-1).
+  EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID: ${{ vars.BAYOU_GOOGLE_WEB_CLIENT_ID || '493679041500-hlkcmka2hm8lvchj4e0cpp71q8cj212o.apps.googleusercontent.com' }}
 jobs:
   apk:
     name: Build Android APK
-    # Until the live server address is set, pushes skip the build instead of failing it.
-    if: ${{ vars.BAYOU_WEB_URL != '' || github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
     timeout-minutes: 60
     defaults:

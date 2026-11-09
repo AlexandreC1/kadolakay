@@ -3,6 +3,9 @@ try {
 } catch {
   /* Deployment provides environment. */
 }
+// Vercel's Upstash integration names the Redis REST settings KV_REST_API_*.
+process.env.UPSTASH_REDIS_REST_URL ||= process.env.KV_REST_API_URL ?? "";
+process.env.UPSTASH_REDIS_REST_TOKEN ||= process.env.KV_REST_API_TOKEN ?? "";
 const required = [
   "DATABASE_URL",
   "DATA_ENCRYPTION_KEY",

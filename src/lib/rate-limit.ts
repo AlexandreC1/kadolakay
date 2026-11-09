@@ -4,8 +4,9 @@ import { recordOperationalEvent } from "./operational-events";
 export type LimiterKind = "auth" | "webhook" | "checkout" | "general";
 export type RateLimitResult = { ok: boolean; remaining: number; reset: number; limit: number; unavailable?: boolean };
 const limits: Record<LimiterKind, number> = { auth: 10, webhook: 300, checkout: 10, general: 60 };
-const url = process.env.UPSTASH_REDIS_REST_URL;
-const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+// Vercel's Upstash integration names these KV_REST_API_URL and KV_REST_API_TOKEN.
+const url = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL;
+const token = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN;
 const redis = url && token ? new Redis({ url, token }) : null;
 const limiters = Object.fromEntries(Object.entries(limits).map(([kind, limit]) => [kind,
   redis ? new Ratelimit({ redis, prefix: `kadolakay:rl:${kind}`, limiter: Ratelimit.slidingWindow(limit, "1 m"), analytics: false }) : null,
