@@ -37,6 +37,7 @@ const result = spawnSync(
     "src/services/campaigns-offline.integration.test.ts",
     "src/services/delivery.integration.test.ts",
     "src/services/account-data.integration.test.ts",
+    "src/services/mobile.integration.test.ts",
   ],
   { stdio: "inherit", env: { ...process.env, RUN_DB_TESTS: "1" } },
 );

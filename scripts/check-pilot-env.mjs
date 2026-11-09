@@ -1,4 +1,7 @@
 try { process.loadEnvFile(".env"); } catch { /* Host provides secrets. */ }
+// Vercel's Upstash integration names the Redis REST settings KV_REST_API_*.
+process.env.UPSTASH_REDIS_REST_URL ||= process.env.KV_REST_API_URL ?? "";
+process.env.UPSTASH_REDIS_REST_TOKEN ||= process.env.KV_REST_API_TOKEN ?? "";
 const required = ["DATABASE_URL", "AUTH_SECRET", "NEXT_PUBLIC_APP_URL", "AUTH_GOOGLE_ID", "AUTH_GOOGLE_SECRET", "UPSTASH_REDIS_REST_URL", "UPSTASH_REDIS_REST_TOKEN"];
 if (process.env.CHECKOUT_ENABLED === "true" || process.env.RECONCILIATION_ENABLED === "true") required.push("STRIPE_SECRET_KEY", "STRIPE_WEBHOOK_SECRET", "CRON_SECRET");
 const problems = required.filter(name => !process.env[name]?.trim()).map(name => `${name}: missing`);

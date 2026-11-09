@@ -1,0 +1,79 @@
+name: Mobile APK
+# Builds the Expo app in mobile/ into an installable Android APK and publishes it
+# on the "mobile-demo" pre-release, so the download link stays the same:
+# https://github.com/AlexandreC1/kadolakay/releases/download/mobile-demo/bayou.apk
+# The app talks to the server at EXPO_PUBLIC_WEB_URL below. It is signed
+# with the standard debug key: fine for sideloading to testers, not for Google Play
+# (use EAS or an upload key for that, and add its SHA-1 to the Google Android client).
+on:
+  push:
+    branches: [claude/mobile-app]
+    paths: ["mobile/**", "src/lib/**", ".github/workflows/mobile-apk.yml"]
+  workflow_dispatch:
+concurrency:
+  group: mobile-apk-${{ github.ref }}
+  cancel-in-progress: true
+permissions:
+  contents: write
+env:
+  # Public values baked into the app at build time. Repository variables of the
+  # same name override them (for example after moving to a custom domain).
+  EXPO_PUBLIC_WEB_URL: ${{ vars.BAYOU_WEB_URL || 'https://kadolakay.vercel.app' }}
+  # The production Web client of the KadoLakay Google project. Google sign-in on
+  # Android also needs the Android client (package app.bayou.mobile + signing SHA-1).
+  EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID: ${{ vars.BAYOU_GOOGLE_WEB_CLIENT_ID || '493679041500-hlkcmka2hm8lvchj4e0cpp71q8cj212o.apps.googleusercontent.com' }}
+jobs:
+  apk:
+    name: Build Android APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    defaults:
+      run:
+        working-directory: mobile
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Require the server address
+        run: |
+          case "$EXPO_PUBLIC_WEB_URL" in https://*) echo "Server: $EXPO_PUBLIC_WEB_URL";; *) echo "Set the BAYOU_WEB_URL repository variable to the live https address first."; exit 1;; esac
+      - run: npm ci --no-audit --no-fund
+      - name: Check before building
+        run: |
+          npx tsc --noEmit
+          npx vitest run
+      - name: Generate the native Android project
+        run: npx expo prebuild --platform android --no-install --clean
+        env:
+          EXPO_NO_TELEMETRY: "1"
+      - name: Build the release APK
+        working-directory: mobile/android
+        run: ./gradlew assembleRelease --no-daemon -PreactNativeArchitectures=arm64-v8a,armeabi-v7a
+        env:
+          NODE_ENV: production
+      - name: Collect the APK
+        run: |
+          cp android/app/build/outputs/apk/release/app-release.apk bayou.apk
+          ls -la bayou.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: bayou-apk
+          path: mobile/bayou.apk
+          retention-days: 30
+      - name: Publish on the mobile-demo pre-release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete mobile-demo --yes --cleanup-tag || true
+          gh release create mobile-demo bayou.apk \
+            --target "$GITHUB_SHA" --prerelease \
+            --title "Bayou app for Android (test build)" \
+            --notes "Test build of the Bayou app from ${GITHUB_SHA::7}, connected to $EXPO_PUBLIC_WEB_URL. Install: open this page on an Android phone, download bayou.apk, then allow installing from this source when Android asks. No payment goes through the app: guests promise a gift and buy or bring it themselves."
