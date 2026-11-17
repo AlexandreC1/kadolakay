@@ -31,6 +31,9 @@ export async function createMobileSession(userId: string, label?: string) {
   const token = newMobileToken();
   const now = new Date();
   await db.$transaction(async (tx) => {
+    // Serialize session creation and account-wide revocation for this user.
+    // Without the lock, simultaneous sign-ins can all pass the session cap.
+    await tx.$queryRaw`SELECT id FROM users WHERE id = ${userId} FOR UPDATE`;
     const user = await tx.user.findUnique({ where: { id: userId }, select: { sessionVersion: true, suspendedAt: true } });
     if (!user || user.suspendedAt) throw new MobileAuthError("SUSPENDED");
     await tx.mobileSession.deleteMany({ where: { userId, OR: [{ expiresAt: { lte: now } }, { revokedAt: { not: null } }] } });
@@ -88,14 +91,19 @@ export async function startEmailSignIn(rawEmail: unknown, rawLocale: unknown) {
   let email: string;
   try { email = normalizeEmailIdentifier(String(rawEmail ?? "")); } catch { throw new MobileAuthError("INVALID_EMAIL"); }
   const locale = emailLocale(typeof rawLocale === "string" ? rawLocale : null);
-  const since = new Date(Date.now() - CODE_WINDOW_MINUTES * 60000);
-  const recent = await db.emailSignInCode.count({ where: { email, createdAt: { gt: since } } });
-  if (recent >= MAX_CODES_PER_WINDOW) throw new MobileAuthError("TOO_MANY_CODES");
   const code = newSignInCode();
-  await db.$transaction([
-    db.emailSignInCode.updateMany({ where: { email, consumedAt: null }, data: { consumedAt: new Date() } }),
-    db.emailSignInCode.create({ data: { email, codeHash: hashSignInCode(email, code), expiresAt: new Date(Date.now() + CODE_MINUTES * 60000) } }),
-  ]);
+  await db.$transaction(async (tx) => {
+    // Serialize the count and insertion per address, including the first request
+    // for an address when no row exists yet. Hash collisions only make unrelated
+    // addresses wait briefly; they do not combine their limits.
+    await tx.$queryRaw`SELECT 1 AS locked FROM pg_advisory_xact_lock(hashtextextended('mobile-email:' || ${email}, 0))`;
+    const now = new Date();
+    const since = new Date(now.getTime() - CODE_WINDOW_MINUTES * 60000);
+    const recent = await tx.emailSignInCode.count({ where: { email, createdAt: { gt: since } } });
+    if (recent >= MAX_CODES_PER_WINDOW) throw new MobileAuthError("TOO_MANY_CODES");
+    await tx.emailSignInCode.updateMany({ where: { email, consumedAt: null }, data: { consumedAt: now } });
+    await tx.emailSignInCode.create({ data: { email, codeHash: hashSignInCode(email, code), expiresAt: new Date(now.getTime() + CODE_MINUTES * 60000) } });
+  });
   if (!(await sendSignInCode(email, code, locale))) throw new MobileAuthError("EMAIL_UNAVAILABLE");
   return { email };
 }
@@ -115,7 +123,7 @@ export async function verifyEmailSignIn(rawEmail: unknown, rawCode: unknown, raw
     // Serialize attempts on this code so parallel guesses cannot exceed the limit.
     await tx.$queryRaw`SELECT id FROM email_sign_in_codes WHERE id = ${row.id} FOR UPDATE`;
     const fresh = await tx.emailSignInCode.findUniqueOrThrow({ where: { id: row.id } });
-    if (fresh.consumedAt || fresh.attempts >= MAX_ATTEMPTS) return null;
+    if (fresh.consumedAt || fresh.attempts >= MAX_ATTEMPTS || fresh.expiresAt.getTime() <= Date.now()) return null;
     if (!code || !sameHash(fresh.codeHash, hashSignInCode(email, code))) {
       await tx.emailSignInCode.update({
         where: { id: row.id },

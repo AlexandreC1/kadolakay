@@ -1,0 +1,29 @@
+# KDOM release integration checklist
+
+Updated 2026-11-17. This branch starts from `claude/mobile-app` at `759a56a`, the newer pilot line described in `HANDOFF.md`. It is separate from `codex/two-gift-features` and its Prisma 6 database. Do not mix their migrations or databases. A checked item means only the stated acceptance check passed.
+
+**Release status: not ready for public launch or live payments.** A hosted pilot is documented, but current hosting and provider configuration have not been independently reverified in this pass.
+
+## Completed in this pass
+
+- [x] Inspect the remote branches and identify the newer mobile/pilot lineage. No existing branch was reset or deployed.
+- [x] Serialize mobile email-code creation per address; 12 simultaneous requests permit at most five codes in the configured window.
+- [x] Reject a sign-in code that expires while its verification waits for a row lock.
+- [x] Serialize mobile session creation per user; 12 simultaneous sign-ins leave at most ten valid sessions.
+- [x] Exercise parallel wrong guesses, preserving the five-attempt limit.
+- [x] Run the affected mobile integration suite against a fresh disposable local PostgreSQL database: 13 tests passed.
+- [x] 2026-11-17: After updating Next.js, 353 unit tests passed with 78 DB tests skipped; all 78 passed separately against disposable PostgreSQL. Production build and TypeScript passed; full lint had 0 errors and 9 warnings. One concurrent two-worker run had a worker crash and was rerun successfully with one worker.
+- [x] 2026-11-17: Updated Next.js and eslint-config-next from 16.4.3 to 16.4.6. npm audit no longer reports GHSA-mfr8-8qww-v76h; 11 moderate findings remain. The patch is not deployed.
+
+## Open release gates
+
+- [ ] Integrate the owner's KDOM rename and approved UI refinements into this newer line without overwriting newer mobile, security, inventory or registry work. Verify web, mobile, translated copy, email and QR branding. Existing domains, OAuth credentials and production data require separate deliberate handling.
+- [ ] Reconcile the older feature branch and current pilot branch through a reviewed integration plan. Preserve schema lineage; rehearse migrations against a disposable database. The earlier KDOM checklist applies to the other branch and must not be presented as proof for this one.
+- [ ] Verify the hosted pilot, current deployment branch, account settings, database, backup restore, rate limiter, storage, monitoring and actual costs using read-only checks before making operational changes.
+- [ ] Obtain an eligible merchant-direct payment provider and prove onboarding, routing, settlement, refund and dispute workflows. Keep live payments disabled until every payment gate passes.
+- [ ] Validate public Google sign-in, approved consent-screen branding, verified email delivery, domain and callback configuration. Test two-device sign-in and shared-list flows on a staging release.
+- [ ] Resolve or assess the remaining 11 moderate dependency findings.
+- [ ] Complete a release-candidate run of the full tests, database tests, production build, lint, dependency audit, security/accessibility checks and constrained-network mobile performance measurements.
+- [ ] Review legal and merchant terms for the actual Haitian business and markets. Confirm budget and operating responsibilities.
+
+See `PUBLIC-RELEASE-GATES.md` and `HANDOFF.md` for detailed requirements. Do not claim a mocked integration test is proof of a live provider transaction or a successful build is proof of a functioning production system.

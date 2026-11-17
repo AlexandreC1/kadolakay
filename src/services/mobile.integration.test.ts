@@ -67,6 +67,64 @@ describe.skipIf(!run)("mobile sign-in on PostgreSQL", () => {
     await expect(startEmailSignIn("not an email", "en")).rejects.toThrow("INVALID_EMAIL");
   });
 
+  it("enforces the per-address limit for concurrent requests", async () => {
+    const email = `${randomUUID()}@mobile.example.com`;
+    const results = await Promise.allSettled(Array.from({ length: 12 }, () => startEmailSignIn(email, "en")));
+    expect(results.filter((result) => result.status === "fulfilled")).toHaveLength(5);
+    const rejected = results.filter((result) => result.status === "rejected");
+    expect(rejected).toHaveLength(7);
+    for (const result of rejected) if (result.status === "rejected") expect(result.reason.code).toBe("TOO_MANY_CODES");
+    expect(await db.emailSignInCode.count({ where: { email } })).toBe(5);
+  });
+
+  it("limits concurrent wrong code attempts to five", async () => {
+    const email = `${randomUUID()}@mobile.example.com`;
+    await startEmailSignIn(email, "en");
+    const code = sent.findLast((item) => item.to === email)!.code;
+    const wrong = code === "000000" ? "111111" : "000000";
+    const results = await Promise.allSettled(Array.from({ length: 12 }, () => verifyEmailSignIn(email, wrong, "en")));
+    expect(results.every((result) => result.status === "rejected")).toBe(true);
+    const row = await db.emailSignInCode.findFirstOrThrow({ where: { email } });
+    expect(row.attempts).toBe(5);
+    expect(row.consumedAt).toBeInstanceOf(Date);
+    await expect(verifyEmailSignIn(email, code, "en")).rejects.toThrow("INVALID_CODE");
+  });
+
+  it("rejects a code that expires while verification waits for the row lock", async () => {
+    const email = `${randomUUID()}@mobile.example.com`;
+    await startEmailSignIn(email, "en");
+    const code = sent.findLast((item) => item.to === email)!.code;
+    const row = await db.emailSignInCode.findFirstOrThrow({ where: { email } });
+    let locked!: () => void;
+    let release!: () => void;
+    const acquired = new Promise<void>((resolve) => { locked = resolve; });
+    const proceed = new Promise<void>((resolve) => { release = resolve; });
+    const blocker = db.$transaction(async (tx) => {
+      await tx.$queryRaw`SELECT id FROM email_sign_in_codes WHERE id = ${row.id} FOR UPDATE`;
+      locked();
+      await proceed;
+      await tx.emailSignInCode.update({ where: { id: row.id }, data: { expiresAt: new Date(0) } });
+    }, { timeout: 10000 });
+    await acquired;
+    const verification = verifyEmailSignIn(email, code, "en").then(() => "accepted", (err: unknown) => err);
+    try {
+      let waiting = false;
+      for (let attempt = 0; attempt < 100 && !waiting; attempt++) {
+        const rows = await db.$queryRaw<{ waiting: boolean }[]>`SELECT EXISTS (SELECT 1 FROM pg_stat_activity WHERE datname = current_database() AND wait_event_type = 'Lock' AND query LIKE '%email_sign_in_codes%' AND pid <> pg_backend_pid()) AS waiting`;
+        waiting = rows[0].waiting;
+        if (!waiting) await new Promise((resolve) => setTimeout(resolve, 25));
+      }
+      expect(waiting).toBe(true);
+    } finally {
+      release();
+      await blocker;
+    }
+    const result = await verification;
+    expect(result).toBeInstanceOf(Error);
+    expect((result as Error).message).toBe("INVALID_CODE");
+    expect(await db.user.findUnique({ where: { email } })).toBeNull();
+  });
+
   it("ends app sessions on sign-out, suspension, and sign out everywhere", async () => {
     const u = await user("Session");
     const token = await createMobileSession(u.id);
@@ -82,6 +140,15 @@ describe.skipIf(!run)("mobile sign-in on PostgreSQL", () => {
     expect(await resolveMobileSession(third)).toBeNull();
     await expect(requireMobileActor(third, "registry:create")).rejects.toThrow("SIGNED_OUT");
     expect(await resolveMobileSession("x".repeat(43))).toBeNull();
+  });
+
+  it("enforces the session cap during concurrent sign-ins", async () => {
+    const u = await user("Concurrent sessions");
+    const tokens = await Promise.all(Array.from({ length: 12 }, () => createMobileSession(u.id)));
+    expect(new Set(tokens).size).toBe(12);
+    expect(await db.mobileSession.count({ where: { userId: u.id } })).toBe(10);
+    const resolved = await Promise.all(tokens.map((token) => resolveMobileSession(token)));
+    expect(resolved.filter(Boolean)).toHaveLength(10);
   });
 
   it("links Google to the account that already uses the email, once", async () => {

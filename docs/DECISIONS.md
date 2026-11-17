@@ -176,3 +176,9 @@ The app lives in `mobile/`, excluded from the web app's tsconfig and ESLint. It 
 ## November 8: first hosted pilot for the mobile app
 
 Owner chose free Vercel plus Neon hosting, both email-code and Google sign-in, promises instead of payments, deploying from claude/mobile-app, buying a domain for email, and Claude driving his browser. Production deploys from claude/mobile-app until PR #21 is merged; switch Vercel's production branch back afterwards. Neon and Upstash are attached to Production only, so preview deployments have no database and cannot touch pilot data. The app keeps https://kadolakay.vercel.app as its server address even after a domain is bought, because the domain is only needed for email; moving the app to the domain later means rebuilding the APK. Migrations stay manual through the db-migrate workflow (no migrate-on-build). Google sign-in stays in Testing mode, so only listed Gmail testers (up to 100) can use the Google button; email codes work for everyone once email is configured. Checkout remains disabled and nothing in the app takes money.
+
+## 2026-11-17: mobile authentication concurrency
+
+Use database transaction locks for per-address sign-in code issuance and per-user session creation. Recheck code expiry after acquiring its row lock. These changes enforce existing limits; they do not authorize production deployment, alter provider configuration or resolve merchant settlement. Work is isolated on `codex/kdom-release-integration` based on `claude/mobile-app`.
+
+Next.js and eslint-config-next were updated together to 16.4.6 on the isolated integration branch after a build-blocking security advisory. A clean build and regression checks do not authorize a production deployment.
