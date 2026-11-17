@@ -78,7 +78,7 @@ export function makeActions(dispatch: Dispatch, getState: () => State) {
       await api("POST", "/auth/email/start", { email, locale: getState().locale });
     },
     async verifyEmail(email: string, code: string) {
-      const r = await api<{ token: string; user: User }>("POST", "/auth/email/verify", { email, code, locale: getState().locale, device: `Bayou ${Platform.OS}` });
+      const r = await api<{ token: string; user: User }>("POST", "/auth/email/verify", { email, code, locale: getState().locale, device: `KDOM ${Platform.OS}` });
       return afterSignIn(r.token, r.user);
     },
     googleAvailable: Platform.OS !== "web" && !!GOOGLE_WEB_CLIENT_ID,
@@ -91,7 +91,7 @@ export function makeActions(dispatch: Dispatch, getState: () => State) {
       const res = await g.GoogleSignin.signIn();
       if (!g.isSuccessResponse(res)) return null;
       if (!res.data.idToken) throw new ApiError("INVALID_TOKEN", 401);
-      const r = await api<{ token: string; user: User }>("POST", "/auth/google", { idToken: res.data.idToken, locale: getState().locale, device: `Bayou ${Platform.OS}` });
+      const r = await api<{ token: string; user: User }>("POST", "/auth/google", { idToken: res.data.idToken, locale: getState().locale, device: `KDOM ${Platform.OS}` });
       return afterSignIn(r.token, r.user);
     },
     async signOut() {

@@ -16,7 +16,7 @@ export default async function MerchantLandingPage() {
   return (
     <div className="foundation-page merchant-entry">
       <header className="foundation-intro">
-        <p className="foundation-eyebrow">Bayou / {c.businessLink}</p>
+        <p className="foundation-eyebrow">KDOM / {c.businessLink}</p>
         <h1>{c.merchant}</h1>
         <p>{c.merchantIntro}</p>
         <Link

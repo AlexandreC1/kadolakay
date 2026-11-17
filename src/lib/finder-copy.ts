@@ -4,10 +4,10 @@ const copy = {
     intro:
       "Scan the QR code or paste the registry link shared by your friend or family member.",
     label: "Registry link or exact list address",
-    hint: "Use the full Bayou link or the list address after /r/. Use public search below to look up a person or event.",
+    hint: "Use the full KDOM link or the list address after /r/. Use public search below to look up a person or event.",
     submit: "Find list",
     invalid:
-      "That doesn’t look like a Bayou registry link. Copy the original link or enter the exact list address.",
+      "That doesn’t look like a KDOM registry link. Copy the original link or enter the exact list address.",
     missing:
       "We couldn’t open that list. Check the link with the person who shared it. The list may not be public or available.",
     failed: "We can’t check lists right now. Please try again shortly.",
@@ -32,10 +32,10 @@ const copy = {
     title: "Trouver une liste de cadeaux",
     intro: "Scannez le code QR ou collez le lien partagé par votre proche.",
     label: "Lien ou adresse exacte de la liste",
-    hint: "Utilisez le lien Bayou complet ou l’adresse après /r/. Utilisez la recherche publique ci-dessous pour un nom ou un événement.",
+    hint: "Utilisez le lien KDOM complet ou l’adresse après /r/. Utilisez la recherche publique ci-dessous pour un nom ou un événement.",
     submit: "Trouver la liste",
     invalid:
-      "Ce lien ne semble pas être une liste Bayou. Copiez le lien d’origine ou saisissez l’adresse exacte de la liste.",
+      "Ce lien ne semble pas être une liste KDOM. Copiez le lien d’origine ou saisissez l’adresse exacte de la liste.",
     missing:
       "Impossible d’ouvrir cette liste. Vérifiez le lien avec la personne qui l’a partagé. La liste peut ne pas être publique ou disponible.",
     failed:
@@ -62,10 +62,10 @@ const copy = {
     intro:
       "Eskane kòd QR a oswa kole lyen zanmi ou oswa fanmi ou te pataje avèk ou a.",
     label: "Lyen oswa adrès egzak lis la",
-    hint: "Sèvi ak tout lyen Bayou la oswa adrès ki apre /r/ la. Sèvi ak rechèch piblik anba a pou non moun oswa evènman.",
+    hint: "Sèvi ak tout lyen KDOM la oswa adrès ki apre /r/ la. Sèvi ak rechèch piblik anba a pou non moun oswa evènman.",
     submit: "Jwenn lis la",
     invalid:
-      "Sa pa sanble ak yon lyen lis Bayou. Kopye lyen orijinal la oswa antre adrès egzak lis la.",
+      "Sa pa sanble ak yon lyen lis KDOM. Kopye lyen orijinal la oswa antre adrès egzak lis la.",
     missing:
       "Nou pa ka louvri lis sa a. Verifye lyen an ak moun ki te pataje l la. Lis la ka pa piblik oswa disponib.",
     failed: "Nou pa ka verifye lis yo kounye a. Tanpri eseye ankò talè.",

@@ -62,7 +62,7 @@ export default function Home() {
         <View style={styles.hero}>
           <View style={styles.brand}>
             <View style={[styles.mark, { backgroundColor: c.action }]}><T variant="heading" style={{ color: c.onAction }}>B</T></View>
-            <T variant="heading">Bayou</T>
+            <T variant="heading">KDOM</T>
           </View>
           <T variant="largeTitle" accessibilityRole="header">{title}</T>
           {named ? <T color="muted">{k.home.appTitle}</T> : null}

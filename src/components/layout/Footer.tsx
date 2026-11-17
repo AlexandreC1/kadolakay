@@ -6,7 +6,7 @@ export function Footer() {
   const t = useTranslations("footer");
   return (
     <footer className={styles.footer}>
-      <span>© {new Date().getFullYear()} Bayou.</span>
+      <span>© {new Date().getFullYear()} KDOM.</span>
       <nav className={styles.links} aria-label={t("legalNavigation")}>
         <Link href="/privacy">{t("privacy")}</Link>
         <Link href="/terms">{t("terms")}</Link>

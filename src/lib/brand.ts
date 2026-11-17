@@ -3,5 +3,5 @@ export function brandEmailSender(sender: string | undefined) {
   if (!sender) return sender;
   const addressStart = sender.indexOf("<");
   if (addressStart < 0) return sender;
-  return sender.slice(0, addressStart).replace(/\bKadoLakay\b/gi, "Bayou") + sender.slice(addressStart);
+  return sender.slice(0, addressStart).replace(/\b(?:KadoLakay|Bayou)\b/gi, "KDOM") + sender.slice(addressStart);
 }

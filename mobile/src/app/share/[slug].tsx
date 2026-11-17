@@ -48,7 +48,7 @@ export default function ShareSheet() {
       <View style={[styles.card, { backgroundColor: c.surface, borderColor: c.line }]} accessible accessibilityLabel={`${list.title}. ${k.t.sharing.scan}. ${url}`}>
         <View style={styles.brand}>
           <View style={[styles.mark, { backgroundColor: c.action }]}><T variant="label" style={{ color: c.onAction }}>B</T></View>
-          <T variant="label">Bayou</T>
+          <T variant="label">KDOM</T>
         </View>
         <T variant="overline" color="accentInk">{[k.occasion(list.type), list.eventDate ? k.date(list.eventDate) : null].filter(Boolean).join(" · ").toUpperCase()}</T>
         <T variant="display" style={{ textAlign: "center" }}>{list.title}</T>

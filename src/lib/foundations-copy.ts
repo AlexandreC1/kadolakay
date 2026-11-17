@@ -24,7 +24,7 @@ const copy = {
     view: "View gift",
     priceNote:
       "Prices are listed in the selected currency. Delivery charges are not included. Stock and price are checked again before payment.",
-    merchant: "Grow your business with Bayou",
+    merchant: "Grow your business with KDOM",
     merchantIntro:
       "Present your products to families building their gift lists. You remain the seller, receive payments and manage delivery and refunds.",
     apply: "Register my business",
@@ -55,7 +55,7 @@ const copy = {
     failed:
       "We could not save your changes. Please sign in again or try shortly.",
     saving: "Saving…",
-    premium: "Bayou Premium",
+    premium: "KDOM Premium",
     premiumIntro:
       "Make your wishlist feel personal and see how gifting is progressing.",
     personalization: "Wishlist personalization",
@@ -128,7 +128,7 @@ const copy = {
     view: "Voir le cadeau",
     priceNote:
       "Prix indiqués dans la devise choisie, hors livraison. Prix et stock sont vérifiés à nouveau avant le paiement.",
-    merchant: "Développez votre commerce avec Bayou",
+    merchant: "Développez votre commerce avec KDOM",
     merchantIntro:
       "Présentez vos produits aux familles qui créent leur liste. Vous restez le vendeur, recevez les paiements et gérez la livraison et les remboursements.",
     apply: "Inscrire mon entreprise",
@@ -159,7 +159,7 @@ const copy = {
     failed:
       "Enregistrement impossible. Reconnectez-vous ou réessayez dans un instant.",
     saving: "Enregistrement…",
-    premium: "Bayou Premium",
+    premium: "KDOM Premium",
     premiumIntro:
       "Personnalisez votre liste et suivez l’avancement des cadeaux.",
     personalization: "Personnalisation des listes",
@@ -232,7 +232,7 @@ const copy = {
     view: "Gade kado a",
     priceNote:
       "Pri yo nan lajan ou chwazi a, san frè livrezon. Nou verifye pri ak estòk ankò anvan peman.",
-    merchant: "Devlope biznis ou ak Bayou",
+    merchant: "Devlope biznis ou ak KDOM",
     merchantIntro:
       "Prezante pwodwi ou bay fanmi k ap fè lis kado yo. Se ou ki vann, resevwa peman, livre epi fè ranbousman yo.",
     apply: "Enskri biznis mwen",
@@ -260,7 +260,7 @@ const copy = {
     saved: "Chanjman yo anrejistre.",
     failed: "Nou pa ka anrejistre chanjman yo. Konekte ankò oswa eseye talè.",
     saving: "Ap anrejistre…",
-    premium: "Bayou Premium",
+    premium: "KDOM Premium",
     premiumIntro: "Pèsonalize lis ou epi suiv pwogrè kado yo.",
     personalization: "Pèsonalizasyon lis",
     insights: "Suivi lis yo",

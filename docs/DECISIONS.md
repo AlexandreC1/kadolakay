@@ -182,3 +182,7 @@ Owner chose free Vercel plus Neon hosting, both email-code and Google sign-in, p
 Use database transaction locks for per-address sign-in code issuance and per-user session creation. Recheck code expiry after acquiring its row lock. These changes enforce existing limits; they do not authorize production deployment, alter provider configuration or resolve merchant settlement. Work is isolated on `codex/kdom-release-integration` based on `claude/mobile-app`.
 
 Next.js and eslint-config-next were updated together to 16.4.6 on the isolated integration branch after a build-blocking security advisory. A clean build and regression checks do not authorize a production deployment.
+
+## 2026-11-17: KDOM branding on the newer pilot line
+
+Apply the owner's later KDOM naming decision to user-visible web/mobile source. Keep existing mobile bundle and scheme, OAuth identifiers, domains, verified email addresses, authenticator issuer and historical payment retry description stable until a reviewed migration. External name registration, app-store/Google consent branding and production rollout remain open.

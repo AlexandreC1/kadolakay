@@ -24,7 +24,7 @@ function HeaderContent({ user }: { user?: { name?: string | null; image?: string
     <>
       <header className={styles.bar}>
         <div className={styles.inner}>
-          <Link href="/" className={styles.brand} aria-label={`Bayou, ${navigation.home}`}>
+          <Link href="/" className={styles.brand} aria-label={`KDOM, ${navigation.home}`}>
             <Brand />
           </Link>
           <div className={styles.center}>

@@ -17,13 +17,17 @@ Updated 2026-11-17. This branch starts from `claude/mobile-app` at `759a56a`, th
 
 ## Open release gates
 
-- [ ] Integrate the owner's KDOM rename and approved UI refinements into this newer line without overwriting newer mobile, security, inventory or registry work. Verify web, mobile, translated copy, email and QR branding. Existing domains, OAuth credentials and production data require separate deliberate handling.
+- [x] 2026-11-17: Applied KDOM naming to web and mobile source, translated copy, email display names, QR card branding and icon assets. Existing domains, OAuth identifiers, app package/scheme, authenticator issuer and historical checkout retry descriptions remain unchanged. Web home/login branding checked with an isolated database; email sender tests preserve addresses; QR tests verify scanning.
+- [ ] Verify KDOM branding in a newly built Android APK and on a physical device, and review approved UI refinements against the prior KDOM branch. Google consent branding and production deployment remain separate external tasks.
 - [ ] Reconcile the older feature branch and current pilot branch through a reviewed integration plan. Preserve schema lineage; rehearse migrations against a disposable database. The earlier KDOM checklist applies to the other branch and must not be presented as proof for this one.
 - [ ] Verify the hosted pilot, current deployment branch, account settings, database, backup restore, rate limiter, storage, monitoring and actual costs using read-only checks before making operational changes.
 - [ ] Obtain an eligible merchant-direct payment provider and prove onboarding, routing, settlement, refund and dispute workflows. Keep live payments disabled until every payment gate passes.
 - [ ] Validate public Google sign-in, approved consent-screen branding, verified email delivery, domain and callback configuration. Test two-device sign-in and shared-list flows on a staging release.
-- [ ] Resolve or assess the remaining 11 moderate dependency findings.
-- [ ] Complete a release-candidate run of the full tests, database tests, production build, lint, dependency audit, security/accessibility checks and constrained-network mobile performance measurements.
+- [x] Updated mobile Vitest from 3.x to 5.1.0; its two critical audit findings no longer appear. Mobile tests and type checking passed.
+- [ ] Assess the mobile dependency audit: 37 high and seven moderate findings after the test-runner update; the audit with dev dependencies omitted still reports 33 high and three moderate. Investigate reachability and compatible fixes; do not force an Expo/React Native downgrade. Most high-severity paths trace to [GHSA-fc5q-39xc-vjpf](https://github.com/advisories/GHSA-fc5q-39xc-vjpf), which listed no patched picomatch release on 2026-11-17. Audit counts describe dependency paths, not confirmed exploitable application bugs.
+- [ ] Resolve or assess the remaining 11 moderate web dependency findings.
+- [x] 2026-11-17: After the KDOM source changes, the web suite passed 353 tests with 78 DB cases skipped in that command, web production build passed, lint had no errors and nine warnings; mobile suite passed nine tests, type checking, lint and Expo web export passed. The earlier 78 PostgreSQL tests passed separately before this branding-only pass.
+- [ ] Complete a release-candidate run of the full tests, database tests, production build, lint, dependency audit, security/accessibility checks and constrained-network mobile performance measurements on the final commit.
 - [ ] Review legal and merchant terms for the actual Haitian business and markets. Confirm budget and operating responsibilities.
 
 See `PUBLIC-RELEASE-GATES.md` and `HANDOFF.md` for detailed requirements. Do not claim a mocked integration test is proof of a live provider transaction or a successful build is proof of a functioning production system.

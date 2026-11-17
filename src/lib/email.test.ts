@@ -11,11 +11,11 @@ describe("transactional email language", () => {
     for (const value of [null, undefined, "", "es", "FR"]) expect(emailLocale(value)).toBe("ht");
   });
   it("writes each email in the recipient's language and links to that locale", () => {
-    expect(renderGiftNotification({ ...gift, locale: "fr" }).subject).toBe("Vous avez reçu un cadeau ! | Bayou");
+    expect(renderGiftNotification({ ...gift, locale: "fr" }).subject).toBe("Vous avez reçu un cadeau ! | KDOM");
     expect(renderGiftNotification({ ...gift, locale: "en" }).text).toContain("Hello Marie!");
     expect(renderGiftNotification({ ...gift, locale: "ht" }).text).toContain("Bonjou Marie!");
     expect(renderGiftNotification({ ...gift, locale: "fr" }).html).toContain("/fr/r/baby%20list");
-    expect(renderOrderConfirmation({ ...order, locale: "en" }).subject).toBe("Your order is confirmed | Bayou");
+    expect(renderOrderConfirmation({ ...order, locale: "en" }).subject).toBe("Your order is confirmed | KDOM");
     expect(renderOrderConfirmation({ ...order, locale: "fr" }).text).toContain("Total: 25.00 USD");
     expect(anonymousBuyer("fr")).toBe("Quelqu’un");
   });

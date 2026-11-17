@@ -89,7 +89,7 @@ const copy = {
     REFUNDED: "Refunded",
     recordRefund: "Record the refund you sent",
     recordRefundHint:
-      "After you have paid the buyer back, record how. The buyer sees this record. Bayou does not move or confirm this money.",
+      "After you have paid the buyer back, record how. The buyer sees this record. KDOM does not move or confirm this money.",
     refundMethod: "How you refunded",
     refundReference: "Transaction reference",
     refundReferenceHint: "Required except for cash. Use the reference from your MonCash, Natcash, bank or card receipt.",
@@ -248,7 +248,7 @@ const copy = {
     REFUNDED: "Remboursée",
     recordRefund: "Enregistrer le remboursement envoyé",
     recordRefundHint:
-      "Après avoir remboursé l’acheteur, indiquez comment. L’acheteur voit cet enregistrement. Bayou ne transfère ni ne confirme cet argent.",
+      "Après avoir remboursé l’acheteur, indiquez comment. L’acheteur voit cet enregistrement. KDOM ne transfère ni ne confirme cet argent.",
     refundMethod: "Moyen de remboursement",
     refundReference: "Référence de la transaction",
     refundReferenceHint: "Obligatoire sauf en espèces. Utilisez la référence de votre reçu MonCash, Natcash, bancaire ou de carte.",
@@ -407,7 +407,7 @@ const copy = {
     REFUNDED: "Ranbouse",
     recordRefund: "Anrejistre ranbousman ou voye a",
     recordRefundHint:
-      "Apre ou fin remèt achtè a lajan l, di kijan ou fè l. Achtè a ap wè anrejistreman sa a. Bayou pa deplase ni konfime lajan sa a.",
+      "Apre ou fin remèt achtè a lajan l, di kijan ou fè l. Achtè a ap wè anrejistreman sa a. KDOM pa deplase ni konfime lajan sa a.",
     refundMethod: "Kijan ou ranbouse",
     refundReference: "Referans tranzaksyon an",
     refundReferenceHint: "Obligatwa sof si se kach. Sèvi ak referans ki sou resi MonCash, Natcash, bank oswa kat ou.",

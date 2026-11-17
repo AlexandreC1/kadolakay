@@ -23,7 +23,7 @@ export async function GET() {
       headers: {
         ...noStore,
         "Content-Type": "application/json; charset=utf-8",
-        "Content-Disposition": `attachment; filename="bayou-data-${day}.json"`,
+        "Content-Disposition": `attachment; filename="kdom-data-${day}.json"`,
       },
     });
   } catch {

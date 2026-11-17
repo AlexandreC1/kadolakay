@@ -2,7 +2,7 @@ const copy = {
   en: {
     home: "Home",
     explore: "Explore",
-    premium: "Bayou Premium",
+    premium: "KDOM Premium",
     manage: "Premium access",
     season: "Seasonal appearance",
     businessLink: "For businesses",
@@ -11,7 +11,7 @@ const copy = {
   fr: {
     home: "Accueil",
     explore: "Découvrir",
-    premium: "Bayou Premium",
+    premium: "KDOM Premium",
     manage: "Accès Premium",
     season: "Apparence saisonnière",
     businessLink: "Pour les entreprises",
@@ -20,7 +20,7 @@ const copy = {
   ht: {
     home: "Akèy",
     explore: "Dekouvri",
-    premium: "Bayou Premium",
+    premium: "KDOM Premium",
     manage: "Aksè Premium",
     season: "Aparans selon sezon",
     businessLink: "Pou biznis yo",

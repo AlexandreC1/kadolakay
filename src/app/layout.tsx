@@ -4,8 +4,8 @@ import "./theme.css";
 
 export const metadata: Metadata = {
   title: {
-    default: "Bayou | Kado pou tout okazyon, lakay ou",
-    template: "%s | Bayou",
+    default: "KDOM | Kado pou tout okazyon, lakay ou",
+    template: "%s | KDOM",
   },
   description:
     "Kreye rejis kado pou fèt bebe, maryaj, ak anivesè. Pataje ak fanmi ak zanmi ou toupatou nan mond lan.",

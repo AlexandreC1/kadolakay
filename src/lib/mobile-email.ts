@@ -3,9 +3,9 @@ import { brandEmailSender } from "./brand";
 import { escapeHtml, type EmailLocale } from "./email";
 
 const copy = {
-  ht: { subject: (c: string) => `${c} se kòd koneksyon Bayou ou`, line: "Men kòd pou konekte nan app Bayou a:", expires: "Li valab pandan 10 minit. Si se pa ou ki mande l, ou ka inyore imèl sa a." },
-  fr: { subject: (c: string) => `${c} est votre code de connexion Bayou`, line: "Voici votre code pour vous connecter à l’app Bayou :", expires: "Il est valable 10 minutes. Si vous ne l’avez pas demandé, ignorez cet e-mail." },
-  en: { subject: (c: string) => `${c} is your Bayou sign-in code`, line: "Here is your code to sign in to the Bayou app:", expires: "It works for 10 minutes. If you did not ask for it, you can ignore this email." },
+  ht: { subject: (c: string) => `${c} se kòd koneksyon KDOM ou`, line: "Men kòd pou konekte nan app KDOM a:", expires: "Li valab pandan 10 minit. Si se pa ou ki mande l, ou ka inyore imèl sa a." },
+  fr: { subject: (c: string) => `${c} est votre code de connexion KDOM`, line: "Voici votre code pour vous connecter à l’app KDOM :", expires: "Il est valable 10 minutes. Si vous ne l’avez pas demandé, ignorez cet e-mail." },
+  en: { subject: (c: string) => `${c} is your KDOM sign-in code`, line: "Here is your code to sign in to the KDOM app:", expires: "It works for 10 minutes. If you did not ask for it, you can ignore this email." },
 } as const;
 
 /** Which provider will carry sign-in codes, or null when none is configured. */
@@ -38,7 +38,7 @@ export async function sendSignInCode(to: string, code: string, locale: EmailLoca
         method: "POST",
         headers: { "api-key": process.env.BREVO_API_KEY!, "content-type": "application/json", accept: "application/json" },
         body: JSON.stringify({
-          sender: { name: "Bayou", email: process.env.EMAIL_FROM_ADDRESS },
+          sender: { name: "KDOM", email: process.env.EMAIL_FROM_ADDRESS },
           to: [{ email: to }], subject, textContent: text, htmlContent: html,
         }),
         signal: AbortSignal.timeout(10000),

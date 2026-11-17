@@ -48,10 +48,10 @@ export default async function AdminOverviewPage() {
         <h2>{volume}</h2>
         <p className="foundation-note">
           {locale === "fr"
-            ? "Ce volume représente les paiements des vendeurs, pas le revenu de Bayou."
+            ? "Ce volume représente les paiements des vendeurs, pas le revenu de KDOM."
             : locale === "ht"
-              ? "Volim sa a se peman machann yo, se pa revni Bayou."
-              : "This represents merchant payments, not Bayou revenue."}
+              ? "Volim sa a se peman machann yo, se pa revni KDOM."
+              : "This represents merchant payments, not KDOM revenue."}
         </p>
         {m.payments.map((p) => (
           <p key={p.currency}>

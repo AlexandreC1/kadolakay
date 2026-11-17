@@ -35,13 +35,13 @@ export async function generateMetadata({
 
   return {
     title: registry.title,
-    description: registry.description || `${registry.title} | Bayou`,
+    description: registry.description || `${registry.title} | KDOM`,
     openGraph: {
       title: registry.title,
       description: registry.description || undefined,
       images: [`/api/og/${registry.slug}`],
       type: "website",
-      siteName: "Bayou",
+      siteName: "KDOM",
     },
     twitter: {
       card: "summary_large_image",

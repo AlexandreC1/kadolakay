@@ -3,7 +3,8 @@ import { brandEmailSender } from "./brand";
 
 describe("sender branding", () => {
   it("renames the display label while preserving the verified address", () => {
-    expect(brandEmailSender("KadoLakay <noreply@kadolakay.example>")).toBe("Bayou <noreply@kadolakay.example>");
+    expect(brandEmailSender("KadoLakay <noreply@kadolakay.example>")).toBe("KDOM <noreply@kadolakay.example>");
+    expect(brandEmailSender("Bayou <noreply@bayou.example>")).toBe("KDOM <noreply@bayou.example>");
     expect(brandEmailSender("noreply@kadolakay.example")).toBe("noreply@kadolakay.example");
   });
   it("preserves custom sender names and missing configuration", () => {

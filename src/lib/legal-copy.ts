@@ -17,19 +17,19 @@ type LegalLocale = "ht" | "fr" | "en";
 type SharedCopy = { draft: string; version: string; contactPrompt: string; contactPending: string };
 const shared: Record<LegalLocale, SharedCopy> = {
   en: {
-    draft: "Draft for review. This text is not final and will be reviewed before Bayou opens to the public.",
+    draft: "Draft for review. This text is not final and will be reviewed before KDOM opens to the public.",
     version: "Version",
     contactPrompt: "Questions about this page? Write to us:",
     contactPending: "Our support address will be published here before launch.",
   },
   fr: {
-    draft: "Version provisoire. Ce texte n’est pas définitif et sera révisé avant l’ouverture de Bayou au public.",
+    draft: "Version provisoire. Ce texte n’est pas définitif et sera révisé avant l’ouverture de KDOM au public.",
     version: "Version",
     contactPrompt: "Une question sur cette page ? Écrivez-nous :",
     contactPending: "Notre adresse de support sera publiée ici avant le lancement.",
   },
   ht: {
-    draft: "Bouyon pou revizyon. Tèks sa a poko fini, n ap revize l anvan Bayou louvri pou piblik la.",
+    draft: "Bouyon pou revizyon. Tèks sa a poko fini, n ap revize l anvan KDOM louvri pou piblik la.",
     version: "Vèsyon",
     contactPrompt: "Ou gen yon kesyon sou paj sa a? Ekri nou:",
     contactPending: "N ap pibliye adrès sipò nou an isit la anvan lansman an.",
@@ -40,7 +40,7 @@ const privacy: Record<LegalLocale, LegalDocument> = {
   en: {
     title: "Privacy Policy",
     intro:
-      "Bayou helps people in Haiti and abroad create gift lists and find local merchants. This page explains what information we keep, why, and the choices you have.",
+      "KDOM helps people in Haiti and abroad create gift lists and find local merchants. This page explains what information we keep, why, and the choices you have.",
     sections: [
       {
         heading: "Information we keep",
@@ -65,7 +65,7 @@ const privacy: Record<LegalLocale, LegalDocument> = {
           "Public and unlisted lists can be seen by anyone with the link. Password-protected lists need the password. Private drafts stay private.",
           "The list owner sees the buyer’s name and message, unless the buyer chose to stay anonymous.",
           "A merchant sees only what it needs to prepare and deliver its own orders.",
-          "Authorized Bayou support staff can access records to help you and keep the service safe. Their administrative actions are logged.",
+          "Authorized KDOM support staff can access records to help you and keep the service safe. Their administrative actions are logged.",
           "Service providers that host, store, email or monitor the service for us process data on our behalf. We do not sell personal information.",
         ],
       },
@@ -91,7 +91,7 @@ const privacy: Record<LegalLocale, LegalDocument> = {
   fr: {
     title: "Politique de confidentialité",
     intro:
-      "Bayou aide les personnes en Haïti et à l’étranger à créer des listes de cadeaux et à trouver des commerces locaux. Cette page explique quelles informations nous gardons, pourquoi, et quels choix vous avez.",
+      "KDOM aide les personnes en Haïti et à l’étranger à créer des listes de cadeaux et à trouver des commerces locaux. Cette page explique quelles informations nous gardons, pourquoi, et quels choix vous avez.",
     sections: [
       {
         heading: "Informations conservées",
@@ -116,7 +116,7 @@ const privacy: Record<LegalLocale, LegalDocument> = {
           "Les listes publiques ou non répertoriées sont visibles par toute personne ayant le lien. Les listes protégées demandent le mot de passe. Les brouillons privés restent privés.",
           "Le créateur de la liste voit le nom et le message de l’acheteur, sauf si l’acheteur a choisi de rester anonyme.",
           "Un commerce voit uniquement ce dont il a besoin pour préparer et livrer ses propres commandes.",
-          "Le personnel de support autorisé de Bayou peut consulter les dossiers pour vous aider et protéger le service. Ses actions administratives sont journalisées.",
+          "Le personnel de support autorisé de KDOM peut consulter les dossiers pour vous aider et protéger le service. Ses actions administratives sont journalisées.",
           "Les prestataires qui hébergent, stockent, envoient des e-mails ou surveillent le service pour nous traitent des données pour notre compte. Nous ne vendons pas de données personnelles.",
         ],
       },
@@ -142,7 +142,7 @@ const privacy: Record<LegalLocale, LegalDocument> = {
   ht: {
     title: "Règ sou vi prive",
     intro:
-      "Bayou ede moun ann Ayiti ak lòt bò dlo kreye lis kado epi jwenn machann lokal. Paj sa a esplike ki enfòmasyon nou kenbe, poukisa, ak ki chwa ou genyen.",
+      "KDOM ede moun ann Ayiti ak lòt bò dlo kreye lis kado epi jwenn machann lokal. Paj sa a esplike ki enfòmasyon nou kenbe, poukisa, ak ki chwa ou genyen.",
     sections: [
       {
         heading: "Enfòmasyon nou kenbe",
@@ -167,7 +167,7 @@ const privacy: Record<LegalLocale, LegalDocument> = {
           "Nenpòt moun ki gen lyen an ka wè lis piblik ak lis ki pa nan rechèch. Lis ki gen modpas mande modpas la. Bouyon prive rete prive.",
           "Mèt lis la wè non ak mesaj moun ki achte a, sof si moun nan chwazi rete anonim.",
           "Yon machann wè sèlman sa li bezwen pou prepare ak livre pwòp kòmand li.",
-          "Ekip sipò Bayou ki otorize ka gade dosye yo pou ede ou epi pwoteje sèvis la. Nou anrejistre tout aksyon administratif yo.",
+          "Ekip sipò KDOM ki otorize ka gade dosye yo pou ede ou epi pwoteje sèvis la. Nou anrejistre tout aksyon administratif yo.",
           "Founisè ki loje, estoke, voye imèl oswa siveye sèvis la pou nou trete done pou nou. Nou pa vann enfòmasyon pèsonèl.",
         ],
       },
@@ -195,26 +195,26 @@ const privacy: Record<LegalLocale, LegalDocument> = {
 const terms: Record<LegalLocale, LegalDocument> = {
   en: {
     title: "Terms of Use",
-    intro: "These terms explain how Bayou works and what we expect from everyone who uses it.",
+    intro: "These terms explain how KDOM works and what we expect from everyone who uses it.",
     sections: [
       {
-        heading: "What Bayou is",
+        heading: "What KDOM is",
         body: [
-          "Bayou lets you create gift lists and baskets, share them, and discover products from local merchants. Bayou is not the seller of merchant products.",
+          "KDOM lets you create gift lists and baskets, share them, and discover products from local merchants. KDOM is not the seller of merchant products.",
         ],
       },
       {
         heading: "Merchants are the sellers",
         body: [
           "Each merchant sells its own products, receives payment for them, delivers them and handles cancellations and refunds. Questions about a product, delivery or refund go to that merchant first.",
-          "Online payment through Bayou is not open yet. Gifts bought on other websites are agreements between the buyer and that website.",
-          "Merchants must give accurate information, have the right to sell what they list, keep stock counts honest and honor the orders they accept. Bayou reviews merchants before they appear and may suspend them.",
+          "Online payment through KDOM is not open yet. Gifts bought on other websites are agreements between the buyer and that website.",
+          "Merchants must give accurate information, have the right to sell what they list, keep stock counts honest and honor the orders they accept. KDOM reviews merchants before they appear and may suspend them.",
         ],
       },
       {
         heading: "Fees",
         body: [
-          "Bayou does not currently charge list owners, gift givers or merchants. If that changes, we will announce it on the site before any fee applies. Premium features are an invitation-only pilot and are not sold.",
+          "KDOM does not currently charge list owners, gift givers or merchants. If that changes, we will announce it on the site before any fee applies. Premium features are an invitation-only pilot and are not sold.",
         ],
       },
       {
@@ -233,7 +233,7 @@ const terms: Record<LegalLocale, LegalDocument> = {
       {
         heading: "Service availability",
         body: [
-          "We work to keep Bayou available and secure, but the service may change or be interrupted. To the extent the law allows, Bayou is not responsible for products sold by merchants or for indirect losses.",
+          "We work to keep KDOM available and secure, but the service may change or be interrupted. To the extent the law allows, KDOM is not responsible for products sold by merchants or for indirect losses.",
         ],
       },
       {
@@ -244,26 +244,26 @@ const terms: Record<LegalLocale, LegalDocument> = {
   },
   fr: {
     title: "Conditions d’utilisation",
-    intro: "Ces conditions expliquent le fonctionnement de Bayou et ce que nous attendons de chaque utilisateur.",
+    intro: "Ces conditions expliquent le fonctionnement de KDOM et ce que nous attendons de chaque utilisateur.",
     sections: [
       {
-        heading: "Ce qu’est Bayou",
+        heading: "Ce qu’est KDOM",
         body: [
-          "Bayou permet de créer des listes de cadeaux et des paniers, de les partager et de découvrir les produits de commerces locaux. Bayou n’est pas le vendeur des produits des commerces.",
+          "KDOM permet de créer des listes de cadeaux et des paniers, de les partager et de découvrir les produits de commerces locaux. KDOM n’est pas le vendeur des produits des commerces.",
         ],
       },
       {
         heading: "Les commerces sont les vendeurs",
         body: [
           "Chaque commerce vend ses propres produits, en reçoit le paiement, les livre et gère les annulations et remboursements. Les questions sur un produit, une livraison ou un remboursement s’adressent d’abord à ce commerce.",
-          "Le paiement en ligne via Bayou n’est pas encore ouvert. Un cadeau acheté sur un autre site relève d’un accord entre l’acheteur et ce site.",
-          "Les commerces doivent donner des informations exactes, avoir le droit de vendre ce qu’ils proposent, tenir des stocks honnêtes et honorer les commandes qu’ils acceptent. Bayou vérifie les commerces avant leur publication et peut les suspendre.",
+          "Le paiement en ligne via KDOM n’est pas encore ouvert. Un cadeau acheté sur un autre site relève d’un accord entre l’acheteur et ce site.",
+          "Les commerces doivent donner des informations exactes, avoir le droit de vendre ce qu’ils proposent, tenir des stocks honnêtes et honorer les commandes qu’ils acceptent. KDOM vérifie les commerces avant leur publication et peut les suspendre.",
         ],
       },
       {
         heading: "Frais",
         body: [
-          "Bayou ne facture actuellement ni les créateurs de listes, ni les donateurs, ni les commerces. Si cela change, nous l’annoncerons sur le site avant l’application de tout frais. Les fonctions Premium sont un pilote sur invitation et ne sont pas vendues.",
+          "KDOM ne facture actuellement ni les créateurs de listes, ni les donateurs, ni les commerces. Si cela change, nous l’annoncerons sur le site avant l’application de tout frais. Les fonctions Premium sont un pilote sur invitation et ne sont pas vendues.",
         ],
       },
       {
@@ -282,7 +282,7 @@ const terms: Record<LegalLocale, LegalDocument> = {
       {
         heading: "Disponibilité du service",
         body: [
-          "Nous faisons en sorte que Bayou reste disponible et sûr, mais le service peut évoluer ou être interrompu. Dans la mesure permise par la loi, Bayou n’est pas responsable des produits vendus par les commerces ni des pertes indirectes.",
+          "Nous faisons en sorte que KDOM reste disponible et sûr, mais le service peut évoluer ou être interrompu. Dans la mesure permise par la loi, KDOM n’est pas responsable des produits vendus par les commerces ni des pertes indirectes.",
         ],
       },
       {
@@ -293,26 +293,26 @@ const terms: Record<LegalLocale, LegalDocument> = {
   },
   ht: {
     title: "Kondisyon itilizasyon",
-    intro: "Kondisyon sa yo esplike kijan Bayou mache ak sa nou atann de tout moun k ap itilize l.",
+    intro: "Kondisyon sa yo esplike kijan KDOM mache ak sa nou atann de tout moun k ap itilize l.",
     sections: [
       {
-        heading: "Sa Bayou ye",
+        heading: "Sa KDOM ye",
         body: [
-          "Bayou pèmèt ou kreye lis kado ak pànye, pataje yo, epi dekouvri pwodwi machann lokal yo. Se pa Bayou ki vann pwodwi machann yo.",
+          "KDOM pèmèt ou kreye lis kado ak pànye, pataje yo, epi dekouvri pwodwi machann lokal yo. Se pa KDOM ki vann pwodwi machann yo.",
         ],
       },
       {
         heading: "Se machann yo ki vann",
         body: [
           "Chak machann vann pwòp pwodwi li, resevwa lajan pou yo, livre yo epi okipe anilasyon ak ranbousman. Kesyon sou yon pwodwi, yon livrezon oswa yon ranbousman dwe ale kote machann sa a anvan.",
-          "Peman sou entènèt atravè Bayou poko louvri. Yon kado ou achte sou yon lòt sit se yon antant ant ou menm ak sit sa a.",
-          "Machann yo dwe bay bon enfòmasyon, gen dwa vann sa yo mete, kenbe kantite stòk yo onèt epi respekte kòmand yo aksepte. Bayou verifye machann yo anvan yo parèt epi li ka sispann yo.",
+          "Peman sou entènèt atravè KDOM poko louvri. Yon kado ou achte sou yon lòt sit se yon antant ant ou menm ak sit sa a.",
+          "Machann yo dwe bay bon enfòmasyon, gen dwa vann sa yo mete, kenbe kantite stòk yo onèt epi respekte kòmand yo aksepte. KDOM verifye machann yo anvan yo parèt epi li ka sispann yo.",
         ],
       },
       {
         heading: "Frè",
         body: [
-          "Kounye a Bayou pa fè mèt lis, moun k ap bay kado oswa machann peye anyen. Si sa chanje, n ap anonse l sou sit la anvan nenpòt frè aplike. Fonksyon Premium yo se yon esè sou envitasyon, nou pa vann yo.",
+          "Kounye a KDOM pa fè mèt lis, moun k ap bay kado oswa machann peye anyen. Si sa chanje, n ap anonse l sou sit la anvan nenpòt frè aplike. Fonksyon Premium yo se yon esè sou envitasyon, nou pa vann yo.",
         ],
       },
       {
@@ -331,7 +331,7 @@ const terms: Record<LegalLocale, LegalDocument> = {
       {
         heading: "Disponiblite sèvis la",
         body: [
-          "Nou travay pou Bayou rete disponib ak an sekirite, men sèvis la ka chanje oswa kanpe pou yon ti tan. Nan limit lalwa pèmèt, Bayou pa responsab pwodwi machann yo vann ni pèt endirèk.",
+          "Nou travay pou KDOM rete disponib ak an sekirite, men sèvis la ka chanje oswa kanpe pou yon ti tan. Nan limit lalwa pèmèt, KDOM pa responsab pwodwi machann yo vann ni pèt endirèk.",
         ],
       },
       {
@@ -345,19 +345,19 @@ const terms: Record<LegalLocale, LegalDocument> = {
 const contact: Record<LegalLocale, { title: string; intro: string; merchants: string; privacy: string }> = {
   en: {
     title: "Contact us",
-    intro: "Write to us for help with your account, a list, or anything on Bayou.",
+    intro: "Write to us for help with your account, a list, or anything on KDOM.",
     merchants: "For a question about a product, a delivery or a refund, contact the merchant first: merchants are the sellers.",
     privacy: "To download or delete your data, use Settings. For any other privacy request, write to the address above.",
   },
   fr: {
     title: "Contactez-nous",
-    intro: "Écrivez-nous pour obtenir de l’aide avec votre compte, une liste ou tout ce qui concerne Bayou.",
+    intro: "Écrivez-nous pour obtenir de l’aide avec votre compte, une liste ou tout ce qui concerne KDOM.",
     merchants: "Pour une question sur un produit, une livraison ou un remboursement, contactez d’abord le commerce : ce sont les commerces qui vendent.",
     privacy: "Pour télécharger ou supprimer vos données, utilisez les Paramètres. Pour toute autre demande liée à la vie privée, écrivez à l’adresse ci-dessus.",
   },
   ht: {
     title: "Kontakte nou",
-    intro: "Ekri nou si ou bezwen èd ak kont ou, yon lis oswa nenpòt bagay sou Bayou.",
+    intro: "Ekri nou si ou bezwen èd ak kont ou, yon lis oswa nenpòt bagay sou KDOM.",
     merchants: "Pou yon kesyon sou yon pwodwi, yon livrezon oswa yon ranbousman, kontakte machann nan anvan: se machann yo ki vann.",
     privacy: "Pou telechaje oswa efase done ou, sèvi ak Paramèt. Pou nenpòt lòt demann sou vi prive, ekri nan adrès ki anwo a.",
   },
