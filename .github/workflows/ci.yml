@@ -148,7 +148,8 @@ jobs:
       - name: Check changed files against .github/ownership.json
         env:
           OWNERSHIP_BASE: origin/${{ github.base_ref }}
-        run: npx tsx scripts/check-ownership.ts "${{ github.head_ref }}"
+          HEAD_REF: ${{ github.head_ref }}
+        run: npx tsx scripts/check-ownership.ts "$HEAD_REF"
 
   build:
     name: "Build"
