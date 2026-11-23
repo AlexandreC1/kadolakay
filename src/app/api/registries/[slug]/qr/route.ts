@@ -1,6 +1,8 @@
 import { z } from "zod";
 import { entitySlugSchema } from "@/lib/validators/entity-id";
 import { createPublicRegistryQr } from "@/services/registry-qr";
+import { checkRateLimit } from "@/lib/rate-limit";
+import { rateLimitClientKey } from "@/lib/client-ip";
 
 export const runtime = "nodejs";
 const querySchema = z.strictObject({ locale: z.enum(["ht", "fr", "en"]).default("ht") });
@@ -10,6 +12,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
   const search = new URL(request.url).searchParams;
   const query = querySchema.safeParse(Object.fromEntries(search));
   if (!entitySlugSchema.safeParse(slug).success || !query.success || [...search.keys()].length !== new Set(search.keys()).size) return Response.json({ error: "INVALID_QR_REQUEST" }, { status: 400, headers });
+  const limit = await checkRateLimit("general", `registry-qr:${rateLimitClientKey(request.headers)}`);
+  if (!limit.ok) return Response.json({ error: limit.unavailable ? "QR_UNAVAILABLE" : "RATE_LIMITED" }, { status: limit.unavailable ? 503 : 429, headers });
   const base = process.env.NEXT_PUBLIC_APP_URL || (process.env.NODE_ENV === "production" ? null : "http://localhost:3000");
   if (!base) return Response.json({ error: "QR_UNAVAILABLE" }, { status: 503, headers });
   try {

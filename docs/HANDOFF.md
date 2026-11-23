@@ -1,5 +1,9 @@
 # Bayou engineering handoff
 
+## 2026-11-23: QR endpoint resource protection
+
+On `codex/kdom-release-integration`, the public QR-card route checks the existing shared general rate limiter using the trusted client identity before any registry lookup or image rendering. It returns 429 for an exhausted limit and 503 if the limiter is unavailable. This does not change registry visibility. Eighteen focused endpoint and QR tests, targeted lint, and 355 web unit tests passed; 78 database cases were skipped by the unit command and were not rerun for this route change. A fresh web dependency audit found 3 high and 11 moderate paths, including an `effect` advisory through Prisma; it remains a release gate. No production deployment or hosted rate-limiter verification was performed.
+
 ## November 2: Claude compliance quick wins (branch claude/compliance-quickwins)
 
 Based on codex/quality-loop d32a2a9 (on codex/offline-completion 9754b15). Added draft Privacy, Terms and Contact pages (ht/fr/en, footer links, support address from SUPPORT_EMAIL only), Settings data export (JSON route, no secrets) and account deletion (tombstone user, scrub or delete lists, anonymize purchases; blocked for admins, active purchases, open refunds and merchants with order history; audited ACCOUNT_DELETED). Fixed rate-limit identity on Netlify functions, where NETLIFY=true is not present at runtime (detect SITE_ID plus SITE_NAME, optional CLIENT_IP_HEADER allowlist, logged fallback). .env.example now lists DIRECT_DATABASE_URL, DATA_ENCRYPTION_KEY, DATA_ENCRYPTION_PREVIOUS_KEYS, SUPPORT_EMAIL, CLIENT_IP_HEADER; release check requires SUPPORT_EMAIL. No migration.

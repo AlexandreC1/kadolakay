@@ -1,10 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 const generate = vi.hoisted(() => vi.fn());
+const limit = vi.hoisted(() => vi.fn());
 vi.mock("@/services/registry-qr", () => ({ createPublicRegistryQr: generate }));
+vi.mock("@/lib/rate-limit", () => ({ checkRateLimit: limit }));
 import { GET } from "./route";
 const context = { params: Promise.resolve({ slug: "our-wedding" }) };
 describe("public registry QR endpoint", () => {
-  beforeEach(() => { generate.mockReset(); vi.stubEnv("NEXT_PUBLIC_APP_URL", "https://kadolakay.example"); });
+  beforeEach(() => { generate.mockReset(); limit.mockReset(); limit.mockResolvedValue({ ok: true }); vi.stubEnv("NEXT_PUBLIC_APP_URL", "https://kadolakay.example"); });
   afterEach(() => { vi.unstubAllEnvs(); });
   it("uses the configured origin, returns PNG with no shared cache or sniffing", async () => {
     generate.mockResolvedValue(Buffer.from("png"));
@@ -28,5 +30,14 @@ describe("public registry QR endpoint", () => {
     const response = await GET(new Request("https://kadolakay.example/api/registries/our-wedding/qr"), context);
     expect(response.status).toBe(503);
     expect(await response.json()).toEqual({ error: "QR_UNAVAILABLE" });
+  });
+  it.each([{ unavailable: false, status: 429, error: "RATE_LIMITED" }, { unavailable: true, status: 503, error: "QR_UNAVAILABLE" }])("stops rendering when the rate limit blocks a request", async ({ unavailable, status, error }) => {
+    limit.mockResolvedValue({ ok: false, unavailable });
+    const response = await GET(new Request("https://kadolakay.example/api/registries/our-wedding/qr"), context);
+    expect(response.status).toBe(status);
+    expect(await response.json()).toEqual({ error });
+    expect(response.headers.get("cache-control")).toBe("no-store");
+    expect(generate).not.toHaveBeenCalled();
+    expect(limit).toHaveBeenCalledWith("general", expect.stringMatching(/^registry-qr:/));
   });
 });

@@ -1,5 +1,9 @@
 # KadoLakay decision log
 
+### November 23: Bound public QR rendering
+
+Use the existing shared general limiter with a QR-specific key before public card generation. Fail closed on limiter failure and preserve existing visibility rules. This reduces repeated work per client but does not replace a distributed load test or verification of the hosted limiter.
+
 ### October 29: GitHub source checkpoint verified
 
 Owner asked to continue and ensure everything was pushed. Created and pushed code checkpoint e9fdb70599e54e24da04688b0cc21cca48a341a8 on codex/ship-ready-mvp, verified exact remote hash plus0/0 divergence and clean working tree. Main unchanged; no deployment. Ignored environment secrets, runtime dependencies and local database remain local. A documentation follow-up records this verification. Existing basket/release blockers remain open and source synchronization must not imply product completion.

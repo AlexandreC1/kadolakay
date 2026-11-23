@@ -14,6 +14,7 @@ Updated 2026-11-17. This branch starts from `claude/mobile-app` at `759a56a`, th
 - [x] Run the affected mobile integration suite against a fresh disposable local PostgreSQL database: 13 tests passed.
 - [x] 2026-11-17: After updating Next.js, 353 unit tests passed with 78 DB tests skipped; all 78 passed separately against disposable PostgreSQL. Production build and TypeScript passed; full lint had 0 errors and 9 warnings. One concurrent two-worker run had a worker crash and was rerun successfully with one worker.
 - [x] 2026-11-17: Updated Next.js and eslint-config-next from 16.4.3 to 16.4.6. npm audit no longer reports GHSA-mfr8-8qww-v76h; 11 moderate findings remain. The patch is not deployed.
+- [x] 2026-11-23: Rate-limit public QR card generation before database lookup and image rendering using the shared limiter; deny requests when the limiter is unavailable. Focused endpoint and scannable-card tests passed (18), targeted lint passed, and the web unit suite passed 355 tests with 78 database cases skipped. This is not evidence of a deployed rate limiter or a distributed load test.
 
 ## Open release gates
 
@@ -25,7 +26,7 @@ Updated 2026-11-17. This branch starts from `claude/mobile-app` at `759a56a`, th
 - [ ] Validate public Google sign-in, approved consent-screen branding, verified email delivery, domain and callback configuration. Test two-device sign-in and shared-list flows on a staging release.
 - [x] Updated mobile Vitest from 3.x to 5.1.0; its two critical audit findings no longer appear. Mobile tests and type checking passed.
 - [ ] Assess the mobile dependency audit: 37 high and seven moderate findings after the test-runner update; the audit with dev dependencies omitted still reports 33 high and three moderate. Investigate reachability and compatible fixes; do not force an Expo/React Native downgrade. Most high-severity paths trace to [GHSA-fc5q-39xc-vjpf](https://github.com/advisories/GHSA-fc5q-39xc-vjpf), which listed no patched picomatch release on 2026-11-17. Audit counts describe dependency paths, not confirmed exploitable application bugs.
-- [ ] Resolve or assess the remaining 11 moderate web dependency findings.
+- [ ] Assess and resolve web dependency findings. On 2026-11-23 `npm audit` reported 3 high and 11 moderate dependency paths; `--omit=dev` reported 3 high and 5 moderate. The high paths trace to `effect` via Prisma configuration ([GHSA-7589-6fvf-x4pw](https://github.com/advisories/GHSA-7589-6fvf-x4pw)); npm proposes a major Prisma downgrade, which has not been applied. Audit counts are paths, not demonstrated runtime exploitation. Recheck compatible fixes and reachability before release.
 - [x] 2026-11-17: After the KDOM source changes, the web suite passed 353 tests with 78 DB cases skipped in that command, web production build passed, lint had no errors and nine warnings; mobile suite passed nine tests, type checking, lint and Expo web export passed. The earlier 78 PostgreSQL tests passed separately before this branding-only pass.
 - [ ] Complete a release-candidate run of the full tests, database tests, production build, lint, dependency audit, security/accessibility checks and constrained-network mobile performance measurements on the final commit.
 - [ ] Review legal and merchant terms for the actual Haitian business and markets. Confirm budget and operating responsibilities.
