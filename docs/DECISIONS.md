@@ -1,5 +1,9 @@
 # KadoLakay decision log
 
+### November 23: Narrow Prisma dependency override
+
+Use a scoped `@prisma/config` override for the patched `effect` 3.22.5 instead of npm audit's proposed Prisma downgrade. The override departs from Prisma's exact pin; validate generation, migrations, database integration and builds, and remove it when a compatible upstream fix is available.
+
 ### November 23: Bound public QR rendering
 
 Use the existing shared general limiter with a QR-specific key before public card generation. Fail closed on limiter failure and preserve existing visibility rules. This reduces repeated work per client but does not replace a distributed load test or verification of the hosted limiter.

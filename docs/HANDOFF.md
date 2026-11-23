@@ -1,5 +1,9 @@
 # Bayou engineering handoff
 
+## 2026-11-23: Prisma dependency security update
+
+The release integration branch overrides `effect` to 3.22.5 only under `@prisma/config`, addressing GHSA-7589-6fvf-x4pw without downgrading Prisma. This exceeds Prisma's exact pin and should be removed once upstream supports a patched version. Prisma generation, 22 migrations on a disposable local PostgreSQL instance, all 78 database tests and the production build passed. Fresh npm audit results: web zero high and 11 moderate (five moderate omitting dev); mobile zero high and 10 moderate (five moderate omitting dev). The mobile lockfile was not changed. Remaining advisories and hosted release checks remain open.
+
 ## 2026-11-23: QR endpoint resource protection
 
 On `codex/kdom-release-integration`, the public QR-card route checks the existing shared general rate limiter using the trusted client identity before any registry lookup or image rendering. It returns 429 for an exhausted limit and 503 if the limiter is unavailable. This does not change registry visibility. Eighteen focused endpoint and QR tests, targeted lint, and 355 web unit tests passed; 78 database cases were skipped by the unit command and were not rerun for this route change. A fresh web dependency audit found 3 high and 11 moderate paths, including an `effect` advisory through Prisma; it remains a release gate. No production deployment or hosted rate-limiter verification was performed.
